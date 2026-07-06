@@ -1,0 +1,990 @@
+{
+  "source_site": "https://sushi-crazy.myctlg.ru",
+  "product_count": 61,
+  "photo_count": 61,
+  "failures": [],
+  "products": [
+    {
+      "index": 1,
+      "id": "09d786db-e8e7-457d-a323-491b2e464a84",
+      "title": "Грандбургер (куриный)",
+      "slug": "grandburger-kurinyj",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "330 г (820 ккал)",
+      "price": "180 ₽",
+      "description": "Состав: булочка, 2 куриные котлеты, сыр, салат, маринованный огурец, соус Пищевая ценность на порцию: Б42 / Ж45 / У58",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/grandburger-kurinyj",
+      "files": [
+        "photos/01_grandburger_kurinyj__grandburger-kurinyj.webp"
+      ]
+    },
+    {
+      "index": 2,
+      "id": "ceee929a-3e86-41d0-860d-ecbdbfad5d8d",
+      "title": "Грандбургер (говяжий)",
+      "slug": "grandburger-govyazhij",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "330 г (900 ккал)",
+      "price": "190 ₽",
+      "description": "Состав: булочка, 2 говяжьи котлеты, сыр, салат, маринованный огурец, соус Пищевая ценность на порцию: Б45 / Ж55 / У58",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/grandburger-govyazhij",
+      "files": [
+        "photos/02_grandburger_govyazhij__grandburger-govyazhij.webp"
+      ]
+    },
+    {
+      "index": 3,
+      "id": "b79df8f8-44d0-44ce-ae6f-d990ed9e9a3b",
+      "title": "Роллер",
+      "slug": "roller",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "250 г (610 ккал)",
+      "price": "200 ₽",
+      "description": "Состав: лепёшка, мясная начинка, сыр, соус, овощи Пищевая ценность на порцию: Б25 / Ж28 / У65",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/roller",
+      "files": [
+        "photos/03_roller__roller.webp"
+      ]
+    },
+    {
+      "index": 4,
+      "id": "7013ff63-d41e-4486-9363-46812fdf9cf8",
+      "title": "Хот-дог",
+      "slug": "hot-dog",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "180 г (420 ккал)",
+      "price": "140 ₽",
+      "description": "Состав: булочка, сосиска, горчица, кетчуп, салат Пищевая ценность на порцию: Б14 / Ж22 / У42",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/hot-dog",
+      "files": [
+        "photos/04_hot_dog__hot-dog.webp"
+      ]
+    },
+    {
+      "index": 5,
+      "id": "adfc3a88-9588-409e-8d79-7d711e26b260",
+      "title": "Гиро на тарелке",
+      "slug": "giro-na-tarelke",
+      "category": [
+        "Фаст-фуд",
+        "Популярное"
+      ],
+      "subtitle": "450 г (980 ккал)",
+      "price": "350 ₽",
+      "description": "Состав: курица (гиро), картофель фри, пита, помидор, огурец, лук, соус (чесночный/дзадзики) Пищевая ценность на порцию: Б38 / Ж45 / У105",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/giro-na-tarelke",
+      "files": [
+        "photos/05_giro_na_tarelke__giro-na-tarelke.webp"
+      ]
+    },
+    {
+      "index": 6,
+      "id": "b4775eb2-d49f-4a52-8c2b-0e33c20cc2be",
+      "title": "Гамбургер (куриный)",
+      "slug": "gamburger-kurinyj",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "170 г (410 ккал)",
+      "price": "125 ₽",
+      "description": "Состав: булочка, куриная котлета, маринованный огурец, кетчуп, горчица Пищевая ценность на порцию: Б18 / Ж18 / У44",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/gamburger-kurinyj",
+      "files": [
+        "photos/06_gamburger_kurinyj__gamburger-kurinyj.webp"
+      ]
+    },
+    {
+      "index": 7,
+      "id": "77a3f64b-013c-4ac6-9e2a-3133dce45aeb",
+      "title": "Гамбургер (говяжий)",
+      "slug": "gamburger-govyazhij",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "170 г (470 ккал)",
+      "price": "135 ₽",
+      "description": "Состав: булочка, говяжья котлета, маринованный огурец, кетчуп, горчица Пищевая ценность на порцию: Б20 / Ж25 / У44",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/gamburger-govyazhij",
+      "files": [
+        "photos/07_gamburger_govyazhij__gamburger-govyazhij.webp"
+      ]
+    },
+    {
+      "index": 8,
+      "id": "778fa89b-d4b6-47f5-99c1-fc6ac3c62c86",
+      "title": "Чизбургер (куриный)",
+      "slug": "chizburger-kurinyj",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "190 г (470 ккал)",
+      "price": "135 ₽",
+      "description": "Состав: булочка, куриная котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б22 / Ж22 / У46",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/chizburger-kurinyj",
+      "files": [
+        "photos/08_chizburger_kurinyj__chizburger-kurinyj.webp"
+      ]
+    },
+    {
+      "index": 9,
+      "id": "50978a06-f564-4ba6-87d6-d3a5a7dd0d6f",
+      "title": "Чизбургер (говяжий)",
+      "slug": "chizburger-govyazhij",
+      "category": [
+        "Фаст-фуд",
+        "Популярное"
+      ],
+      "subtitle": "190 г (540 ккал)",
+      "price": "145 ₽",
+      "description": "Состав: булочка, говяжья котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б24 / Ж30 / У46",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/chizburger-govyazhij",
+      "files": [
+        "photos/09_chizburger_govyazhij__chizburger-govyazhij.webp"
+      ]
+    },
+    {
+      "index": 10,
+      "id": "5961beec-ad94-411c-afe5-2c63c92aaab3",
+      "title": "Кранч",
+      "slug": "kranch",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "260 г (680 ккал)",
+      "price": "220 ₽",
+      "description": "Состав: лепёшка, курица (кусочки), сыр, помидор, салат, соус Пищевая ценность на порцию: Б30 / Ж30 / У70",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kranch",
+      "files": [
+        "photos/10_kranch__kranch.webp"
+      ]
+    },
+    {
+      "index": 11,
+      "id": "f342faa1-52f9-4de7-bd9d-c7f10e6508da",
+      "title": "Стрипсы",
+      "slug": "stripsy",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "160 г (430 ккал)",
+      "price": "210 ₽",
+      "description": "Состав: куриное филе в панировке Пищевая ценность на порцию: Б28 / Ж22 / У30",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/stripsy",
+      "files": [
+        "photos/11_stripsy__stripsy.webp"
+      ]
+    },
+    {
+      "index": 12,
+      "id": "a57dea5c-c036-4396-a262-8e772d2ef25b",
+      "title": "Наггетсы (10 шт)",
+      "slug": "naggetsy-10-sht",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "200 г (520 ккал)",
+      "price": "225 ₽",
+      "description": "Состав: куриное филе в панировке Пищевая ценность на порцию: Б30 / Ж28 / У38",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/naggetsy-10-sht",
+      "files": [
+        "photos/12_naggetsy_10_sht__naggetsy-10-sht.webp"
+      ]
+    },
+    {
+      "index": 13,
+      "id": "78554072-6b03-422f-a4ad-80eaec70656b",
+      "title": "Картошка по деревенски",
+      "slug": "kartoshka-po-derevenski",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "180 г (420 ккал)",
+      "price": "150 ₽",
+      "description": "Состав: картофельные дольки, специи, соль Пищевая ценность на порцию: Б6 / Ж16 / У62",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kartoshka-po-derevenski",
+      "files": [
+        "photos/13_kartoshka_po_derevenski__kartoshka-po-derevenski.webp"
+      ]
+    },
+    {
+      "index": 14,
+      "id": "fcbfc0a9-b688-4656-9b16-9680b916c976",
+      "title": "Картошка фри",
+      "slug": "kartoshka-fri",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "150 г (470 ккал)",
+      "price": "135 ₽",
+      "description": "Состав: картофель, соль Пищевая ценность на порцию: Б5 / Ж22 / У60",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kartoshka-fri",
+      "files": [
+        "photos/14_kartoshka_fri__kartoshka-fri.webp"
+      ]
+    },
+    {
+      "index": 15,
+      "id": "10b81a02-1734-4192-990f-1d6a0a6eb405",
+      "title": "Крылышки (3 шт)",
+      "slug": "krylyshki-3-sht",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "180 г (520 ккал)",
+      "price": "160 ₽",
+      "description": "Состав: куриные крылышки в панировке/маринаде, специи Пищевая ценность на порцию: Б28 / Ж35 / У18",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/krylyshki-3-sht",
+      "files": [
+        "photos/15_krylyshki_3_sht__krylyshki-3-sht.webp"
+      ]
+    },
+    {
+      "index": 16,
+      "id": "18309b82-fd57-4dab-ad37-0f5c4428b182",
+      "title": "Крылышки (6 шт)",
+      "slug": "krylyshki-6-sht",
+      "category": [
+        "Фаст-фуд"
+      ],
+      "subtitle": "360 г (1040 ккал)",
+      "price": "290 ₽",
+      "description": "Состав: куриные крылышки в панировке/маринаде, специи Пищевая ценность на порцию: Б56 / Ж70 / У36",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/krylyshki-6-sht",
+      "files": [
+        "photos/16_krylyshki_6_sht__krylyshki-6-sht.webp"
+      ]
+    },
+    {
+      "index": 17,
+      "id": "5cb9037b-7265-4979-9758-ada894efe893",
+      "title": "Бизнес Ланч",
+      "slug": "biznes-lanch",
+      "category": [
+        "Фаст-фуд",
+        "Популярное"
+      ],
+      "subtitle": "430 г (1020 ккал)",
+      "price": "300 ₽",
+      "description": "Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/biznes-lanch",
+      "files": [
+        "photos/17_biznes_lanch__biznes-lanch.webp"
+      ]
+    },
+    {
+      "index": 18,
+      "id": "832e7209-9775-4715-8ab0-b18e24885b72",
+      "title": "Калифорния с крабом",
+      "slug": "kaliforniya-s-krabom",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "240 г (420 ккал)",
+      "price": "300 ₽",
+      "description": "Состав: рис, нори, краб, тобико, огурец, майонез Пищевая ценность на порцию: Б13 / Ж13 / У60",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kaliforniya-s-krabom",
+      "files": [
+        "photos/18_kaliforniya_s_krabom__kaliforniya-s-krabom.webp"
+      ]
+    },
+    {
+      "index": 19,
+      "id": "e95a264d-ad3d-4681-8479-6e90714f7fd8",
+      "title": "Калифорния с лососем",
+      "slug": "kaliforniya-s-lososem",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "240 г (430 ккал)",
+      "price": "340 ₽",
+      "description": "Состав: рис, нори, лосось, тобико, огурец, майонез Пищевая ценность на порцию: Б16 / Ж14 / У58",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kaliforniya-s-lososem",
+      "files": [
+        "photos/19_kaliforniya_s_lososem__kaliforniya-s-lososem.webp"
+      ]
+    },
+    {
+      "index": 20,
+      "id": "ccb55791-7e2c-4d8b-ba9c-2f4ba557637f",
+      "title": "Филадельфия",
+      "slug": "filadelfiya",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "250 г (480 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: рис, нори, лосось, огурец, сыр Пищевая ценность на порцию: Б20 / Ж18 / У58",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/filadelfiya",
+      "files": [
+        "photos/20_filadelfiya__filadelfiya.webp"
+      ]
+    },
+    {
+      "index": 21,
+      "id": "7cd86a06-01f8-480c-8327-347f03b6b573",
+      "title": "Ролл нежный",
+      "slug": "roll-nezhnyj",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "260 г (520 ккал)",
+      "price": "300 ₽",
+      "description": "Состав: рис, нори, краб, огурец, сыр, карамельный соус, соус спайси, унаги соус Пищевая ценность на порцию: Б16 / Ж22 / У64",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/roll-nezhnyj",
+      "files": [
+        "photos/21_roll_nezhnyj__roll-nezhnyj.webp"
+      ]
+    },
+    {
+      "index": 22,
+      "id": "18e40f60-2493-40ca-ab2b-4b02dafac2cf",
+      "title": "Эби маки",
+      "slug": "ebi-maki",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "120 г (190 ккал)",
+      "price": "190 ₽",
+      "description": "Состав: рис, нори, креветка Пищевая ценность на порцию: Б9 / Ж2 / У34",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/ebi-maki",
+      "files": [
+        "photos/22_ebi_maki__ebi-maki.webp"
+      ]
+    },
+    {
+      "index": 23,
+      "id": "1ed9df00-1f24-4acc-980d-4c1f31259394",
+      "title": "Бешенный лосось",
+      "slug": "beshennyj-losos",
+      "category": [
+        "Роллы",
+        "Популярное"
+      ],
+      "subtitle": "260 г (540 ккал)",
+      "price": "350 ₽",
+      "description": "Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/beshennyj-losos",
+      "files": [
+        "photos/23_beshennyj_losos__beshennyj-losos.webp"
+      ]
+    },
+    {
+      "index": 24,
+      "id": "5596751e-00ad-4ce1-afd8-efb33819fab2",
+      "title": "Горячий шик",
+      "slug": "goryachij-shik",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "270 г (560 ккал)",
+      "price": "350 ₽",
+      "description": "Состав: рис, нори, лосось, огурец, сыр, кляр, карамель, унаги соус Пищевая ценность на порцию: Б20 / Ж26 / У62",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/goryachij-shik",
+      "files": [
+        "photos/24_goryachij_shik__goryachij-shik.webp"
+      ]
+    },
+    {
+      "index": 25,
+      "id": "4d8e88c4-e051-48fb-b63c-6d32f6cb47a4",
+      "title": "Сяки темпура",
+      "slug": "syaki-tempura",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "270 г (590 ккал)",
+      "price": "340 ₽",
+      "description": "Состав: рис, нори, лосось, огурец, сыр, кляр, сухари, унаги соус Пищевая ценность на порцию: Б21 / Ж28 / У63",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/syaki-tempura",
+      "files": [
+        "photos/25_syaki_tempura__syaki-tempura.webp"
+      ]
+    },
+    {
+      "index": 26,
+      "id": "4c9d12dc-cca2-403e-bbec-d70fed5626f7",
+      "title": "Ролл крэйзи",
+      "slug": "roll-krejzi",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "250 г (500 ккал)",
+      "price": "330 ₽",
+      "description": "Состав: рис, нори, лосось, огурец, сыр, унаги соус, тобико Пищевая ценность на порцию: Б19 / Ж20 / У58",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/roll-krejzi",
+      "files": [
+        "photos/26_roll_krejzi__roll-krejzi.webp"
+      ]
+    },
+    {
+      "index": 27,
+      "id": "385423e3-d17e-4615-ab4f-40742b3669b1",
+      "title": "Эби темпура",
+      "slug": "ebi-tempura",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "270 г (610 ккал)",
+      "price": "340 ₽",
+      "description": "Состав: рис, нори, огурец, сыр, креветка, кляр, сухари, унаги соус Пищевая ценность на порцию: Б20 / Ж30 / У65",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/ebi-tempura",
+      "files": [
+        "photos/27_ebi_tempura__ebi-tempura.webp"
+      ]
+    },
+    {
+      "index": 28,
+      "id": "1edabba4-ff3c-438d-99c6-ee34f6dc45ef",
+      "title": "Кани темпура",
+      "slug": "kani-tempura",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "270 г (620 ккал)",
+      "price": "300 ₽",
+      "description": "Состав: рис, нори, краб, сыр, огурец, унаги соус, кляр, сухари Пищевая ценность на порцию: Б18 / Ж32 / У66",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kani-tempura",
+      "files": [
+        "photos/28_kani_tempura__kani-tempura.webp"
+      ]
+    },
+    {
+      "index": 29,
+      "id": "d6e257c5-dfa6-4684-86b9-1f7b106edaaf",
+      "title": "Тори темпура",
+      "slug": "tori-tempura",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "280 г (640 ккал)",
+      "price": "300 ₽",
+      "description": "Состав: рис, нори, огурец, сыр, кляр, курица, унаги соус, сухари Пищевая ценность на порцию: Б23 / Ж31 / У66",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/tori-tempura",
+      "files": [
+        "photos/29_tori_tempura__tori-tempura.webp"
+      ]
+    },
+    {
+      "index": 30,
+      "id": "ff02a964-c450-438b-8e78-c49618cf3105",
+      "title": "Цунами",
+      "slug": "cunami",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "260 г (520 ккал)",
+      "price": "330 ₽",
+      "description": "Состав: рис, нори, лосось, огурец, майонез, краб, соус спайси Пищевая ценность на порцию: Б18 / Ж22 / У60",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/cunami",
+      "files": [
+        "photos/30_cunami__cunami.webp"
+      ]
+    },
+    {
+      "index": 31,
+      "id": "60b9059d-9443-4048-8062-569ad73c81b0",
+      "title": "Сакура",
+      "slug": "sakura",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "250 г (470 ккал)",
+      "price": "330 ₽",
+      "description": "Состав: рис, нори, лосось, огурец, сыр, тобико Пищевая ценность на порцию: Б18 / Ж16 / У60",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/sakura",
+      "files": [
+        "photos/31_sakura__sakura.webp"
+      ]
+    },
+    {
+      "index": 32,
+      "id": "b83b7240-1fc7-4886-a416-d7f88a243f0c",
+      "title": "Калифорния с креветкой",
+      "slug": "kaliforniya-s-krevetkoj",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "240 г (410 ккал)",
+      "price": "340 ₽",
+      "description": "Состав: рис, нори, майонез, огурец, креветка, тобико Пищевая ценность на порцию: Б14 / Ж12 / У60",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kaliforniya-s-krevetkoj",
+      "files": [
+        "photos/32_kaliforniya_s_krevetkoj__kaliforniya-s-krevetkoj.webp"
+      ]
+    },
+    {
+      "index": 33,
+      "id": "eaf8ed68-dad7-494d-acaa-c7af5c6f10b9",
+      "title": "Каппа маки",
+      "slug": "kappa-maki",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "120 г (170 ккал)",
+      "price": "140 ₽",
+      "description": "Состав: рис, нори, огурец Пищевая ценность на порцию: Б4 / Ж1 / У36",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kappa-maki",
+      "files": [
+        "photos/33_kappa_maki__kappa-maki.webp"
+      ]
+    },
+    {
+      "index": 34,
+      "id": "84bbaf64-376f-4c41-991f-bd4a6f3d9a75",
+      "title": "Кани маки",
+      "slug": "kani-maki",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "120 г (180 ккал)",
+      "price": "150 ₽",
+      "description": "Состав: рис, нори, краб Пищевая ценность на порцию: Б6 / Ж2 / У34",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kani-maki",
+      "files": [
+        "photos/34_kani_maki__kani-maki.webp"
+      ]
+    },
+    {
+      "index": 35,
+      "id": "1f8f9e47-6009-46a5-93e0-62817d3490e7",
+      "title": "Сяки маки",
+      "slug": "syaki-maki",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "120 г (200 ккал)",
+      "price": "190 ₽",
+      "description": "Состав: рис, нори, лосось Пищевая ценность на порцию: Б12 / Ж4 / У32",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/syaki-maki",
+      "files": [
+        "photos/35_syaki_maki__syaki-maki.webp"
+      ]
+    },
+    {
+      "index": 36,
+      "id": "0719fe46-8b9b-4110-959c-037f8c99c599",
+      "title": "Ойси",
+      "slug": "ojsi",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "270 г (560 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: рис, нори, лосось, огурец, сыр, тобико, креветка, соус спайси, унаги соус Пищевая ценность на порцию: Б22 / Ж24 / У62",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/ojsi",
+      "files": [
+        "photos/36_ojsi__ojsi.webp"
+      ]
+    },
+    {
+      "index": 37,
+      "id": "4cefdec8-c8a7-409e-90e5-63004848f9c6",
+      "title": "Креветки в кляре",
+      "slug": "krevetki-v-klyare",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "180 г (460 ккал)",
+      "price": "380 ₽",
+      "description": "Состав: креветки, кляр Пищевая ценность на порцию: Б26 / Ж22 / У38",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/krevetki-v-klyare",
+      "files": [
+        "photos/37_krevetki_v_klyare__krevetki-v-klyare.webp"
+      ]
+    },
+    {
+      "index": 38,
+      "id": "2de2e963-5127-4909-813d-e08732c0f2df",
+      "title": "Ролл сендвич",
+      "slug": "roll-sendvich",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "150 г (200 ккал)",
+      "price": "350 ₽",
+      "description": "Состав: рис,нори,творожный сыр,масаго,лосось,кляр,сухари,унаги соус",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/roll-sendvich",
+      "files": [
+        "photos/38_roll_sendvich__roll-sendvich.webp"
+      ]
+    },
+    {
+      "index": 39,
+      "id": "26400279-e294-4f1c-8a26-65045174ee09",
+      "title": "Гудзон(запеченный ролл)",
+      "slug": "gudzonzapechennyj-roll",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "220 г (540 калл)",
+      "price": "370 ₽",
+      "description": "Состав: рис, сыр, Масаго, огурец, нори, лосось, спайси соус",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/gudzonzapechennyj-roll",
+      "files": [
+        "photos/39_gudzon_zapechennyj_roll__gudzonzapechennyj-roll.webp"
+      ]
+    },
+    {
+      "index": 40,
+      "id": "7adf1bc2-c365-44dd-9e88-df29940369ab",
+      "title": "Запеченная Филодельфия",
+      "slug": "zapechennaya-filodelfiya",
+      "category": [
+        "Роллы"
+      ],
+      "subtitle": "250 г (480 ккал)",
+      "price": "420 ₽",
+      "description": "Состав: рис, сыр, огурцы, нори, лосось, спайси соус",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/zapechennaya-filodelfiya",
+      "files": [
+        "photos/40_zapechennaya_filodelfiya__zapechennaya-filodelfiya.webp"
+      ]
+    },
+    {
+      "index": 41,
+      "id": "64d007b8-b1de-4ebe-be3a-9eb5eb993d39",
+      "title": "Сет классик",
+      "slug": "set-klassik",
+      "category": [
+        "Сеты"
+      ],
+      "subtitle": "1020г (2000ккал)",
+      "price": "1 200 ₽",
+      "description": "Калифорния с крабом Филадельфия Бешенный лосось Горячий шик",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/set-klassik",
+      "files": [
+        "photos/41_set_klassik__set-klassik.webp"
+      ]
+    },
+    {
+      "index": 42,
+      "id": "f08b8fc9-a18a-4674-8218-200917355605",
+      "title": "Сет Микс",
+      "slug": "set-miks",
+      "category": [
+        "Сеты"
+      ],
+      "subtitle": "1060г (2200ккал)",
+      "price": "1 250 ₽",
+      "description": "2 бешеный лосось 2 горячий шик",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/set-miks",
+      "files": [
+        "photos/42_set_miks__set-miks.webp"
+      ]
+    },
+    {
+      "index": 43,
+      "id": "4a667296-44da-470b-9baf-43e18bfb6efd",
+      "title": "Торт из 5 порций",
+      "slug": "tort-iz-5-porcij",
+      "category": [
+        "Сеты"
+      ],
+      "subtitle": "1270г (2250ккал)",
+      "price": "1 500 ₽",
+      "description": "2 бешеный 1 горячий 1 Калифорния с крабом 1 тори темпура",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/tort-iz-5-porcij",
+      "files": [
+        "photos/43_tort_iz_5_porcij__tort-iz-5-porcij.webp"
+      ]
+    },
+    {
+      "index": 44,
+      "id": "10246b07-9872-4910-be2a-c8b174b8327a",
+      "title": "Торт из 7 порций",
+      "slug": "tort-iz-7-porcij",
+      "category": [
+        "Сеты",
+        "Популярное"
+      ],
+      "subtitle": "1700г (2750ккал)",
+      "price": "2 100 ₽",
+      "description": "2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/tort-iz-7-porcij",
+      "files": [
+        "photos/44_tort_iz_7_porcij__tort-iz-7-porcij.webp"
+      ]
+    },
+    {
+      "index": 45,
+      "id": "b0cc5b95-f190-4eec-b651-c745540a28f7",
+      "title": "Маргарита",
+      "slug": "margarita",
+      "category": [
+        "Пицца"
+      ],
+      "subtitle": "450 г (980 ккал)",
+      "price": "370 ₽",
+      "description": "Состав: пицца соус, томаты, сыр моцарелла Пищевая ценность на порцию: Б38 / Ж34 / У120",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/margarita",
+      "files": [
+        "photos/45_margarita__margarita.webp"
+      ]
+    },
+    {
+      "index": 46,
+      "id": "4b6607ab-d82c-4bae-8476-6352a2d1534c",
+      "title": "Грибная",
+      "slug": "gribnaya",
+      "category": [
+        "Пицца"
+      ],
+      "subtitle": "470 г (1050 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: пицца соус, сыр моцарелла, грибы, помидор Пищевая ценность на порцию: Б42 / Ж40 / У125",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/gribnaya",
+      "files": [
+        "photos/46_gribnaya__gribnaya.webp"
+      ]
+    },
+    {
+      "index": 47,
+      "id": "79ad5fd2-3de5-4a1f-a4eb-f0b12aedc876",
+      "title": "Мясная",
+      "slug": "myasnaya",
+      "category": [
+        "Пицца"
+      ],
+      "subtitle": "500 г (1200 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: пицца соус, сыр моцарелла, мясо, помидор Пищевая ценность на порцию: Б55 / Ж55 / У120",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/myasnaya",
+      "files": [
+        "photos/47_myasnaya__myasnaya.webp"
+      ]
+    },
+    {
+      "index": 48,
+      "id": "6ae13cf6-7e79-488f-b29a-093c21a95528",
+      "title": "Пепперони",
+      "slug": "pepperoni",
+      "category": [
+        "Пицца",
+        "Популярное"
+      ],
+      "subtitle": "480 г (1250 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/pepperoni",
+      "files": [
+        "photos/48_pepperoni__pepperoni.webp"
+      ]
+    },
+    {
+      "index": 49,
+      "id": "b61eec7d-1949-4019-b6d2-adda076b0c3e",
+      "title": "4 сезона",
+      "slug": "4-sezona",
+      "category": [
+        "Пицца"
+      ],
+      "subtitle": "520 г (1280 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: мясо, кур филе, грибы, сыр моцарелла, колбаса, пицца соус Пищевая ценность на порцию: Б58 / Ж58 / У125",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/4-sezona",
+      "files": [
+        "photos/49_4_sezona__4-sezona.webp"
+      ]
+    },
+    {
+      "index": 50,
+      "id": "0ebd827d-c031-498d-83cd-95d4283a2b0a",
+      "title": "Сырная",
+      "slug": "syrnaya",
+      "category": [
+        "Пицца"
+      ],
+      "subtitle": "470 г (1150 ккал)",
+      "price": "370 ₽",
+      "description": "Состав: сырный соус, сыр моцарелла, кунжут Пищевая ценность на порцию: Б45 / Ж55 / У120",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/syrnaya",
+      "files": [
+        "photos/50_syrnaya__syrnaya.webp"
+      ]
+    },
+    {
+      "index": 51,
+      "id": "bf94da54-8a40-41e6-b645-eb6e70859fef",
+      "title": "Ассорти",
+      "slug": "assorti",
+      "category": [
+        "Пицца"
+      ],
+      "subtitle": "520 г (1230 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: мясо, кур филе, томаты, оливки, грибы, сыр моцарелла, помидор Пищевая ценность на порцию: Б56 / Ж52 / У130",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/assorti",
+      "files": [
+        "photos/51_assorti__assorti.webp"
+      ]
+    },
+    {
+      "index": 52,
+      "id": "3ee06723-ca4b-42e2-9366-3b91167de58e",
+      "title": "Куриная",
+      "slug": "kurinaya",
+      "category": [
+        "Пицца"
+      ],
+      "subtitle": "500 г (1180 ккал)",
+      "price": "400 ₽",
+      "description": "Состав: чесночный соус, кур филе, сыр моцарелла, помидор Пищевая ценность на порцию: Б60 / Ж50 / У120",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kurinaya",
+      "files": [
+        "photos/52_kurinaya__kurinaya.webp"
+      ]
+    },
+    {
+      "index": 53,
+      "id": "4955ffe5-0787-4852-92b4-57d22dd29165",
+      "title": "Чесночный соус",
+      "slug": "chesnochnyj-sous",
+      "category": [
+        "Соусы"
+      ],
+      "subtitle": "25 г (80 ккал)",
+      "price": "35 ₽",
+      "description": "Состав: йогурт/сметана, чеснок, огурец, укроп, соль, специи Пищевая ценность на порцию: Б1 / Ж7 / У5",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/chesnochnyj-sous",
+      "files": [
+        "photos/53_chesnochnyj_sous__chesnochnyj-sous.webp"
+      ]
+    },
+    {
+      "index": 54,
+      "id": "e37eebc3-6b93-4f2a-b6f5-bf84116e3b90",
+      "title": "Сырный соус",
+      "slug": "syrnyj-sous",
+      "category": [
+        "Соусы"
+      ],
+      "subtitle": "25 г (110 ккал)",
+      "price": "35 ₽",
+      "description": "Состав: сырный соус (на основе сыра), сливки/молоко, масло, специи, соль Пищевая ценность на порцию: Б2 / Ж10 / У4",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/syrnyj-sous",
+      "files": [
+        "photos/54_syrnyj_sous__syrnyj-sous.webp"
+      ]
+    },
+    {
+      "index": 55,
+      "id": "da2abd79-c01c-4440-9e59-19b1520ac23a",
+      "title": "Томатный кетчуп",
+      "slug": "tomatnyj-ketchup",
+      "category": [
+        "Соусы"
+      ],
+      "subtitle": "25 г (95 ккал)",
+      "price": "35 ₽",
+      "description": "Состав: вода питьевая,, паста томатная, сахар, уксус натуральный, соль, ароматизатор натуральный (содержит сельдерей) Пищевая ценность на порцию: Б 0.9 / Ж 0.7/ У 25.0",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/tomatnyj-ketchup",
+      "files": [
+        "photos/55_tomatnyj_ketchup__tomatnyj-ketchup.webp"
+      ]
+    },
+    {
+      "index": 56,
+      "id": "d4f65656-f72d-4569-86c1-5a8a7dc4ffa0",
+      "title": "Кисло-сладкий",
+      "slug": "kislo-sladkij",
+      "category": [
+        "Соусы"
+      ],
+      "subtitle": "25 г( 110 ккал)",
+      "price": "35 ₽",
+      "description": "Состав: сахар, вода, пюре абрикосовое концентрированное (содержит антиокислитель аскорбиновую кислоту), уксус натуральный, крахмал кукурузный, соль",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kislo-sladkij",
+      "files": [
+        "photos/56_kislo_sladkij__kislo-sladkij.webp"
+      ]
+    },
+    {
+      "index": 57,
+      "id": "965ee60d-010e-45c0-9be0-7c888d2850c5",
+      "title": "Добрый cola",
+      "slug": "dobryj-cola",
+      "category": [
+        "Напитки"
+      ],
+      "subtitle": "330 мл (140 ккал)",
+      "price": "85 ₽",
+      "description": "Состав: газированный безалкогольный напиток (вода, сахар, краситель карамель, ароматизатор, регулятор кислотности, кофеин) Пищевая ценность на порцию: Б0 / Ж0 / У35",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/dobryj-cola",
+      "files": [
+        "photos/57_dobryj_cola__dobryj-cola.webp"
+      ]
+    },
+    {
+      "index": 58,
+      "id": "021a56a3-58dc-4d0a-a0d7-20daa4ad75cb",
+      "title": "ST.OM Black Ice Tea (персик)",
+      "slug": "stom-black-ice-tea-persik",
+      "category": [
+        "Напитки"
+      ],
+      "subtitle": "450 мл (180 ккал)",
+      "price": "100 ₽",
+      "description": "Состав: чёрный чай, вода, сахар, ароматизатор «персик», регулятор кислотности, антиоксидант (в зависимости от партии) Пищевая ценность на порцию: Б0 / Ж0 / У45",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/stom-black-ice-tea-persik",
+      "files": [
+        "photos/58_st_om_black_ice_tea_persik__stom-black-ice-tea-persik.webp"
+      ]
+    },
+    {
+      "index": 59,
+      "id": "a2c10975-a70e-436c-98af-833c011abdce",
+      "title": "Зелтон (груша)",
+      "slug": "zelton-grusha",
+      "category": [
+        "Напитки"
+      ],
+      "subtitle": "500 мл (230 ккал)",
+      "price": "80 ₽",
+      "description": "Состав: газированный безалкогольный напиток (вода, сахар, ароматизатор «груша», регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У58",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/zelton-grusha",
+      "files": [
+        "photos/59_zelton_grusha__zelton-grusha.webp"
+      ]
+    },
+    {
+      "index": 60,
+      "id": "608fec34-6c94-4420-ab9b-4f1ab8fca516",
+      "title": "Мохито FRESH (ОЧАКОВО)",
+      "slug": "mohito-fresh-ochakovo",
+      "category": [
+        "Напитки"
+      ],
+      "subtitle": "450 мл",
+      "price": "90 ₽",
+      "description": "Состав: газированный безалкогольный напиток (вода, сахар, лайм/лимон, мята, ароматизаторы, регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У45",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/mohito-fresh-ochakovo",
+      "files": [
+        "photos/60_mohito_fresh_ochakovo__mohito-fresh-ochakovo.webp"
+      ]
+    },
+    {
+      "index": 61,
+      "id": "8de8dfcd-bf37-4d33-9af1-25f1984e5d71",
+      "title": "Kinza Orange",
+      "slug": "kinza-orange",
+      "category": [
+        "Напитки"
+      ],
+      "subtitle": "330 мл (150 ккал)",
+      "price": "110 ₽",
+      "description": "Состав: газированный безалкогольный напиток (вода, сахар, ароматизатор «апельсин», регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У38",
+      "product_url": "https://sushi-crazy.myctlg.ru/product/kinza-orange",
+      "files": [
+        "photos/61_kinza_orange__kinza-orange.webp"
+      ]
+    }
+  ]
+}
