@@ -1515,7 +1515,7 @@ body.modal-lock .cart-pill-shell{
     <div class="rest-name">Sushi Crazy</div>
     <div class="rest-tags">СУШИ | ФАСТФУД | ПИЦЦА | ГРОЗНЫЙ</div>
     <div class="rest-detail"><span class="dot">•</span> <span>График:С 11:00 до 22:40</span></div>
-    <div class="rest-detail"><span class="dot">•</span> <span>Доставка:От 800₽ бесплатная в радиусе 10 км.</span></div>
+    <div class="rest-detail"><span class="dot">•</span> <span>Доставка:От 4 900₸ бесплатная в радиусе 10 км.</span></div>
   </div>
 </div>
 <button class="contact-btn" onclick="openShare('contact')">Связаться с нами</button>
@@ -1547,7 +1547,7 @@ body.modal-lock .cart-pill-shell{
 <!-- FOOTER -->
 <footer class="site-footer">
   Разработано студией<br>
-  <a href="https://catalog.kreati.ru" target="_blank" rel="noopener noreferrer" class="site-footer-brand">Mirage Studio</a>
+  <a href="https://t.me/stumsdio" target="_blank" rel="noopener noreferrer" class="site-footer-brand">Mirage Studio</a>
 </footer>
 
 </div><!-- /page -->
@@ -1568,7 +1568,7 @@ body.modal-lock .cart-pill-shell{
       </div>
       <span class="cp-label">Корзина</span>
     </div>
-    <span class="cp-price" id="cpTotal">0 ₽</span>
+    <span class="cp-price" id="cpTotal">0 ₸</span>
   </button>
 </div>
 
@@ -1667,7 +1667,7 @@ body.modal-lock .cart-pill-shell{
       <div class="cs-foot">
         <div>
           <div class="cs-total-lbl">Заказ на сумму</div>
-          <div class="cs-total-amt" id="csTotal">0 ₽</div>
+          <div class="cs-total-amt" id="csTotal">0 ₸</div>
         </div>
         <button class="order-btn" id="orderBtn" onclick="placeOrder()" disabled>Оформить заказ</button>
       </div>
@@ -1822,9 +1822,9 @@ const REF_CAT_IDS={'Фаст-фуд':'f','Роллы':'r','Сеты':'s','Пиц
 const REF_DESC={'Торт из 7 порций':'2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура','Бизнес Ланч':'Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105','Чизбургер (говяжий)':'Состав: булочка, говяжья котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б24 / Ж30 / У46','Гиро на тарелке':'Состав: курица (гиро), картофель фри, пита, помидор, огурец, лук, соус (чесночный/дзадзики) Пищевая ценность на порцию: Б38 / Ж45 / У105','Пепперони':'Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118','Бешенный лосось':'Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62'};
 function rebuildCats(){const el=document.getElementById('catsEl');if(!el)return;el.innerHTML='';CATS.forEach((c,idx)=>{const b=document.createElement('button');b.className='cat'+(idx===0?' on':'');b.textContent=c.l;b.onclick=()=>{document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(window.muteSpy)window.muteSpy(600);const sec=document.getElementById('sec-'+c.id);if(sec)window.scrollTo(0,Math.max(0,sec.offsetTop-92));};el.appendChild(b);});}
 fetch('ref-products-dom.json').then(r=>r.ok?r.json():null).then(data=>{if(!Array.isArray(data))return;M.splice(0,M.length,...data.map((x,i)=>({id:i+1,c:REF_CAT_IDS[x.cat]||'f',n:x.name,w:x.weight,d:x.desc||REF_DESC[x.name]||'',p:x.price,img:x.img,i:(REF_CAT_IDS[x.cat]||'f')})));CATS.splice(0,CATS.length,...['Фаст-фуд','Роллы','Сеты','Пицца','Соусы','Напитки'].map(x=>({id:REF_CAT_IDS[x],l:x})));POPULAR_IDS.splice(0,POPULAR_IDS.length,...['Торт из 7 порций','Бизнес Ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешенный лосось'].map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean));rebuildCats();renderPopular();render();}).catch(()=>{});
-function fmt(n){return n.toLocaleString('ru-RU')+' ₽'}
+function fmt(n){return n.toLocaleString('ru-RU')+' ₸'}
 function getItem(id){return M.find(i=>i.id===parseInt(id));}
-function priceText(n){return fmt(n).replace(' ₽','');}
+function priceText(n){return fmt(n).replace(' ₸','');}
 function shownQty(id){return cart[id]||0;}
 function shownTotal(item){return item.p*Math.max(1,shownQty(item.id));}
 function addBtnHtml(id){const q=shownQty(id);return q>0?`<p>${q}</p>`:svgIcon('plus','svg-icon plus-icon');}
@@ -1836,13 +1836,13 @@ function cartAddButton(id,cls){
 }
 function priceMarkup(item,cls){
   const total=shownTotal(item);
-  const inner=cls==='pop-price'?`${priceText(total)} <span>₽</span>`:fmt(total);
+  const inner=cls==='pop-price'?`${priceText(total)} <span>₸</span>`:fmt(total);
   return `<div class="${cls} price-live" data-price-id="${item.id}" data-base-price="${item.p}">${inner}</div>`;
 }
 function qtyPriceHtml(item,cls){return priceMarkup(item,cls);}
 function setPriceNodeText(node,item){
   const total=shownTotal(item);
-  if(node.classList.contains('pop-price')) node.innerHTML=`${priceText(total)} <span>₽</span>`;
+  if(node.classList.contains('pop-price')) node.innerHTML=`${priceText(total)} <span>₸</span>`;
   else node.textContent=fmt(total);
 }
 function bumpNode(node,cls){

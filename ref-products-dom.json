@@ -4,7 +4,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "330 г (820 ккал)",
         "desc":  "Состав: булочка, 2 куриные котлеты, сыр, салат, маринованный огурец, соус Пищевая ценность на порцию: Б42 / Ж45 / У58",
-        "price":  180,
+        "price":  1100,
         "img":  "sushi_crazy_all_photos/photos/01_grandburger_kurinyj__grandburger-kurinyj.webp"
     },
     {
@@ -12,7 +12,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "330 г (900 ккал)",
         "desc":  "Состав: булочка, 2 говяжьи котлеты, сыр, салат, маринованный огурец, соус Пищевая ценность на порцию: Б45 / Ж55 / У58",
-        "price":  190,
+        "price":  1160,
         "img":  "sushi_crazy_all_photos/photos/02_grandburger_govyazhij__grandburger-govyazhij.webp"
     },
     {
@@ -20,7 +20,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "250 г (610 ккал)",
         "desc":  "Состав: лепёшка, мясная начинка, сыр, соус, овощи Пищевая ценность на порцию: Б25 / Ж28 / У65",
-        "price":  200,
+        "price":  1220,
         "img":  "sushi_crazy_all_photos/photos/03_roller__roller.webp"
     },
     {
@@ -28,7 +28,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "180 г (420 ккал)",
         "desc":  "Состав: булочка, сосиска, горчица, кетчуп, салат Пищевая ценность на порцию: Б14 / Ж22 / У42",
-        "price":  140,
+        "price":  860,
         "img":  "sushi_crazy_all_photos/photos/04_hot_dog__hot-dog.webp"
     },
     {
@@ -36,7 +36,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "450 г (980 ккал)",
         "desc":  "Состав: курица (гиро), картофель фри, пита, помидор, огурец, лук, соус (чесночный/дзадзики) Пищевая ценность на порцию: Б38 / Ж45 / У105",
-        "price":  350,
+        "price":  2140,
         "img":  "sushi_crazy_all_photos/photos/05_giro_na_tarelke__giro-na-tarelke.webp"
     },
     {
@@ -44,7 +44,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "170 г (410 ккал)",
         "desc":  "Состав: булочка, куриная котлета, маринованный огурец, кетчуп, горчица Пищевая ценность на порцию: Б18 / Ж18 / У44",
-        "price":  125,
+        "price":  760,
         "img":  "sushi_crazy_all_photos/photos/06_gamburger_kurinyj__gamburger-kurinyj.webp"
     },
     {
@@ -52,7 +52,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "170 г (470 ккал)",
         "desc":  "Состав: булочка, говяжья котлета, маринованный огурец, кетчуп, горчица Пищевая ценность на порцию: Б20 / Ж25 / У44",
-        "price":  135,
+        "price":  830,
         "img":  "sushi_crazy_all_photos/photos/07_gamburger_govyazhij__gamburger-govyazhij.webp"
     },
     {
@@ -60,7 +60,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "190 г (470 ккал)",
         "desc":  "Состав: булочка, куриная котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б22 / Ж22 / У46",
-        "price":  135,
+        "price":  830,
         "img":  "sushi_crazy_all_photos/photos/08_chizburger_kurinyj__chizburger-kurinyj.webp"
     },
     {
@@ -68,7 +68,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "190 г (540 ккал)",
         "desc":  "Состав: булочка, говяжья котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б24 / Ж30 / У46",
-        "price":  145,
+        "price":  890,
         "img":  "sushi_crazy_all_photos/photos/09_chizburger_govyazhij__chizburger-govyazhij.webp"
     },
     {
@@ -76,7 +76,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "260 г (680 ккал)",
         "desc":  "Состав: лепёшка, курица (кусочки), сыр, помидор, салат, соус Пищевая ценность на порцию: Б30 / Ж30 / У70",
-        "price":  220,
+        "price":  1340,
         "img":  "sushi_crazy_all_photos/photos/10_kranch__kranch.webp"
     },
     {
@@ -84,7 +84,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "160 г (430 ккал)",
         "desc":  "Состав: куриное филе в панировке Пищевая ценность на порцию: Б28 / Ж22 / У30",
-        "price":  210,
+        "price":  1280,
         "img":  "sushi_crazy_all_photos/photos/11_stripsy__stripsy.webp"
     },
     {
@@ -92,7 +92,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "200 г (520 ккал)",
         "desc":  "Состав: куриное филе в панировке Пищевая ценность на порцию: Б30 / Ж28 / У38",
-        "price":  225,
+        "price":  1380,
         "img":  "sushi_crazy_all_photos/photos/12_naggetsy_10_sht__naggetsy-10-sht.webp"
     },
     {
@@ -100,7 +100,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "180 г (420 ккал)",
         "desc":  "Состав: картофельные дольки, специи, соль Пищевая ценность на порцию: Б6 / Ж16 / У62",
-        "price":  150,
+        "price":  920,
         "img":  "sushi_crazy_all_photos/photos/13_kartoshka_po_derevenski__kartoshka-po-derevenski.webp"
     },
     {
@@ -108,7 +108,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "150 г (470 ккал)",
         "desc":  "Состав: картофель, соль Пищевая ценность на порцию: Б5 / Ж22 / У60",
-        "price":  135,
+        "price":  830,
         "img":  "sushi_crazy_all_photos/photos/14_kartoshka_fri__kartoshka-fri.webp"
     },
     {
@@ -116,7 +116,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "180 г (520 ккал)",
         "desc":  "Состав: куриные крылышки в панировке/маринаде, специи Пищевая ценность на порцию: Б28 / Ж35 / У18",
-        "price":  160,
+        "price":  980,
         "img":  "sushi_crazy_all_photos/photos/15_krylyshki_3_sht__krylyshki-3-sht.webp"
     },
     {
@@ -124,7 +124,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "360 г (1040 ккал)",
         "desc":  "Состав: куриные крылышки в панировке/маринаде, специи Пищевая ценность на порцию: Б56 / Ж70 / У36",
-        "price":  290,
+        "price":  1770,
         "img":  "sushi_crazy_all_photos/photos/16_krylyshki_6_sht__krylyshki-6-sht.webp"
     },
     {
@@ -132,7 +132,7 @@
         "cat":  "Фаст-фуд",
         "weight":  "430 г (1020 ккал)",
         "desc":  "Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105",
-        "price":  300,
+        "price":  1830,
         "img":  "sushi_crazy_all_photos/photos/17_biznes_lanch__biznes-lanch.webp"
     },
     {
@@ -140,7 +140,7 @@
         "cat":  "Роллы",
         "weight":  "240 г (420 ккал)",
         "desc":  "Состав: рис, нори, краб, тобико, огурец, майонез Пищевая ценность на порцию: Б13 / Ж13 / У60",
-        "price":  300,
+        "price":  1830,
         "img":  "sushi_crazy_all_photos/photos/18_kaliforniya_s_krabom__kaliforniya-s-krabom.webp"
     },
     {
@@ -148,7 +148,7 @@
         "cat":  "Роллы",
         "weight":  "240 г (430 ккал)",
         "desc":  "Состав: рис, нори, лосось, тобико, огурец, майонез Пищевая ценность на порцию: Б16 / Ж14 / У58",
-        "price":  340,
+        "price":  2080,
         "img":  "sushi_crazy_all_photos/photos/19_kaliforniya_s_lososem__kaliforniya-s-lososem.webp"
     },
     {
@@ -156,7 +156,7 @@
         "cat":  "Роллы",
         "weight":  "250 г (480 ккал)",
         "desc":  "Состав: рис, нори, лосось, огурец, сыр Пищевая ценность на порцию: Б20 / Ж18 / У58",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/20_filadelfiya__filadelfiya.webp"
     },
     {
@@ -164,7 +164,7 @@
         "cat":  "Роллы",
         "weight":  "260 г (520 ккал)",
         "desc":  "Состав: рис, нори, краб, огурец, сыр, карамельный соус, соус спайси, унаги соус Пищевая ценность на порцию: Б16 / Ж22 / У64",
-        "price":  300,
+        "price":  1830,
         "img":  "sushi_crazy_all_photos/photos/21_roll_nezhnyj__roll-nezhnyj.webp"
     },
     {
@@ -172,7 +172,7 @@
         "cat":  "Роллы",
         "weight":  "120 г (190 ккал)",
         "desc":  "Состав: рис, нори, креветка Пищевая ценность на порцию: Б9 / Ж2 / У34",
-        "price":  190,
+        "price":  1160,
         "img":  "sushi_crazy_all_photos/photos/22_ebi_maki__ebi-maki.webp"
     },
     {
@@ -180,7 +180,7 @@
         "cat":  "Роллы",
         "weight":  "260 г (540 ккал)",
         "desc":  "Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62",
-        "price":  350,
+        "price":  2140,
         "img":  "sushi_crazy_all_photos/photos/23_beshennyj_losos__beshennyj-losos.webp"
     },
     {
@@ -188,7 +188,7 @@
         "cat":  "Роллы",
         "weight":  "270 г (560 ккал)",
         "desc":  "Состав: рис, нори, лосось, огурец, сыр, кляр, карамель, унаги соус Пищевая ценность на порцию: Б20 / Ж26 / У62",
-        "price":  350,
+        "price":  2140,
         "img":  "sushi_crazy_all_photos/photos/24_goryachij_shik__goryachij-shik.webp"
     },
     {
@@ -196,7 +196,7 @@
         "cat":  "Роллы",
         "weight":  "270 г (590 ккал)",
         "desc":  "Состав: рис, нори, лосось, огурец, сыр, кляр, сухари, унаги соус Пищевая ценность на порцию: Б21 / Ж28 / У63",
-        "price":  340,
+        "price":  2080,
         "img":  "sushi_crazy_all_photos/photos/25_syaki_tempura__syaki-tempura.webp"
     },
     {
@@ -204,7 +204,7 @@
         "cat":  "Роллы",
         "weight":  "250 г (500 ккал)",
         "desc":  "Состав: рис, нори, лосось, огурец, сыр, унаги соус, тобико Пищевая ценность на порцию: Б19 / Ж20 / У58",
-        "price":  330,
+        "price":  2020,
         "img":  "sushi_crazy_all_photos/photos/26_roll_krejzi__roll-krejzi.webp"
     },
     {
@@ -212,7 +212,7 @@
         "cat":  "Роллы",
         "weight":  "270 г (610 ккал)",
         "desc":  "Состав: рис, нори, огурец, сыр, креветка, кляр, сухари, унаги соус Пищевая ценность на порцию: Б20 / Ж30 / У65",
-        "price":  340,
+        "price":  2080,
         "img":  "sushi_crazy_all_photos/photos/27_ebi_tempura__ebi-tempura.webp"
     },
     {
@@ -220,7 +220,7 @@
         "cat":  "Роллы",
         "weight":  "270 г (620 ккал)",
         "desc":  "Состав: рис, нори, краб, сыр, огурец, унаги соус, кляр, сухари Пищевая ценность на порцию: Б18 / Ж32 / У66",
-        "price":  300,
+        "price":  1830,
         "img":  "sushi_crazy_all_photos/photos/28_kani_tempura__kani-tempura.webp"
     },
     {
@@ -228,7 +228,7 @@
         "cat":  "Роллы",
         "weight":  "280 г (640 ккал)",
         "desc":  "Состав: рис, нори, огурец, сыр, кляр, курица, унаги соус, сухари Пищевая ценность на порцию: Б23 / Ж31 / У66",
-        "price":  300,
+        "price":  1830,
         "img":  "sushi_crazy_all_photos/photos/29_tori_tempura__tori-tempura.webp"
     },
     {
@@ -236,7 +236,7 @@
         "cat":  "Роллы",
         "weight":  "260 г (520 ккал)",
         "desc":  "Состав: рис, нори, лосось, огурец, майонез, краб, соус спайси Пищевая ценность на порцию: Б18 / Ж22 / У60",
-        "price":  330,
+        "price":  2020,
         "img":  "sushi_crazy_all_photos/photos/30_cunami__cunami.webp"
     },
     {
@@ -244,7 +244,7 @@
         "cat":  "Роллы",
         "weight":  "250 г (470 ккал)",
         "desc":  "Состав: рис, нори, лосось, огурец, сыр, тобико Пищевая ценность на порцию: Б18 / Ж16 / У60",
-        "price":  330,
+        "price":  2020,
         "img":  "sushi_crazy_all_photos/photos/31_sakura__sakura.webp"
     },
     {
@@ -252,7 +252,7 @@
         "cat":  "Роллы",
         "weight":  "240 г (410 ккал)",
         "desc":  "Состав: рис, нори, майонез, огурец, креветка, тобико Пищевая ценность на порцию: Б14 / Ж12 / У60",
-        "price":  340,
+        "price":  2080,
         "img":  "sushi_crazy_all_photos/photos/32_kaliforniya_s_krevetkoj__kaliforniya-s-krevetkoj.webp"
     },
     {
@@ -260,7 +260,7 @@
         "cat":  "Роллы",
         "weight":  "120 г (170 ккал)",
         "desc":  "Состав: рис, нори, огурец Пищевая ценность на порцию: Б4 / Ж1 / У36",
-        "price":  140,
+        "price":  860,
         "img":  "sushi_crazy_all_photos/photos/33_kappa_maki__kappa-maki.webp"
     },
     {
@@ -268,7 +268,7 @@
         "cat":  "Роллы",
         "weight":  "120 г (180 ккал)",
         "desc":  "Состав: рис, нори, краб Пищевая ценность на порцию: Б6 / Ж2 / У34",
-        "price":  150,
+        "price":  920,
         "img":  "sushi_crazy_all_photos/photos/34_kani_maki__kani-maki.webp"
     },
     {
@@ -276,7 +276,7 @@
         "cat":  "Роллы",
         "weight":  "120 г (200 ккал)",
         "desc":  "Состав: рис, нори, лосось Пищевая ценность на порцию: Б12 / Ж4 / У32",
-        "price":  190,
+        "price":  1160,
         "img":  "sushi_crazy_all_photos/photos/35_syaki_maki__syaki-maki.webp"
     },
     {
@@ -284,7 +284,7 @@
         "cat":  "Роллы",
         "weight":  "270 г (560 ккал)",
         "desc":  "Состав: рис, нори, лосось, огурец, сыр, тобико, креветка, соус спайси, унаги соус Пищевая ценность на порцию: Б22 / Ж24 / У62",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/36_ojsi__ojsi.webp"
     },
     {
@@ -292,7 +292,7 @@
         "cat":  "Роллы",
         "weight":  "180 г (460 ккал)",
         "desc":  "Состав: креветки, кляр Пищевая ценность на порцию: Б26 / Ж22 / У38",
-        "price":  380,
+        "price":  2320,
         "img":  "sushi_crazy_all_photos/photos/37_krevetki_v_klyare__krevetki-v-klyare.webp"
     },
     {
@@ -300,7 +300,7 @@
         "cat":  "Роллы",
         "weight":  "150 г (200 ккал)",
         "desc":  "Состав: рис,нори,творожный сыр,масаго,лосось,кляр,сухари,унаги соус",
-        "price":  350,
+        "price":  2140,
         "img":  "sushi_crazy_all_photos/photos/38_roll_sendvich__roll-sendvich.webp"
     },
     {
@@ -308,7 +308,7 @@
         "cat":  "Роллы",
         "weight":  "220 г (540 калл)",
         "desc":  "Состав: рис, сыр, Масаго, огурец, нори, лосось, спайси соус",
-        "price":  370,
+        "price":  2260,
         "img":  "sushi_crazy_all_photos/photos/39_gudzon_zapechennyj_roll__gudzonzapechennyj-roll.webp"
     },
     {
@@ -316,7 +316,7 @@
         "cat":  "Роллы",
         "weight":  "250 г (480 ккал)",
         "desc":  "Состав: рис, сыр, огурцы, нори, лосось, спайси соус",
-        "price":  420,
+        "price":  2570,
         "img":  "sushi_crazy_all_photos/photos/40_zapechennaya_filodelfiya__zapechennaya-filodelfiya.webp"
     },
     {
@@ -324,7 +324,7 @@
         "cat":  "Сеты",
         "weight":  "1020г (2000ккал)",
         "desc":  "Калифорния с крабом Филадельфия Бешенный лосось Горячий шик",
-        "price":  1200,
+        "price":  7340,
         "img":  "sushi_crazy_all_photos/photos/41_set_klassik__set-klassik.webp"
     },
     {
@@ -332,7 +332,7 @@
         "cat":  "Сеты",
         "weight":  "1060г (2200ккал)",
         "desc":  "2 бешеный лосось 2 горячий шик",
-        "price":  1250,
+        "price":  7640,
         "img":  "sushi_crazy_all_photos/photos/42_set_miks__set-miks.webp"
     },
     {
@@ -340,7 +340,7 @@
         "cat":  "Сеты",
         "weight":  "1270г (2250ккал)",
         "desc":  "2 бешеный 1 горячий 1 Калифорния с крабом 1 тори темпура",
-        "price":  1500,
+        "price":  9170,
         "img":  "sushi_crazy_all_photos/photos/43_tort_iz_5_porcij__tort-iz-5-porcij.webp"
     },
     {
@@ -348,7 +348,7 @@
         "cat":  "Сеты",
         "weight":  "1700г (2750ккал)",
         "desc":  "2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура",
-        "price":  2100,
+        "price":  12840,
         "img":  "sushi_crazy_all_photos/photos/44_tort_iz_7_porcij__tort-iz-7-porcij.webp"
     },
     {
@@ -356,7 +356,7 @@
         "cat":  "Пицца",
         "weight":  "450 г (980 ккал)",
         "desc":  "Состав: пицца соус, томаты, сыр моцарелла Пищевая ценность на порцию: Б38 / Ж34 / У120",
-        "price":  370,
+        "price":  2260,
         "img":  "sushi_crazy_all_photos/photos/45_margarita__margarita.webp"
     },
     {
@@ -364,7 +364,7 @@
         "cat":  "Пицца",
         "weight":  "470 г (1050 ккал)",
         "desc":  "Состав: пицца соус, сыр моцарелла, грибы, помидор Пищевая ценность на порцию: Б42 / Ж40 / У125",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/46_gribnaya__gribnaya.webp"
     },
     {
@@ -372,7 +372,7 @@
         "cat":  "Пицца",
         "weight":  "500 г (1200 ккал)",
         "desc":  "Состав: пицца соус, сыр моцарелла, мясо, помидор Пищевая ценность на порцию: Б55 / Ж55 / У120",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/47_myasnaya__myasnaya.webp"
     },
     {
@@ -380,7 +380,7 @@
         "cat":  "Пицца",
         "weight":  "480 г (1250 ккал)",
         "desc":  "Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/48_pepperoni__pepperoni.webp"
     },
     {
@@ -388,7 +388,7 @@
         "cat":  "Пицца",
         "weight":  "520 г (1280 ккал)",
         "desc":  "Состав: мясо, кур филе, грибы, сыр моцарелла, колбаса, пицца соус Пищевая ценность на порцию: Б58 / Ж58 / У125",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/49_4_sezona__4-sezona.webp"
     },
     {
@@ -396,7 +396,7 @@
         "cat":  "Пицца",
         "weight":  "470 г (1150 ккал)",
         "desc":  "Состав: сырный соус, сыр моцарелла, кунжут Пищевая ценность на порцию: Б45 / Ж55 / У120",
-        "price":  370,
+        "price":  2260,
         "img":  "sushi_crazy_all_photos/photos/50_syrnaya__syrnaya.webp"
     },
     {
@@ -404,7 +404,7 @@
         "cat":  "Пицца",
         "weight":  "520 г (1230 ккал)",
         "desc":  "Состав: мясо, кур филе, томаты, оливки, грибы, сыр моцарелла, помидор Пищевая ценность на порцию: Б56 / Ж52 / У130",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/51_assorti__assorti.webp"
     },
     {
@@ -412,7 +412,7 @@
         "cat":  "Пицца",
         "weight":  "500 г (1180 ккал)",
         "desc":  "Состав: чесночный соус, кур филе, сыр моцарелла, помидор Пищевая ценность на порцию: Б60 / Ж50 / У120",
-        "price":  400,
+        "price":  2450,
         "img":  "sushi_crazy_all_photos/photos/52_kurinaya__kurinaya.webp"
     },
     {
@@ -420,7 +420,7 @@
         "cat":  "Соусы",
         "weight":  "25 г (80 ккал)",
         "desc":  "Состав: йогурт/сметана, чеснок, огурец, укроп, соль, специи Пищевая ценность на порцию: Б1 / Ж7 / У5",
-        "price":  35,
+        "price":  210,
         "img":  "sushi_crazy_all_photos/photos/53_chesnochnyj_sous__chesnochnyj-sous.webp"
     },
     {
@@ -428,7 +428,7 @@
         "cat":  "Соусы",
         "weight":  "25 г (110 ккал)",
         "desc":  "Состав: сырный соус (на основе сыра), сливки/молоко, масло, специи, соль Пищевая ценность на порцию: Б2 / Ж10 / У4",
-        "price":  35,
+        "price":  210,
         "img":  "sushi_crazy_all_photos/photos/54_syrnyj_sous__syrnyj-sous.webp"
     },
     {
@@ -436,7 +436,7 @@
         "cat":  "Соусы",
         "weight":  "25 г (95 ккал)",
         "desc":  "Состав: вода питьевая,, паста томатная, сахар, уксус натуральный, соль, ароматизатор натуральный (содержит сельдерей) Пищевая ценность на порцию: Б 0.9 / Ж 0.7/ У 25.0",
-        "price":  35,
+        "price":  210,
         "img":  "sushi_crazy_all_photos/photos/55_tomatnyj_ketchup__tomatnyj-ketchup.webp"
     },
     {
@@ -444,7 +444,7 @@
         "cat":  "Соусы",
         "weight":  "25 г( 110 ккал)",
         "desc":  "Состав: сахар, вода, пюре абрикосовое концентрированное (содержит антиокислитель аскорбиновую кислоту), уксус натуральный, крахмал кукурузный, соль",
-        "price":  35,
+        "price":  210,
         "img":  "sushi_crazy_all_photos/photos/56_kislo_sladkij__kislo-sladkij.webp"
     },
     {
@@ -452,7 +452,7 @@
         "cat":  "Напитки",
         "weight":  "330 мл (140 ккал)",
         "desc":  "Состав: газированный безалкогольный напиток (вода, сахар, краситель карамель, ароматизатор, регулятор кислотности, кофеин) Пищевая ценность на порцию: Б0 / Ж0 / У35",
-        "price":  85,
+        "price":  520,
         "img":  "sushi_crazy_all_photos/photos/57_dobryj_cola__dobryj-cola.webp"
     },
     {
@@ -460,7 +460,7 @@
         "cat":  "Напитки",
         "weight":  "450 мл (180 ккал)",
         "desc":  "Состав: чёрный чай, вода, сахар, ароматизатор «персик», регулятор кислотности, антиоксидант (в зависимости от партии) Пищевая ценность на порцию: Б0 / Ж0 / У45",
-        "price":  100,
+        "price":  610,
         "img":  "sushi_crazy_all_photos/photos/58_st_om_black_ice_tea_persik__stom-black-ice-tea-persik.webp"
     },
     {
@@ -468,7 +468,7 @@
         "cat":  "Напитки",
         "weight":  "500 мл (230 ккал)",
         "desc":  "Состав: газированный безалкогольный напиток (вода, сахар, ароматизатор «груша», регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У58",
-        "price":  80,
+        "price":  490,
         "img":  "sushi_crazy_all_photos/photos/59_zelton_grusha__zelton-grusha.webp"
     },
     {
@@ -476,7 +476,7 @@
         "cat":  "Напитки",
         "weight":  "450 мл",
         "desc":  "Состав: газированный безалкогольный напиток (вода, сахар, лайм/лимон, мята, ароматизаторы, регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У45",
-        "price":  90,
+        "price":  550,
         "img":  "sushi_crazy_all_photos/photos/60_mohito_fresh_ochakovo__mohito-fresh-ochakovo.webp"
     },
     {
@@ -484,7 +484,7 @@
         "cat":  "Напитки",
         "weight":  "330 мл (150 ккал)",
         "desc":  "Состав: газированный безалкогольный напиток (вода, сахар, ароматизатор «апельсин», регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У38",
-        "price":  110,
+        "price":  670,
         "img":  "sushi_crazy_all_photos/photos/61_kinza_orange__kinza-orange.webp"
     }
 ]
