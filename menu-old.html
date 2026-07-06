@@ -1,0 +1,1490 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tokyo Bites</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#fff;color:#111;font-family:'Manrope','Segoe UI',Roboto,Arial,sans-serif;font-size:16px;-webkit-text-size-adjust:100%;overflow-x:hidden}body{min-width:320px}
+.page{max-width:720px;margin:0 auto;padding-bottom:90px;background:#fff}
+
+/* ── ICONS: готовые inline SVG, без icon-font (не будет иероглифов) ── */
+.svg-icon{display:inline-block;width:1em;height:1em;vertical-align:-.12em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.svg-icon.fill{fill:currentColor;stroke:none}
+.food-icon{width:74px;height:74px;color:#fff;filter:drop-shadow(0 3px 8px rgba(0,0,0,.35))}
+.pop-img .food-icon{width:86px;height:86px}
+.gc-img .food-icon{width:58%;height:58%}
+.lc-img .food-icon{width:92px;height:92px}
+.ps-img .food-icon{width:118px;height:118px}
+.ci-img .food-icon{width:40px;height:40px}
+.ui-icon{width:18px;height:18px;color:currentColor;flex-shrink:0}
+.logo-mark{width:50px;height:50px;color:#fff;filter:drop-shadow(0 3px 8px rgba(0,0,0,.35));margin-bottom:3px}
+.plus-icon{width:30px;height:30px;color:currentColor}
+.banner-food-icons .svg-icon{width:48px;height:48px;color:#fff}
+.banner-food-icons .svg-icon:nth-child(even){color:#e74c3c}
+@media(max-width:600px){.lc-img .food-icon{width:72px;height:72px}.pop-img .food-icon{width:68px;height:68px}}
+
+/* ── BANNER ── */
+.banner{width:100%;height:180px;overflow:hidden;position:relative;background:#111;border-bottom-left-radius:6px;border-bottom-right-radius:6px;user-select:none;cursor:default}
+.banner-inner{width:100%;height:100%;background:
+  linear-gradient(rgba(0,0,0,.15),rgba(0,0,0,.25)),
+  repeating-linear-gradient(45deg,#1a1a1a 0,#1a1a1a 2px,transparent 2px,transparent 12px);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px}
+.banner-sushi{position:absolute;inset:0;overflow:hidden}
+.banner-sushi::before{content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 300px 120px at 20% 60%,#c0392b55 0,transparent 70%),
+    radial-gradient(ellipse 200px 80px at 75% 40%,#e67e2255 0,transparent 60%),
+    radial-gradient(ellipse 250px 100px at 50% 80%,#27ae6022 0,transparent 70%),
+    linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 40%,#111 100%)}
+.banner-sushi::after{content:'🍣 🥢 🍱 🍣 🥢';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:40px;letter-spacing:16px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));white-space:nowrap;opacity:.7}
+.banner-title-wrap{position:absolute;inset:0;z-index:2;text-align:center;padding:0 18px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.banner-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:3px;text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.banner-title span{color:#e74c3c}
+.banner-sub{font-size:12px;color:#ccc;letter-spacing:5px;margin-top:4px;font-weight:500}
+
+/* ── REST INFO ── */
+.rest-info{padding:0 16px 3px;display:flex;gap:16px;align-items:flex-start;background:#fff}
+.avatar-wrap{position:relative;flex-shrink:0;bottom:19px;right:7px}
+.avatar{width:140px;height:140px;border-radius:50%;box-shadow:0 2px 12px rgba(0,0,0,.479);display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;}
+.avatar-inner{width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
+.logo-mark{width:62px;height:62px;color:#fff;filter:drop-shadow(0 3px 8px rgba(0,0,0,.35));margin-bottom:5px}
+.avatar-emoji{font-size:28px}
+.avatar-text{font-size:8px;font-weight:700;color:#e74c3c;letter-spacing:1px;text-transform:uppercase;text-align:center;line-height:1.15}
+.rest-meta{flex:1;padding-top:2px}
+.rest-name{font-size:26px;font-weight:600;color:#111;margin-bottom:0;letter-spacing:0}
+.rest-tags{font-size:16px;color:#111;font-weight:500;margin-bottom:6px}
+.rest-detail{font-size:15px;color:#111;margin-bottom:3px;display:flex;align-items:center;gap:4px}
+.rest-detail .dot{color:#111}
+.rest-detail .highlight{color:#e74c3c;font-weight:600}
+.rest-detail .highlight2{color:#27ae60;font-weight:600}
+.contact-btn{display:block;width:calc(100% - 32px);margin:0 16px 35px;padding:7px;border:1.5px solid #000;border-radius:6px;background:#fff;font-size:17px;font-weight:600;cursor:pointer;color:#111;text-align:center;transition:.15s;box-shadow:0 0 6px rgba(0,0,0,.377);font-family:inherit}
+.contact-btn:hover{background:#f5f5f5}
+
+/* ── POPULAR ── */
+.popular-section{padding:0 16px 20px;background:#fff}
+#popularCard{touch-action:pan-y;user-select:none;cursor:grab;overflow:hidden;border-radius:12px; box-shadow: 0 0px 6px rgba(0, 0, 0, 0.205);}
+#popularCard.grabbing{cursor:grabbing}
+.popular-track{display:flex;transition:transform .35s ease;will-change:transform}
+#popularCard.dragging .popular-track{transition:none}
+.popular-slide{min-width:100%;width:100%;}
+.sec-title{font-size:25px;font-weight:700;color:#111;margin-bottom:35px;letter-spacing:0}
+.pop-card{border:1px solid #e8e8e8;border-radius:12px;display:flex;gap:0;overflow:hidden;cursor:pointer;background:#fff;transition:.12s; }
+.pop-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.1)}
+.pop-img{width:155px;min-width:140px;background:#111;display:flex;align-items:center;justify-content:center;font-size:64px;flex-shrink:0;position:relative}
+.pop-img .food-icon{width:82px;height:82px}
+.pop-img-inner{font-size:64px}
+.pop-body{flex:1;padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:210px}
+.pop-name{font-size:17px;font-weight:700;color:#111;margin-bottom:4px}
+.pop-weight{font-size:13px;color:#999;margin-bottom:8px}
+.pop-desc{font-size:13px;color:#444;line-height:1.5;flex:1}
+.pop-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.pop-price{font-size:16px;font-weight:700;color:#111}
+.pop-price span{font-size:14px;color:#999;font-weight:400}
+.add-sq{width:34px;height:34px;border-radius:8px;border:1px solid #ddd;background:#f5f5f5;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#333;transition:.12s;line-height:1;font-family:inherit}
+.add-sq:hover{background:#e8e8e8}
+.pop-dots{display:flex;justify-content:center;gap:5px;margin-top:12px}
+.dot-item{width:24px;height:3px;border-radius:2px;background:#ddd;border:0;cursor:pointer;padding:0}
+.dot-item.active{background:#333;width:24px}
+
+/* ── SEARCH + CATS ── */
+.sticky-bar{position:sticky;top:0;z-index:20;background:#fff;padding:14px 16px 0;border-bottom:1px solid #f0f0f0}
+.search-row{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.s-wrap{flex:1;position:relative}
+.s-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#999;width:18px;height:18px;pointer-events:none}
+.s-inp{width:100%;height:42px;padding:0 14px 0 42px;border-radius:21px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;outline:none;color:#111;transition:.15s;font-family:inherit}
+.s-inp:focus{border-color:#bbb}
+.grid-toggle{width:42px;height:42px;border-radius:9px;border:1.5px solid #e0e0e0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;color:#555}
+.grid-toggle:hover{background:#f5f5f5}
+.grid-toggle .ui-icon{font-size:18px;color:#555}
+.cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{height:36px;padding:0 18px;border-radius:18px;border:1.5px solid #ddd;background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:#555;white-space:nowrap;flex-shrink:0;transition:.12s;font-family:inherit}
+.cat.on{background:#111;color:#fff;border-color:#111}
+.cat:hover:not(.on){background:#f5f5f5}
+
+/* ── MENU ── */
+.menu-area{padding:20px 16px;background:#fff}
+.menu-sec-title{font-family:'Unbounded','Manrope',sans-serif;font-size:20px;font-weight:800;color:#111;margin-bottom:14px;letter-spacing:.2px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
+@media(max-width:700px){.g4{grid-template-columns:repeat(2,1fr)}}
+.gc{border-radius:12px;overflow:hidden;background:#fff;cursor:pointer;border:1px solid #ebebeb;transition:.12s; box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.384);}
+.gc:hover{box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.gc-img{width:100%;aspect-ratio:1/1.25;background:#111;display:flex;align-items:center;justify-content:center;position:relative}
+.gc-plus{position:absolute;top:8px;right:8px;width:35px;height:35px;border-radius:8px;background:rgba(255, 255, 255, 0.658);border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#333;line-height:1;transition:.12s;font-family:inherit;}
+.gc-plus:hover{background:#fff}
+.gc-foot{padding:10px 10px 12px}
+.gc-name{font-size:16px;font-weight:700;color:#111;margin-bottom:3px;line-height:1.35}
+.gc-weight{font-size:11px;color:#e74c3c;font-weight:600;margin-bottom:8px}
+.gc-price{    
+  font-size: 17px;
+    font-weight: 800;
+    color: #111;
+    display: flex;
+    padding: 10px 10px 12px;
+    justify-content: flex-end;}
+.gc-price span{font-size:12px;color:#999;font-weight:500; }
+
+/* LIST VIEW — большие карточки в 1 ряд как на примере */
+.lv{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+.lc{position:relative;display:flex;min-height:214px;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;transition:.12s;box-shadow:0 1px 7px rgba(0,0,0,.12)}
+.lc:hover{box-shadow:0 3px 14px rgba(0,0,0,.14)}
+.lc-img{width:190px;min-width:190px;align-self:stretch;background:#111;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:0}
+.lc-info{flex:1;padding:14px 96px 48px 16px}
+.lc-name{font-size:18px;font-weight:800;color:#111;margin-bottom:6px;line-height:1.25}
+.lc-weight{font-size:15px;color:#111;font-weight:500;margin-bottom:9px}
+.lc-desc{font-size:14px;color:#111;line-height:1.5;max-width:510px}
+.lc-right{position:absolute;right:10px;top:10px;bottom:12px;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px;flex-shrink:0}
+.lc-price{font-size:15px;font-weight:800;color:#111;white-space:nowrap;margin-right:2px}
+@media(max-width:600px){
+  .avatar{width:118px;height:118px}.avatar-wrap{bottom:15px;right:5px}.rest-info{gap:12px}
+  .lc{min-height:176px}.lc-img{width:132px;min-width:132px}.lc-info{padding:12px 60px 40px 14px}.lc-name{font-size:15px}.lc-weight{font-size:13px}.lc-desc{font-size:12px;line-height:1.45}.lc-right{right:8px}.pop-img{width:130px;min-width:130px}.pop-body{padding:13px}.banner-title{font-size:25px}.banner-sub{letter-spacing:3px}
+}
+
+/* ── CART PILL ── */
+.cart-pill{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;border:none;border-radius:50px;height:52px;padding:0 20px;display:none;align-items:center;gap:12px;cursor:pointer;z-index:30;min-width:260px;box-shadow:0 4px 20px rgba(0,0,0,.3);font-family:inherit}
+.cart-pill.on{display:flex}
+.cp-left{display:flex;align-items:center;gap:8px}
+.cp-icon{width:22px;height:22px;position:relative;color:#fff}
+.cp-badge{position:absolute;top:-9px;right:-10px;background:#e74c3c;color:#fff;border-radius:50%;width:17px;height:17px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1}
+.cp-label{font-size:15px;font-weight:700}
+.cp-price{margin-left:auto;font-size:15px;font-weight:800;color:#fff}
+
+/* ── OVERLAYS ── */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:580px;border-radius:20px 20px 0 0;overflow:hidden}
+.sheet-scroll{max-height:88vh;overflow-y:auto}
+.handle{width:36px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 6px}
+.ps-top{display:flex;justify-content:space-between;align-items:center;padding:4px 14px 10px}
+.ps-icon-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid #e8e8e8;background:#fafafa;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:#555;transition:.12s}
+.ps-icon-btn:hover{background:#eee}
+.ps-img{width:100%;height:260px;background:#111;display:flex;align-items:center;justify-content:center}
+.ps-body{padding:20px 20px 10px}
+.ps-name{font-family:'Unbounded','Manrope',sans-serif;font-size:22px;font-weight:800;color:#111;margin-bottom:5px;letter-spacing:.2px}
+.ps-weight{font-size:14px;color:#aaa;margin-bottom:10px}
+.ps-desc{font-size:14px;color:#555;line-height:1.7;margin-bottom:20px}
+.ps-footer{background:#f8f8f8;margin:0 20px 20px;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.ps-price{font-size:22px;font-weight:800}
+.ps-add{width:40px;height:40px;border-radius:10px;border:none;background:#111;color:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-family:inherit}
+
+/* SHARE / ORDER SERVICES */
+.ss-body{padding:0 20px 20px}
+.ss-title{font-size:18px;font-weight:800;text-align:center;margin-bottom:7px;padding-top:8px}
+.ss-sub{font-size:13px;color:#777;text-align:center;line-height:1.45;margin-bottom:18px}
+.ss-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.ss-opt{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:10px;transition:.12s;border:0;background:transparent;font-family:inherit;color:#111}
+.ss-opt:hover{background:#f5f5f5}
+.ss-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff}
+.ss-icon.light{background:#f0f0f0;border:1px solid #e0e0e0;color:#111}
+.ss-icon .ui-icon{font-size:27px;color:currentColor}
+.ss-opt-label{font-size:11px;color:#777;text-align:center;line-height:1.3}
+.ss-divider{text-align:center;font-size:12px;color:#bbb;margin-bottom:12px}
+.ss-copy{width:100%;padding:14px;border-radius:12px;border:none;background:#f0f0f0;font-size:14px;font-weight:800;color:#111;cursor:pointer;margin-bottom:6px;transition:.12s;font-family:inherit}
+.ss-copy:hover{background:#e5e5e5}
+.ss-platform{text-align:center;font-size:11px;color:#bbb;margin-top:12px}
+.ss-close{width:100%;padding:12px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;font-size:14px;color:#555;cursor:pointer;margin-top:8px;transition:.12s;font-family:inherit}
+.ss-close:hover{background:#f5f5f5}
+
+/* CART SHEET */
+.cs-head{display:flex;justify-content:space-between;align-items:center;padding:4px 20px 14px;border-bottom:1px solid #f0f0f0}
+.cs-title{font-size:17px;font-weight:800;text-align:center;flex:1}
+.cs-trash{background:none;border:none;cursor:pointer;color:#ccc;padding:4px;width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.cs-trash:hover{color:#e74c3c}
+.cs-close{width:30px;height:30px;border-radius:50%;border:none;background:#f0f0f0;cursor:pointer;font-size:18px;color:#555;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.ci{display:flex;gap:14px;align-items:center;padding:16px 20px;border-bottom:1px solid #f5f5f5}
+.ci-img{width:64px;height:64px;border-radius:8px;background:#111;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci-info{flex:1}
+.ci-name{font-size:14px;font-weight:800;margin-bottom:2px}
+.ci-weight{font-size:12px;color:#aaa;margin-bottom:4px}
+.ci-price{font-size:15px;font-weight:800}
+.qty-row{display:flex;align-items:center;gap:12px}
+.qb{width:30px;height:30px;border-radius:50%;border:1.5px solid #e0e0e0;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:.12s;font-family:inherit}
+.qb:hover{background:#f0f0f0}
+.qn{font-size:15px;font-weight:800;min-width:18px;text-align:center}
+.del-block{padding:16px 20px}
+.del-label{font-size:14px;font-weight:800;margin-bottom:10px}
+.del-row{display:flex;border-radius:10px;border:1.5px solid #e0e0e0;overflow:hidden;margin-bottom:14px}
+.dopt{flex:1;padding:11px;border:none;background:#f8f8f8;font-size:14px;cursor:pointer;color:#777;font-weight:600;transition:.12s;font-family:inherit}
+.dopt.on{background:#111;color:#fff;font-weight:800}
+.addr-inp{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e0e0e0;background:#fafafa;font-size:14px;outline:none;color:#111;margin-bottom:7px;font-family:inherit}
+.addr-inp:focus{border-color:#999;background:#fff}
+.addr-err{font-size:12px;color:#e74c3c;margin-bottom:10px;display:none}
+.cmnt-title{font-size:14px;font-weight:800;margin-bottom:4px;margin-top:8px}
+.cmnt-hint{font-size:12px;color:#aaa;line-height:1.5;margin-bottom:8px}
+.cmnt-ta{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e0e0e0;background:#fafafa;font-size:13px;outline:none;resize:none;height:84px;line-height:1.5;font-family:inherit;color:#111}
+.cs-foot{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-top:1.5px solid #f0f0f0;gap:14px}
+.cs-total-lbl{font-size:12px;color:#aaa}
+.cs-total-amt{font-size:20px;font-weight:800}
+.order-btn{flex:1;padding:14px;border-radius:12px;border:none;background:#111;color:#fff;font-size:15px;font-weight:800;cursor:pointer;transition:.15s;font-family:inherit}
+.order-btn:hover{background:#333}
+.empty-cs{padding:32px;text-align:center;color:#bbb;font-size:14px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(0);background:#111;color:#fff;border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;z-index:100;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none}
+.toast.on{display:block;animation:tf 2.5s ease forwards}
+@keyframes tf{0%{opacity:0;transform:translateX(-50%) translateY(-6px)}10%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0}}
+
+
+/* ── USER NEW STYLE MERGE: page 720px + popular card 210px from uploaded file ── */
+
+/* ── EXTRA ADAPTIVE FIXES ── */
+img,svg{max-width:100%}
+button,input,textarea{font:inherit}
+@media(max-width:520px){
+  .page{max-width:100%;padding-bottom:86px}
+  .banner{height:165px!important}
+  .banner-title{font-size:22px;letter-spacing:1.4px}
+  .banner-sub{font-size:10px;letter-spacing:2.2px}
+  .banner-food-icons{gap:16px;opacity:.45}
+  .banner-food-icons .svg-icon{width:38px;height:38px}
+  .rest-info{padding:0 12px 3px;gap:10px}
+  .avatar-wrap{bottom:13px;right:4px}
+  .avatar{width:104px;height:104px}
+  .logo-mark{width:48px;height:48px}
+  .avatar-text{font-size:7px}
+  .rest-name{font-size:20px}
+  .rest-tags,.rest-detail{font-size:12px;line-height:1.35}
+  .contact-btn{width:calc(100% - 24px);margin:0 12px 28px;padding:9px;font-size:15px}
+  .popular-section,.sticky-bar,.menu-area{padding-left:12px;padding-right:12px}
+  .sec-title{font-size:22px;margin-bottom:22px}
+  .pop-card{min-height:150px}
+  .pop-img{width:116px;min-width:116px;height:auto}
+  .pop-body{padding:12px;min-height:150px}
+  .pop-name{font-size:15px}.pop-weight{font-size:12px;margin-bottom:6px}.pop-desc{font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .search-row{gap:8px}.s-inp{height:40px;font-size:14px}.grid-toggle{width:40px;height:40px}
+  .cat{height:34px;padding:0 14px;font-size:13px}
+  .menu-sec-title{font-size:18px}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .gc-foot{padding:8px 8px 10px}.gc-name{font-size:12px}.gc-weight{font-size:10.5px}.gc-price{font-size:13px}
+  .lc{min-height:158px;border-radius:10px}
+  .lc-img{width:112px;min-width:112px}
+  .lc-info{padding:12px 52px 38px 12px}
+  .lc-name{font-size:14px}.lc-weight{font-size:12px}.lc-desc{font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .lc-price{font-size:13px}.add-sq{width:32px;height:32px}
+  .cart-pill{left:12px;right:12px;transform:none;min-width:0;width:auto;bottom:12px}
+  .sheet{max-width:100%;border-radius:18px 18px 0 0}.sheet-scroll{max-height:90vh}
+  .ss-grid{grid-template-columns:repeat(2,1fr)}
+  .ci{padding:13px 14px;gap:10px}.ci-img{width:54px;height:54px}.qty-row{gap:8px}.qb{width:28px;height:28px}
+  .del-block,.cs-foot,.cs-head{padding-left:14px;padding-right:14px}.cs-foot{gap:10px}.cs-total-amt{font-size:18px}.order-btn{padding:13px 10px}
+}
+@media(max-width:370px){
+  .banner-title{font-size:19px}.banner-sub{font-size:9px;letter-spacing:1.5px}.banner{height:154px!important}
+  .avatar{width:92px;height:92px}.avatar-wrap{bottom:11px;right:3px}.rest-info{gap:8px}
+  .rest-name{font-size:18px}.rest-tags,.rest-detail{font-size:10.5px}
+  .pop-img{width:96px;min-width:96px}.pop-body{padding:10px}.pop-name{font-size:13.5px}.pop-desc{font-size:11px;-webkit-line-clamp:3}
+  .g4{gap:7px}.gc-name{font-size:11.5px}.gc-price{font-size:12.5px}.gc-plus{width:28px;height:28px}
+  .lc{min-height:144px}.lc-img{width:92px;min-width:92px}.lc-info{padding:10px 44px 34px 10px}.lc-desc{-webkit-line-clamp:3}
+  .ss-icon{width:48px;height:48px}.ss-title{font-size:16px}.ss-sub{font-size:12px}
+}
+
+
+
+/* ── PROFESSIONAL MODAL / MOBILE SCROLL FIX ── */
+body.modal-lock{position:fixed;overflow:hidden;width:100%;left:0;right:0}
+.ov{display:flex;visibility:hidden;opacity:0;pointer-events:none;background:rgba(0,0,0,.48);backdrop-filter:blur(2px);transition:opacity .22s ease,visibility .22s ease;overscroll-behavior:contain}
+.ov.on{visibility:visible;opacity:1;pointer-events:auto}
+.sheet{display:flex;flex-direction:column;max-height:min(92dvh,760px);transform:translateY(102%);opacity:.98;transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .22s ease;will-change:transform}
+.ov.on .sheet{transform:translateY(0);opacity:1}
+.sheet-scroll{flex:1;min-height:0;max-height:none;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#cartOv .sheet{height:min(92dvh,760px)}
+#cartOv .sheet-scroll{display:flex;flex-direction:column;overflow:hidden}
+#cartOv .cs-head,#cartOv .cs-foot{flex:0 0 auto;background:#fff;z-index:2}
+#cartOv .cs-body-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff}
+#cartOv #cartItems{overflow:visible}
+.grid-toggle{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(max-width:520px){
+  .ov{align-items:flex-end}
+  .sheet{border-radius:18px 18px 0 0;max-height:92dvh}
+  #cartOv .sheet{height:92dvh}
+}
+
+
+/* ── IOS STYLE SERVICE MODAL ── */
+#shareOv .share-sheet{max-width:720px;background:#f7f7fb;border-radius:8px 8px 0 0;position:relative;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+#shareOv .handle{background:#d1d1d6;margin-top:12px;margin-bottom:8px}
+.ss-x{position:absolute;right:14px;top:26px;width:38px;height:38px;border:0;background:transparent;color:#c2c2c7;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;z-index:3}
+.ss-x:hover{color:#8e8e93;transform:scale(1.04)}
+.ss-x .ui-icon{width:28px;height:28px;stroke-width:1.5}
+.ios-services{padding:12px 26px 28px}
+.ios-services .ss-title{font-size:25px;font-weight:800;line-height:1.22;text-align:center;margin:0 auto 12px;max-width:620px;color:#2c2c2e;padding:0 42px}
+.ios-services .ss-sub{font-size:13px;color:#8e8e93;text-align:center;line-height:1.45;margin:-4px auto 16px;max-width:520px}
+.ios-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 34px;max-width:520px;margin:0 auto 24px;align-items:start}
+.ios-services .ss-opt{border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;cursor:pointer;color:#2c2c2e;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.ios-services .ss-opt:hover{background:transparent}.ios-services .ss-opt:active{transform:scale(.97)}
+.ios-app{width:60px;height:60px;border-radius:16px;color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* ── CUSTOM iOS ICON SLOTS ──
+   Куда класть свои иконки:
+   icons/whatsapp-ios.png
+   icons/messages-ios.png
+   icons/phone-ios.png
+   icons/maps-ios.png
+   Лучше PNG/WebP/SVG 1024x1024 или 512x512, уже с iOS-фоном.
+*/
+.ios-custom-icon{position:relative;background:#f2f2f7!important;color:#8e8e93;overflow:hidden}
+.ios-custom-icon.missing-icon::after{content:attr(data-icon-place);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:5px;font-size:8px;line-height:1.12;color:#8e8e93;word-break:break-word}
+.ios-app-img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit}
+.ios-mini-img{width:50px;height:50px;display:block;object-fit:contain;opacity:.82}
+.ios-app .ui-icon{width:34px;height:34px;stroke-width:1.9}
+.ios-mini{width:50px;height:50px;border:0;background:transparent;color:#8e8e93;display:flex;align-items:center;justify-content:center;box-shadow:none}
+.ios-mini .ui-icon{width:28px;height:28px;stroke-width:2.1}
+.ios-services .ss-opt-label{font-size:13px;color:#3a3a3c;text-align:center;line-height:1.32;max-width:190px}
+.ios-services .ss-mini{gap:4px;margin-top:2px}.ios-services .ss-mini .ss-opt-label{font-size:11px;color:#8e8e93}
+.ios-services .ss-divider{text-align:center;color:#6f6f73;font-size:13px;margin:2px 0 6px}
+.ios-services .ss-copy{display:block;width:auto;margin:0 auto;padding:2px 8px;border:0;background:transparent;border-radius:0;color:#2c2c2e;text-decoration:underline;font-size:16px;font-weight:500;box-shadow:none}
+.ios-services .ss-copy:hover{background:transparent;color:#000}
+.ss-platform{display:none!important}
+#shareOv.order-mode .ios-services .ss-title{font-size:23px}
+#shareOv.order-mode .ios-services .ss-sub{display:block}
+#shareOv.contact-mode .ios-services .ss-sub{display:none}
+@media(max-width:520px){
+  #shareOv .share-sheet{border-radius:16px 16px 0 0}
+  .ios-services{padding:12px 18px 24px}
+  .ios-services .ss-title{font-size:21px;padding:0 36px;margin-bottom:16px}
+  .ios-grid{gap:22px 14px;margin-bottom:22px}
+  .ios-app{width:58px;height:58px;border-radius:15px}.ios-app .ui-icon{width:32px;height:32px}
+  .ios-services .ss-opt-label{font-size:12px;max-width:150px}
+  .ss-x{right:10px;top:24px}.ss-x .ui-icon{width:26px;height:26px}
+}
+@media(max-width:370px){
+  .ios-services .ss-title{font-size:18px;padding:0 30px}
+  .ios-grid{gap:18px 10px}.ios-app{width:52px;height:52px;border-radius:14px}.ios-app .ui-icon{width:29px;height:29px}
+}
+
+
+
+/* ── USER REQUEST FIX: popular indicator + bottom-right prices + competitor sticky search ── */
+.pop-dots{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  margin-top:14px;
+  min-height:8px;
+}
+.dot-item{
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#333;
+  border:0;
+  opacity:.9;
+  cursor:pointer;
+  padding:0;
+  transition:width .26s ease,height .26s ease,border-radius .26s ease,background .26s ease,opacity .26s ease;
+}
+.dot-item.active{
+  width:96px;
+  height:4px;
+  border-radius:999px;
+  background:#333;
+  opacity:1;
+}
+
+/* Цена в карточках всегда прижата вниз и вправо, даже если название/описание разной длины */
+.g4{
+  align-items:stretch;
+}
+.gc{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+.gc-img{
+  flex:0 0 auto;
+}
+.gc-foot{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:100px;
+  padding:10px 10px 12px;
+}
+.gc-name,.gc-weight{
+  flex:0 0 auto;
+}
+.gc-price{
+  margin-top:auto;
+  margin-left:auto;
+  width:100%;
+  display:flex;
+  justify-content:flex-end;
+  align-items:flex-end;
+  text-align:right;
+  padding: 10px 10px 12px;
+}
+.lc-right{
+  justify-content:space-between;
+}
+.lc-price{
+  margin-top:auto;
+  align-self:flex-end;
+  text-align:right;
+}
+.pop-body{
+  min-height:210px;
+}
+.pop-footer{
+  margin-top:auto;
+}
+
+/* Поиск и фильтры прилипают сверху как у конкурентов */
+.sticky-bar{
+  position:sticky;
+  top:0;
+  z-index:45;
+  background:#fff;
+  padding:12px 20px 16px;
+  border-bottom:0;
+  border-radius:0 0 22px 22px;
+  box-shadow:0 5px 16px rgba(0,0,0,.14);
+  overflow:hidden;
+}
+.search-row{
+  gap:12px;
+  align-items:center;
+  margin-bottom:12px;
+}
+.s-inp{
+  height:42px;
+  border:0;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 2px 9px rgba(0,0,0,.24);
+  padding:0 46px 0 16px;
+  font-weight:500;
+}
+.s-inp:focus{
+  border:0;
+  box-shadow:0 2px 10px rgba(0,0,0,.28),0 0 0 2px rgba(0,0,0,.06);
+}
+.s-icon{
+  left:auto;
+  right:16px;
+  color:#111;
+  width:21px;
+  height:21px;
+}
+.grid-toggle{
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 2px 9px rgba(0,0,0,.22);
+  color:#111;
+}
+.grid-toggle:hover{
+  background:#fff;
+  box-shadow:0 2px 10px rgba(0,0,0,.26);
+}
+.cats{
+  gap:8px;
+  padding-bottom:0;
+}
+.cat{
+  height:36px;
+  padding:0 18px;
+  border-radius:18px;
+  border:0;
+  background:#ececf2;
+  color:#2c2c2e;
+  font-weight:700;
+}
+.cat.on{
+  background:#343434;
+  color:#fff;
+  border:0;
+}
+.cat:hover:not(.on){
+  background:#e4e4ea;
+}
+
+@media(max-width:520px){
+  .popular-section{padding-bottom:18px}
+  .dot-item.active{width:94px;height:4px}
+  .dot-item{width:5px;height:5px}
+  .sticky-bar{
+    top:0;
+    padding:11px 14px 14px;
+    border-radius:0 0 20px 20px;
+    box-shadow:0 4px 14px rgba(0,0,0,.16);
+  }
+  .search-row{gap:10px;margin-bottom:11px}
+  .s-inp{height:42px;padding-right:44px;padding-left:15px}
+  .grid-toggle{width:42px;height:42px}
+  .cat{height:35px;padding:0 16px;font-size:13px}
+  .gc-foot{min-height:126px}
+  .gc-price{padding-top:8px}
+}
+@media(max-width:370px){
+  .dot-item.active{width:78px}
+  .sticky-bar{padding:10px 12px 13px;border-radius:0 0 18px 18px}
+  .search-row{gap:8px}
+  .cat{height:34px;padding:0 14px}
+  .gc-foot{min-height:118px}
+}
+
+
+/* ── USER REQUEST: smart sticky search + animated popular line ── */
+.popular-track{transition:transform .42s cubic-bezier(.22,1,.36,1)}
+#popularCard.dragging .popular-track{transition:none}
+.pop-dots{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  margin-top:14px;
+  min-height:10px;
+}
+.dot-item{
+  width:5px;
+  height:5px;
+  border-radius:999px;
+  background:#333;
+  border:0;
+  opacity:.92;
+  padding:0;
+  cursor:pointer;
+  transform-origin:left center;
+  transition:width .34s cubic-bezier(.22,1,.36,1),height .34s cubic-bezier(.22,1,.36,1),border-radius .34s cubic-bezier(.22,1,.36,1),opacity .22s ease,background .22s ease,transform .34s cubic-bezier(.22,1,.36,1);
+}
+.dot-item.active{
+  width:96px;
+  height:4px;
+  border-radius:999px;
+  opacity:1;
+  background:#333;
+}
+#popularCard.dragging + .pop-dots .dot-item{transition:none}
+
+/* Поиск выглядит обычно в потоке страницы, а когда доходит до верха — становится закреплённой карточкой */
+.sticky-bar{
+  position:sticky;
+  top:0;
+  z-index:45;
+  width:100%;
+  max-width:none;
+  margin:0 auto 12px;
+  padding:12px 16px 14px;
+  background:#fff;
+  border-bottom:0;
+  border-radius:0;
+  box-shadow:none;
+  overflow:visible;
+  transition:width .24s ease,max-width .24s ease,padding .24s ease,box-shadow .24s ease,border-radius .24s ease,background .24s ease;
+}
+.sticky-bar.is-stuck{
+  width:calc(100% - 32px);
+  max-width:720px;
+  padding:12px 16px 16px;
+  border-radius:0 0 24px 24px;
+  box-shadow:0 5px 18px rgba(0,0,0,.16);
+  background:#fff;
+  overflow:hidden;
+}
+.search-row{gap:12px;align-items:center;margin-bottom:12px}
+.s-wrap{flex:1;position:relative}
+.s-inp{
+  height:42px;
+  border:0;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 2px 9px rgba(0,0,0,.24);
+  padding:0 46px 0 16px;
+  font-weight:500;
+}
+.s-inp:focus{
+  border:0;
+  box-shadow:0 2px 10px rgba(0,0,0,.28),0 0 0 2px rgba(0,0,0,.06);
+}
+.s-icon{left:auto;right:16px;color:#111;width:21px;height:21px}
+.grid-toggle{
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 2px 9px rgba(0,0,0,.22);
+  color:#111;
+}
+.grid-toggle:hover{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.26)}
+.cats{gap:8px;padding-bottom:0}
+.cat{height:36px;padding:0 18px;border-radius:18px;border:0;background:#ececf2;color:#2c2c2e;font-weight:700}
+.cat.on{background:#343434;color:#fff;border:0}
+.cat:hover:not(.on){background:#e4e4ea}
+
+@media(max-width:520px){
+  .dot-item.active{width:94px;height:4px}
+  .sticky-bar{width:100%;padding:11px 12px 13px;margin-bottom:10px;border-radius:0;box-shadow:none}
+  .sticky-bar.is-stuck{width:calc(100% - 18px);max-width:none;padding:11px 12px 14px;border-radius:0 0 20px 20px;box-shadow:0 4px 15px rgba(0,0,0,.17)}
+  .search-row{gap:10px;margin-bottom:11px}
+  .s-inp{height:42px;padding-right:44px;padding-left:15px}
+  .grid-toggle{width:42px;height:42px}
+  .cat{height:35px;padding:0 16px;font-size:13px}
+}
+@media(max-width:370px){
+  .dot-item.active{width:78px}
+  .sticky-bar{padding:10px 10px 12px}
+  .sticky-bar.is-stuck{width:calc(100% - 14px);padding:10px 10px 13px;border-radius:0 0 18px 18px}
+  .search-row{gap:8px}
+  .cat{height:34px;padding:0 14px}
+}
+
+
+/* ── TRUE FIXED SEARCH BAR FIX ──
+   Обычно поиск стоит в потоке страницы. Когда доходит до верха окна —
+   становится position:fixed, а placeholder держит место, чтобы контент не прыгал. */
+.sticky-placeholder{display:none;width:100%;flex:0 0 auto}
+.sticky-bar{
+  position:relative!important;
+  top:auto!important;
+}
+.sticky-bar.is-stuck{
+  position:fixed!important;
+  top:0!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translateX(-50%)!important;
+  width:min(720px, calc(100vw - 32px))!important;
+  max-width:720px!important;
+  margin:0!important;
+  z-index:90!important;
+  border-radius:0 0 24px 24px!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.16)!important;
+  background:#fff!important;
+  overflow:hidden!important;
+}
+@media(max-width:520px){
+  .sticky-bar.is-stuck{
+    width:calc(100vw - 18px)!important;
+    max-width:none!important;
+    border-radius:0 0 20px 20px!important;
+    box-shadow:0 4px 15px rgba(0,0,0,.17)!important;
+  }
+}
+@media(max-width:370px){
+  .sticky-bar.is-stuck{
+    width:calc(100vw - 14px)!important;
+    border-radius:0 0 18px 18px!important;
+  }
+}
+
+
+/* ── USER REQUEST: popular plus button moved to top ── */
+.pop-card{
+  position:relative;
+}
+.pop-main{
+  padding-right:44px;
+}
+.pop-add-top{
+  position:absolute;
+  top:10px;
+  right:10px;
+  z-index:5;
+  background:rgba(255,255,255,.92);
+}
+.pop-add-top:hover{
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,0,0,.20);
+}
+@media(max-width:520px){
+  .pop-main{padding-right:40px}
+  .pop-add-top{top:8px;right:8px;width:32px;height:32px}
+}
+
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<!-- BANNER -->
+<div class="banner" id="topBanner">
+  <div class="banner-sushi"></div>
+  <div class="banner-title-wrap">
+    <div class="banner-title">TOKYO<span>_</span>BITES</div>
+    <div class="banner-sub">— SUSHI & FAST FOOD —</div>
+  </div>
+</div>
+
+<!-- REST INFO -->
+<div class="rest-info">
+  <div class="avatar-wrap">
+    <div class="avatar">
+      <div class="avatar-inner">
+        <span class="logo-mark svg-slot" data-icon="bowl"></span>
+        <div class="avatar-text">TOKYO<br>BITES</div>
+      </div>
+    </div>
+  </div>
+  <div class="rest-meta">
+    <div class="rest-name">Tokyo Bites</div>
+    <div class="rest-tags">СУШИ | ФАСТФУД | ПИЦЦА | ТАШКЕНТ</div>
+    <div class="rest-detail"><span class="dot">•</span> <span>График: с 11:00 до 23:00</span></div>
+    <div class="rest-detail"><span class="dot">•</span> <span>Доставка: от <span class="highlight">500 сум</span> бесплатная в радиусе <span class="highlight2">10 км</span></span></div>
+  </div>
+</div>
+<button class="contact-btn" onclick="openShare('contact')">Связаться с нами</button>
+
+<!-- POPULAR -->
+<div class="popular-section">
+  <div class="sec-title">Популярное</div>
+  <div id="popularCard"></div>
+  <div class="pop-dots" id="popDots"></div>
+</div>
+
+<!-- STICKY BAR -->
+<div class="sticky-bar">
+  <div class="search-row">
+    <div class="s-wrap">
+      <span class="s-icon"><span class="ui-icon svg-slot" data-icon="search"></span></span>
+      <input class="s-inp" type="text" placeholder="Поиск" oninput="doSearch(this.value)">
+    </div>
+    <button class="grid-toggle" type="button" id="vbtn" aria-label="Переключить вид">
+      <span id="vicon" class="ui-icon svg-slot" data-icon="grid"></span>
+    </button>
+  </div>
+  <div class="cats" id="catsEl"></div>
+</div>
+
+<!-- MENU -->
+<div class="menu-area" id="menuArea"></div>
+
+</div><!-- /page -->
+
+<!-- CART PILL -->
+<button class="cart-pill" id="cpill" onclick="openCart()">
+  <div class="cp-left">
+    <div class="cp-icon">
+      <span class="ui-icon svg-slot" data-icon="cart"></span>
+      <div class="cp-badge" id="cpBadge">0</div>
+    </div>
+    <span class="cp-label">Корзина</span>
+  </div>
+  <span class="cp-price" id="cpTotal">0 сум</span>
+</button>
+
+<!-- PRODUCT OVERLAY -->
+<div class="ov" id="prodOv" onclick="bgClose(event,'prodOv')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="handle"></div>
+      <div class="ps-top">
+        <button class="ps-icon-btn" onclick="openShare('product')" title="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
+        <button class="ps-icon-btn" onclick="closeOv('prodOv')"><span class="ui-icon svg-slot" data-icon="chevron-left"></span></button>
+      </div>
+      <div id="prodContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEND / CONTACT SERVICES OVERLAY -->
+<div class="ov" id="shareOv" onclick="bgClose(event,'shareOv')">
+  <div class="sheet share-sheet" onclick="event.stopPropagation()">
+    <div class="handle"></div>
+    <button class="ss-x" type="button" onclick="closeOv('shareOv')" aria-label="Закрыть"><span class="ui-icon svg-slot" data-icon="x"></span></button>
+    <div class="ss-body ios-services" id="shareBody">
+      <div class="ss-title" id="shareTitle">Выберите удобный сервис для связи с нами</div>
+      <div class="ss-sub" id="shareSub"></div>
+      <div class="ss-grid ios-grid">
+        <button class="ss-opt" type="button" onclick="shareVia('wa')">
+          <!-- ICON SLOT: положи свой файл сюда: icons/whatsapp-ios.png -->
+          <div class="ss-icon ios-app ios-custom-icon" data-icon-place="icons/whatsapp-ios.png"><img class="ios-app-img" src="icons/whatsapp-ios.png" alt="WhatsApp" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')"></div>
+          <div class="ss-opt-label" id="shareWaLabel">Напишите нам в WhatsApp</div>
+        </button>
+        <button class="ss-opt" type="button" id="shareSecondBtn" data-service="sms" onclick="shareVia(this.dataset.service)">
+          <!-- ICON SLOT: сообщения: icons/messages-ios.png -->
+          <div class="ss-icon ios-app ios-custom-icon" id="shareSecondIcon" data-icon-place="icons/messages-ios.png"><img class="ios-app-img" src="icons/messages-ios.png" alt="Сообщения" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')"></div>
+          <div class="ss-opt-label" id="shareSecondLabel">Напишите нам в сообщения</div>
+        </button>
+        <button class="ss-opt ss-mini" type="button" onclick="shareVia('call')">
+          <!-- ICON SLOT: положи свой файл сюда: icons/phone-ios.png -->
+          <div class="ss-icon ios-mini ios-custom-icon" data-icon-place="icons/phone-ios.png"><img class="ios-mini-img" src="icons/phone-ios.png" alt="Позвонить" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')"></div>
+          <div class="ss-opt-label">Позвонить</div>
+        </button>
+        <button class="ss-opt ss-mini" type="button" onclick="shareVia('map')">
+          <!-- ICON SLOT: положи свой файл сюда: icons/maps-ios.png -->
+          <div class="ss-icon ios-mini ios-custom-icon" data-icon-place="icons/maps-ios.png"><img class="ios-mini-img" src="icons/maps-ios.png" alt="Карта" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')"></div>
+          <div class="ss-opt-label">Карта</div>
+        </button>
+      </div>
+      <div class="ss-divider" id="shareDivider">или вы можете</div>
+      <button class="ss-copy" id="shareCopyBtn" type="button" onclick="copyOrder()">Скопировать ссылку</button>
+    </div>
+  </div>
+</div>
+
+<!-- CART OVERLAY -->
+<div class="ov" id="cartOv" onclick="bgClose(event,'cartOv')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="handle"></div>
+      <div class="cs-head">
+        <button class="cs-trash" onclick="clearCart()" title="Очистить корзину"><span class="ui-icon svg-slot" data-icon="trash"></span></button>
+        <div class="cs-title">Корзина</div>
+        <button class="cs-close" onclick="closeOv('cartOv')"><span class="ui-icon svg-slot" data-icon="x"></span></button>
+      </div>
+      <div class="cs-body-scroll">
+        <div id="cartItems"></div>
+        <div class="del-block">
+        <div class="del-label">Способ заказа</div>
+        <div class="del-row">
+          <button class="dopt on" onclick="setDel('d',this)">Доставка</button>
+          <button class="dopt" onclick="setDel('p',this)">Самовывоз</button>
+        </div>
+        <div class="cmnt-title">Номер для связи</div>
+        <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+998 90 123 45 67">
+        <div class="addr-err" id="phoneErr">Укажите номер, чтобы доставщик мог связаться.</div>
+        <div id="addrBlock">
+          <div class="cmnt-title">Адрес доставки</div>
+          <input class="addr-inp" type="text" id="addrInp" placeholder="Ташкент, улица, дом, квартира">
+          <div class="addr-err" id="addrErr">Укажите адрес доставки.</div>
+        </div>
+        <div class="cmnt-title">Комментарий к заказу</div>
+        <div class="cmnt-hint">Укажите пожелания к блюдам, приборам и времени. Например: без лука, приборы на 2 персоны, доставка к 19:00.</div>
+          <textarea class="cmnt-ta" id="commentTa" placeholder="Ваши пожелания..."></textarea>
+        </div>
+      </div>
+      <div class="cs-foot">
+        <div>
+          <div class="cs-total-lbl">Заказ на сумму</div>
+          <div class="cs-total-amt" id="csTotal">0 сум</div>
+        </div>
+        <button class="order-btn" onclick="placeOrder()">Оформить заказ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+
+function svgIcon(name,cls='svg-icon'){
+  const classes=(cls.includes('svg-icon')?cls:('svg-icon '+cls)).trim();
+  const common='class="'+classes+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false"';
+  const icons={
+    plus:`<svg ${common}><path d="M12 5v14M5 12h14"/></svg>`,
+    minus:`<svg ${common}><path d="M5 12h14"/></svg>`,
+    x:`<svg ${common}><path d="M18 6 6 18M6 6l12 12"/></svg>`,
+    search:`<svg ${common}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>`,
+    grid:`<svg ${common}><rect x="4" y="4" width="6" height="6" rx="1.3"/><rect x="14" y="4" width="6" height="6" rx="1.3"/><rect x="4" y="14" width="6" height="6" rx="1.3"/><rect x="14" y="14" width="6" height="6" rx="1.3"/></svg>`,
+    list:`<svg ${common}><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>`,
+    cart:`<svg ${common}><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.1 11.2A2 2 0 0 0 9 16h9.8a2 2 0 0 0 1.9-1.4L22 8H6"/></svg>`,
+    share:`<svg ${common}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.7 10.7 15.3 6.3M8.7 13.3l6.6 4.4"/></svg>`,
+    'chevron-left':`<svg ${common}><path d="m15 18-6-6 6-6"/></svg>`,
+    phone:`<svg ${common}><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6.1 6.1l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>`,
+    map:`<svg ${common}><path d="M12 21s7-5.2 7-12a7 7 0 1 0-14 0c0 6.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg>`,
+    message:`<svg ${common}><path d="M5 6.5A6.5 6.5 0 0 1 11.5 3h1A6.5 6.5 0 0 1 19 9.5v.4a6.5 6.5 0 0 1-6.5 6.5H10l-4.6 3.1.9-4.1A6.5 6.5 0 0 1 5 9.9v-.4Z"/></svg>`,
+    trash:`<svg ${common}><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 11v6M14 11v6"/></svg>`,
+    whatsapp:`<svg ${common}><path d="M20.5 11.8a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.3-4.7A8.5 8.5 0 1 1 20.5 11.8Z"/><path d="M8.6 8.3c.2-.4.4-.5.7-.5h.5c.2 0 .4.1.5.4l.7 1.7c.1.3 0 .5-.2.7l-.4.5c-.1.1-.2.3-.1.5.5 1 1.3 1.8 2.3 2.3.2.1.4 0 .5-.1l.5-.5c.2-.2.4-.2.7-.1l1.7.8c.3.1.4.3.4.6v.4c0 .4-.2.7-.5.9-.5.3-1.1.4-1.6.4-1 0-3.6-.9-5.5-2.8-1.9-1.9-2.8-4.5-2.8-5.5 0-.6.1-1.1.4-1.6Z"/></svg>`,
+    telegram:`<svg ${common}><path d="M21 4 3 11.2l6.6 2.2L17 7.6l-5.8 7.4v4.5l3.2-3.1 4.7 3.5L21 4Z"/></svg>`,
+    bowl:`<svg ${common}><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M7 12a5 5 0 0 1 10 0M8 4c1.5 1.2 1.5 2.4 0 3.6M12 3c1.5 1.2 1.5 2.7 0 4M16 4c1.5 1.2 1.5 2.4 0 3.6"/></svg>`,
+    fish:`<svg ${common}><path d="M16 12c-2.3 3-6.2 4.3-11 4 1.5-1.4 2.2-2.7 2.2-4S6.5 9.4 5 8c4.8-.3 8.7 1 11 4Z"/><path d="M16 12c1.7-2.3 3.5-3.3 5-3-1 1.6-1 4.4 0 6-1.5.3-3.3-.7-5-3Z"/><circle cx="10" cy="11" r=".5"/></svg>`,
+    burger:`<svg ${common}><path d="M4 11c.4-4 3.3-6 8-6s7.6 2 8 6H4Z"/><path d="M4 15h16M5 19h14a2 2 0 0 0 2-2H3a2 2 0 0 0 2 2Z"/><path d="M6 12c1.4 1 2.8 1 4.2 0 1.2-1 2.4-1 3.6 0 1.4 1 2.8 1 4.2 0"/></svg>`,
+    pizza:`<svg ${common}><path d="M4 20 20 4c-5.7-1.3-11.3 1-14.2 5.8C3.8 13 3.2 16.6 4 20Z"/><circle cx="11" cy="11" r="1"/><circle cx="15" cy="8" r="1"/><circle cx="8" cy="15" r="1"/><path d="M7 9c3.2 1.2 5.8 3.8 7 7"/></svg>`,
+    cup:`<svg ${common}><path d="M6 8h10v7a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V8Z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16M8 4c1 1 1 2 0 3M12 4c1 1 1 2 0 3"/></svg>`,
+    hotdog:`<svg ${common}><path d="M4 15c5 2.8 11 2.8 16 0"/><path d="M5 11c4.5-2.4 9.9-2.4 14 0"/><path d="M6 13c4 1.8 8 1.8 12 0"/><path d="M7 12c1 .9 2 .9 3 0s2-.9 3 0 2 .9 3 0"/></svg>`,
+    drumstick:`<svg ${common}><path d="M16.8 5.2c2.7 2.7 2.8 6.6.3 9.1-2.2 2.2-5.7 2.4-8.2.7L6.5 17.4a2 2 0 1 1-2.8-2.8l2.4-2.4c-1.7-2.5-1.5-6 .7-8.2 2.5-2.5 7-1.5 10 1.2Z"/><path d="M6.1 12.2 8.8 15"/></svg>`,
+    cake:`<svg ${common}><path d="M4 11h16v8H4z"/><path d="M4 15c2 1.2 4 1.2 6 0s4-1.2 6 0 3 .8 4 0M8 8h8v3H8zM12 4v4M10 4h4"/></svg>`,
+    utensils:`<svg ${common}><path d="M4 3v7M7 3v7M5.5 10v11M18 3v18M14 3v6a4 4 0 0 0 4 4"/></svg>`,
+    box:`<svg ${common}><path d="m3 8 9-5 9 5-9 5-9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg>`,
+    sauce:`<svg ${common}><path d="M10 3h4l1 5H9l1-5ZM9 8h6l1 12H8L9 8Z"/><path d="M10 13h4"/></svg>`,
+    drink:`<svg ${common}><path d="M7 3h10l-1.5 18h-7L7 3Z"/><path d="M8 8h8M10 3l2 8 4-8"/></svg>`,
+    wrap:`<svg ${common}><path d="M6 5c5 0 9 4 12 11-6 3-11 2-14-2 0-4 .7-7 2-9Z"/><path d="M7 8c2 0 4 1 5 3M8 13c2 .8 4 .7 6-.3"/></svg>`,
+    mojito:`<svg ${common}><path d="M7 8h10l-1.2 13H8.2L7 8Z"/><path d="M8 12h8M10 4l2 4M16 3l-4 5M17 3c-3 0-4 1-5 4 3 0 5-1 5-4Z"/></svg>`
+  };
+  return icons[name]||icons.utensils;
+}
+function renderSvgSlots(root=document){
+  root.querySelectorAll('.svg-slot').forEach(el=>{
+    const icon=el.getAttribute('data-icon')||'utensils';
+    const cls=el.className.replace('svg-slot','').trim()||'svg-icon';
+    const id=el.id;
+    let html=svgIcon(icon,cls);
+    if(id) html=html.replace('<svg ', `<svg id=\"${id}\" `);
+    el.outerHTML=html;
+  });
+}
+
+renderSvgSlots();
+const SHOP_PHONE='+998711234567';
+const SHOP_PHONE_TEXT='+998 71 123 45 67';
+
+// Свои iOS-иконки клади рядом с HTML в папку icons/ и называй так:
+// icons/whatsapp-ios.png, icons/messages-ios.png, icons/phone-ios.png, icons/maps-ios.png
+// Можешь заменить пути ниже на свои названия файлов.
+const ICON_PATHS={
+  whatsapp:'icons/whatsapp-ios.png',
+  sms:'icons/messages-ios.png',
+  phone:'icons/phone-ios.png',
+  map:'icons/maps-ios.png'
+};
+function iosIconImg(service,alt,mini=false){
+  const cls=mini?'ios-mini-img':'ios-app-img';
+  const src=ICON_PATHS[service]||'';
+  return `<img class="${cls}" src="${src}" alt="${alt}" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')">`;
+}
+let pendingOrderText='';
+
+let popularDidDrag=false;
+function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
+  const area=document.getElementById(areaId);
+  if(!area)return;
+  let down=false,startX=0,lastX=0,w=0,moved=false;
+  area.addEventListener('pointerdown',e=>{
+    down=true;moved=false;startX=e.clientX;lastX=e.clientX;w=area.clientWidth||1;
+    area.classList.add('grabbing','dragging');
+    if(area.setPointerCapture)area.setPointerCapture(e.pointerId);
+  });
+  area.addEventListener('pointermove',e=>{
+    if(!down)return;
+    lastX=e.clientX;
+    const dx=lastX-startX;
+    if(Math.abs(dx)>6)moved=true;
+    onMove&&onMove(dx);
+  });
+  function end(){
+    if(!down)return;
+    const dx=lastX-startX;
+    down=false;
+    area.classList.remove('grabbing','dragging');
+    if(moved)popularDidDrag=true;
+    if(Math.abs(dx)>Math.min(90,w*.18)){
+      dx<0?onLeft():onRight();
+    }else{
+      onReset&&onReset();
+    }
+  }
+  area.addEventListener('pointerup',end);
+  area.addEventListener('pointercancel',end);
+  area.addEventListener('lostpointercapture',end);
+}
+function openPopularItem(id){
+  if(popularDidDrag){popularDidDrag=false;return;}
+  openProd(id);
+}
+
+function foodIcon(type){
+  const icons={burger:'burger',wrap:'wrap',hotdog:'hotdog',fries:'box',wings:'drumstick',box:'box',roll:'bowl',set:'fish',pizza:'pizza',sauce:'sauce',drink:'drink',tea:'cup',mojito:'mojito',cake:'cake'};
+  return svgIcon(icons[type]||'utensils','svg-icon food-icon');
+}
+
+const M=[
+  {id:1,c:'f',n:'Грандбургер (куриный)',w:'330г (820 ккал)',d:'Состав: булочка, 2 куриные котлеты, сыр, салат, маринованный огурец, соус. Пищевая ценность: Б42 / Ж45 / У58',p:25000,i:'burger'},
+  {id:2,c:'f',n:'Грандбургер (говяжий)',w:'330г (900 ккал)',d:'Состав: булочка, 2 говяжьи котлеты, сыр, салат, маринованный огурец, соус. Пищевая ценность: Б45 / Ж55 / У58',p:27000,i:'burger'},
+  {id:3,c:'f',n:'Роллер',w:'250г (610 ккал)',d:'Состав: лепёшка, мясная начинка, сыр, соус, овощи. Пищевая ценность: Б25 / Ж28 / У65',p:28000,i:'wrap'},
+  {id:4,c:'f',n:'Хот-дог',w:'180г (420 ккал)',d:'Состав: булочка, сосиска, горчица, кетчуп, лук. Пищевая ценность: Б12 / Ж18 / У45',p:18000,i:'hotdog'},
+  {id:5,c:'f',n:'Картошка по-деревенски',w:'180г (420 ккал)',d:'Хрустящие дольки картофеля в фирменных специях. Пищевая ценность: Б3 / Ж12 / У55',p:19000,i:'fries'},
+  {id:6,c:'f',n:'Картошка фри',w:'150г (470 ккал)',d:'Классическая картошка фри. Пищевая ценность: Б2 / Ж10 / У52',p:17000,i:'fries'},
+  {id:7,c:'f',n:'Крылышки (3 шт)',w:'180г (520 ккал)',d:'Куриные крылышки в хрустящей панировке с соусами. Пищевая ценность: Б22 / Ж28 / У18',p:21000,i:'wings'},
+  {id:8,c:'f',n:'Крылышки (6 шт)',w:'360г (1040 ккал)',d:'Куриные крылышки в хрустящей панировке. Пищевая ценность: Б44 / Ж56 / У36',p:38000,i:'wings'},
+  {id:9,c:'f',n:'Бизнес-ланч',w:'430г (1020 ккал)',d:'Бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп. Пищевая ценность: Б33 / Ж45 / У105',p:39000,i:'box'},
+  {id:10,c:'r',n:'Филадельфия',w:'250г (380 ккал)',d:'Лосось, сливочный сыр, огурец, авокадо, нори. Пищевая ценность: Б18 / Ж14 / У32',p:35000,i:'roll'},
+  {id:11,c:'r',n:'Калифорния',w:'240г (360 ккал)',d:'Краб, авокадо, огурец, икра тобико. Пищевая ценность: Б15 / Ж12 / У38',p:32000,i:'roll'},
+  {id:12,c:'r',n:'Бешеный',w:'230г (410 ккал)',d:'Острый тунец, сливочный сыр, перец чили, соус спайси. Пищевая ценность: Б20 / Ж16 / У30',p:33000,i:'roll'},
+  {id:13,c:'r',n:'Горячий ролл',w:'210г (440 ккал)',d:'Запечённый лосось, сливочный сыр, огурец, укроп. Пищевая ценность: Б22 / Ж18 / У28',p:34000,i:'roll'},
+  {id:14,c:'r',n:'Тори темпура',w:'200г (390 ккал)',d:'Курица в кляре, сливочный сыр, огурец, соус унаги. Пищевая ценность: Б20 / Ж15 / У30',p:30000,i:'roll'},
+  {id:15,c:'s',n:'Сет «Праздничный»',w:'1600г (2400 ккал)',d:'3 Филадельфия · 2 Калифорния · 2 горячих · 1 торт-ролл. Пищевая ценность: Б80 / Ж60 / У220',p:320000,i:'cake'},
+  {id:16,c:'s',n:'Сет «На двоих»',w:'800г (1200 ккал)',d:'2 Филадельфия · 2 Калифорния · 1 горячий · 2 напитка. Пищевая ценность: Б55 / Ж40 / У120',p:160000,i:'set'},
+  {id:17,c:'z',n:'Маргарита',w:'450г (880 ккал)',d:'Томатный соус, моцарелла, базилик. Пищевая ценность: Б28 / Ж22 / У85',p:45000,i:'pizza'},
+  {id:18,c:'z',n:'Пепперони',w:'500г (980 ккал)',d:'Томатный соус, моцарелла, пепперони. Пищевая ценность: Б35 / Ж30 / У82',p:52000,i:'pizza'},
+  {id:19,c:'a',n:'Чесночный соус',w:'25г (80 ккал)',d:'Сметанная основа, чеснок, укроп. Пищевая ценность: Б2 / Ж8 / У4',p:4000,i:'sauce'},
+  {id:20,c:'a',n:'Кетчуп сладкий',w:'25г (70 ккал)',d:'Томатная основа, сахар, специи. Пищевая ценность: Б1 / Ж0 / У18',p:3500,i:'sauce'},
+  {id:21,c:'d',n:'Добрый Cola',w:'330мл (140 ккал)',d:'Газированный напиток. Пищевая ценность: Б0 / Ж0 / У35',p:8000,i:'drink'},
+  {id:22,c:'d',n:'Black Ice Tea (персик)',w:'450мл (180 ккал)',d:'Чёрный чай, вода, сахар, ароматизатор «персик». Пищевая ценность: Б0 / Ж0 / У45',p:12000,i:'tea'},
+  {id:23,c:'d',n:'Вохито Fresh',w:'400мл (120 ккал)',d:'Освежающий газированный напиток. Пищевая ценность: Б0 / Ж0 / У28',p:9000,i:'mojito'},
+];
+const CATS=[{id:'all',l:'Все'},{id:'f',l:'Фаст-фуд'},{id:'r',l:'Роллы'},{id:'s',l:'Сеты'},{id:'z',l:'Пицца'},{id:'a',l:'Соусы'},{id:'d',l:'Напитки'}];
+const CN={f:'Фаст-фуд',r:'Роллы',s:'Сеты',z:'Пицца',a:'Соусы',d:'Напитки'};
+let isGrid=true,activeCat='all',search='',cart={},delMode='d',popIndex=0;
+const POPULAR_IDS=[15,1,2,3,10,18];
+function fmt(n){return n.toLocaleString('ru-RU')+' сум'}
+function getItem(id){return M.find(i=>i.id===parseInt(id));}
+
+(()=>{
+  const el=document.getElementById('catsEl');
+  CATS.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='cat'+(c.id==='all'?' on':'');
+    b.textContent=c.l;
+    b.onclick=()=>{
+      document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      activeCat=c.id;
+      render();
+    };
+    el.appendChild(b);
+  });
+})();
+
+function renderPopular(){
+  const trackHtml=POPULAR_IDS.map((id,idx)=>{
+    const item=getItem(id);
+    if(!item)return '';
+    return `<div class="popular-slide">
+      <div class="pop-card" onclick="openPopularItem(${item.id})">
+        <div class="pop-img">${foodIcon(item.i)}</div>
+        <button class="add-sq pop-add-top" onclick="event.stopPropagation();addCart(${item.id})" aria-label="Добавить в корзину">${svgIcon('plus','svg-icon plus-icon')}</button>
+        <div class="pop-body">
+          <div class="pop-main">
+            <div class="pop-name">${item.n}</div>
+            <div class="pop-weight">${item.w}</div>
+            <div class="pop-desc">${item.d}</div>
+          </div>
+          <div class="pop-footer">
+            <div class="pop-price">${fmt(item.p).replace(' сум','')} <span>сум</span></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('popularCard').innerHTML=`<div class="popular-track" id="popularTrack">${trackHtml}</div>`;
+  renderPopularDots();
+  updatePopular();
+}
+function renderPopularDots(){
+  const dots=document.getElementById('popDots');
+  if(!dots)return;
+  dots.innerHTML=POPULAR_IDS.map((id,idx)=>`<button class="dot-item ${idx===popIndex?'active':''}" onclick="setPopular(${idx})" aria-label="Популярное ${idx+1}"></button>`).join('');
+}
+function updatePopular(pxOffset=0){
+  const track=document.getElementById('popularTrack');
+  if(!track)return;
+  track.style.transform=pxOffset?`translateX(calc(${-popIndex*100}% + ${pxOffset}px))`:`translateX(${-popIndex*100}%)`;
+  renderPopularDots();
+}
+function setPopular(i){
+  popIndex=(i+POPULAR_IDS.length)%POPULAR_IDS.length;
+  updatePopular();
+}
+let popularAuto=setInterval(()=>setPopular(popIndex+1),4500);
+renderPopular();
+initDragSlider('popularCard',()=>setPopular(popIndex+1),()=>setPopular(popIndex-1),()=>updatePopular(),dx=>updatePopular(dx));
+
+function filtered(){
+  let r=M;
+  if(activeCat!=='all') r=r.filter(i=>i.c===activeCat);
+  if(search) r=r.filter(i=>i.n.toLowerCase().includes(search.toLowerCase()));
+  return r;
+}
+function render(){
+  const items=filtered();
+  const byCat={};
+  items.forEach(i=>{if(!byCat[i.c])byCat[i.c]=[];byCat[i.c].push(i)});
+  let html='';
+  for(const cat in byCat){
+    html+=`<div class="menu-sec-title">${CN[cat]||cat}</div>`;
+    if(isGrid){
+      html+=`<div class="g4">`;
+      byCat[cat].forEach(item=>{
+        html+=`<div class="gc" onclick="openProd(${item.id})">
+          <div class="gc-img">${foodIcon(item.i)}
+            <button class="gc-plus" onclick="event.stopPropagation();addCart(${item.id})">${svgIcon('plus','svg-icon plus-icon')}</button>
+          </div>
+          <div class="gc-foot">
+            <div class="gc-name">${item.n}</div>
+            <div class="gc-weight">${item.w}</div>
+          </div>
+          <div class="gc-price">${fmt(item.p)}</div>
+        </div>`;
+      });
+      html+=`</div>`;
+    } else {
+      html+=`<div class="lv">`;
+      byCat[cat].forEach(item=>{
+        html+=`<div class="lc" onclick="openProd(${item.id})">
+          <div class="lc-img">${foodIcon(item.i)}</div>
+          <div class="lc-info">
+            <div class="lc-name">${item.n}</div>
+            <div class="lc-weight">${item.w}</div>
+            <div class="lc-desc">${item.d}</div>
+          </div>
+          <div class="lc-right">
+            <button class="add-sq" onclick="event.stopPropagation();addCart(${item.id})">${svgIcon('plus','svg-icon plus-icon')}</button>
+            <div class="lc-price">${fmt(item.p)}</div>
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
+    }
+  }
+  if(!html) html='<div style="padding:40px;text-align:center;color:#bbb;font-size:14px">Ничего не найдено</div>';
+  document.getElementById('menuArea').innerHTML=html;
+}
+render();
+
+function setViewIcon(){
+  const btn=document.getElementById('vbtn');
+  if(btn) btn.innerHTML=svgIcon(isGrid?'grid':'list','ui-icon');
+}
+function toggleView(){
+  isGrid=!isGrid;
+  setViewIcon();
+  render();
+}
+function doSearch(v){search=v;render();}
+const viewBtn=document.getElementById('vbtn');
+if(viewBtn){
+  viewBtn.addEventListener('click',e=>{e.preventDefault();toggleView();});
+}
+setViewIcon();
+
+function openProd(id){
+  const item=getItem(id);
+  if(!item)return;
+  document.getElementById('prodContent').innerHTML=`
+    <div class="ps-img">${foodIcon(item.i)}</div>
+    <div class="ps-body">
+      <div class="ps-name">${item.n}</div>
+      <div class="ps-weight">${item.w}</div>
+      <div class="ps-desc">${item.d}</div>
+    </div>
+    <div class="ps-footer" style="margin:0 20px 20px">
+      <div class="ps-price">${fmt(item.p)}</div>
+      <button class="ps-add" onclick="addCart(${item.id});closeOv('prodOv')">${svgIcon('plus','svg-icon plus-icon')}</button>
+    </div>`;
+  openOv('prodOv');
+}
+function addCart(id){
+  cart[id]=(cart[id]||0)+1;
+  updatePill();
+  showToast('Добавлено в корзину');
+}
+function updatePill(){
+  const keys=Object.keys(cart).filter(k=>cart[k]>0);
+  const total=keys.reduce((s,id)=>{
+    const item=getItem(id);
+    return s+(item&&cart[id]?item.p*cart[id]:0);
+  },0);
+  const cnt=keys.reduce((s,k)=>s+cart[k],0);
+  const pill=document.getElementById('cpill');
+  if(cnt>0){
+    pill.classList.add('on');
+    document.getElementById('cpBadge').textContent=cnt;
+    document.getElementById('cpTotal').textContent=fmt(total);
+  } else {
+    pill.classList.remove('on');
+  }
+}
+function openCart(){renderCart();openOv('cartOv');}
+function renderCart(){
+  const keys=Object.keys(cart).filter(k=>cart[k]>0);
+  let html='';
+  if(!keys.length){html='<div class="empty-cs">Корзина пуста</div>';}
+  else keys.forEach(id=>{
+    const item=getItem(id);
+    if(!item)return;
+    html+=`<div class="ci">
+      <div class="ci-img">${foodIcon(item.i)}</div>
+      <div class="ci-info">
+        <div class="ci-name">${item.n}</div>
+        <div class="ci-weight">${item.w}</div>
+        <div class="ci-price">${fmt(item.p*cart[id])}</div>
+      </div>
+      <div class="qty-row">
+        <button class="qb" onclick="chQ('${id}',-1)">${svgIcon('minus','svg-icon plus-icon')}</button>
+        <div class="qn">${cart[id]}</div>
+        <button class="qb" onclick="chQ('${id}',1)">${svgIcon('plus','svg-icon plus-icon')}</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('cartItems').innerHTML=html;
+  const total=keys.reduce((s,id)=>{
+    const item=getItem(id);
+    return s+(item&&cart[id]?item.p*cart[id]:0);
+  },0);
+  document.getElementById('csTotal').textContent=fmt(total);
+}
+function chQ(id,d){
+  cart[id]=(cart[id]||0)+d;
+  if(cart[id]<=0)delete cart[id];
+  updatePill();renderCart();
+}
+function clearCart(){cart={};updatePill();renderCart();}
+function setDel(m,btn){
+  delMode=m;
+  document.querySelectorAll('.dopt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('addrBlock').style.display=m==='d'?'block':'none';
+}
+function currentTotal(){
+  return Object.keys(cart).filter(k=>cart[k]>0).reduce((s,id)=>{
+    const item=getItem(id);return s+(item?item.p*cart[id]:0);
+  },0);
+}
+function validPhone(phone){return phone.replace(/\D/g,'').length>=9;}
+function buildOrderText(){
+  const keys=Object.keys(cart).filter(k=>cart[k]>0);
+  const phone=document.getElementById('phoneInp').value.trim();
+  const address=document.getElementById('addrInp').value.trim();
+  const comment=document.getElementById('commentTa').value.trim();
+  let lines=['Новый заказ Tokyo Bites',''];
+  keys.forEach((id,idx)=>{
+    const item=getItem(id);
+    if(item)lines.push(`${idx+1}. ${item.n} × ${cart[id]} — ${fmt(item.p*cart[id])}`);
+  });
+  lines.push('',`Итого: ${fmt(currentTotal())}`);
+  lines.push(`Способ: ${delMode==='d'?'доставка':'самовывоз'}`);
+  if(delMode==='d')lines.push(`Адрес: ${address}`);
+  lines.push(`Номер клиента: ${phone}`);
+  if(comment)lines.push(`Комментарий: ${comment}`);
+  return lines.join('\n');
+}
+function setSecondService(labelText='Напишите нам в сообщения'){
+  const btn=document.getElementById('shareSecondBtn');
+  const icon=document.getElementById('shareSecondIcon');
+  const label=document.getElementById('shareSecondLabel');
+  if(!btn||!icon||!label)return;
+  btn.dataset.service='sms';
+  icon.className='ss-icon ios-app ios-custom-icon';
+  icon.classList.remove('missing-icon');
+  icon.dataset.iconPlace=ICON_PATHS.sms;
+  icon.innerHTML=iosIconImg('sms','Сообщения');
+  label.textContent=labelText;
+}
+function prepareServiceSheet(mode){
+  const ov=document.getElementById('shareOv');
+  const title=document.getElementById('shareTitle');
+  const sub=document.getElementById('shareSub');
+  const waLabel=document.getElementById('shareWaLabel');
+  const copyBtn=document.getElementById('shareCopyBtn');
+  ov.classList.remove('contact-mode','order-mode','product-mode');
+  ov.classList.add(mode+'-mode');
+  if(mode==='contact'){
+    pendingOrderText='Tokyo Bites — '+SHOP_PHONE_TEXT;
+    title.textContent='Выберите удобный сервис для связи с нами';
+    sub.textContent='';
+    waLabel.textContent='Напишите нам в WhatsApp';
+    copyBtn.textContent='Скопировать ссылку';
+    setSecondService('Напишите нам в сообщения');
+  }
+  if(mode==='order'){
+    title.textContent='Куда отправить заказ?';
+    sub.textContent='Выберите сервис. Текст заказа уже собран: позиции, адрес, номер и комментарий.';
+    waLabel.textContent='Отправить в WhatsApp';
+    copyBtn.textContent='Скопировать текст заказа';
+    setSecondService('Отправить сообщение');
+  }
+  if(mode==='product'){
+    pendingOrderText='Tokyo Bites — суши, фастфуд и пицца. Телефон: '+SHOP_PHONE_TEXT;
+    title.textContent='Поделиться';
+    sub.textContent='Можно отправить ссылку или контакты ресторана.';
+    waLabel.textContent='Отправить в WhatsApp';
+    copyBtn.textContent='Скопировать ссылку';
+    setSecondService('Отправить сообщение');
+  }
+}
+function placeOrder(){
+  if(!Object.keys(cart).filter(k=>cart[k]>0).length){showToast('Корзина пуста');return;}
+  const phone=document.getElementById('phoneInp').value.trim();
+  const address=document.getElementById('addrInp').value.trim();
+  document.getElementById('phoneErr').style.display='none';
+  document.getElementById('addrErr').style.display='none';
+  if(!validPhone(phone)){
+    document.getElementById('phoneErr').style.display='block';return;
+  }
+  if(delMode==='d'&&!address){
+    document.getElementById('addrErr').style.display='block';return;
+  }
+  pendingOrderText=buildOrderText();
+  prepareServiceSheet('order');
+  closeOv('cartOv');
+  openOv('shareOv');
+}
+function openShare(mode='contact'){
+  prepareServiceSheet(mode);
+  openOv('shareOv');
+}
+function finishOrder(){
+  if(pendingOrderText.startsWith('Новый заказ')){
+    cart={};
+    updatePill();
+    renderCart();
+    pendingOrderText='';
+    showToast('Заказ подготовлен к отправке');
+  }
+}
+function shareVia(v){
+  const text=pendingOrderText||'Tokyo Bites: '+SHOP_PHONE_TEXT;
+  if(v==='wa'){
+    window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
+    finishOrder();
+  }
+  if(v==='sms'){
+    window.location.href='sms:'+SHOP_PHONE+'?body='+encodeURIComponent(text);
+    finishOrder();
+    showToast('Открываем сообщения');
+  }
+  if(v==='call'){
+    window.location.href='tel:'+SHOP_PHONE;
+    showToast('Звоним: '+SHOP_PHONE_TEXT);
+  }
+  if(v==='map'){
+    window.open('https://www.google.com/maps/search/?api=1&query=Tokyo%20Bites%20Tashkent','_blank');
+    showToast('Открываем карту');
+  }
+  setTimeout(()=>closeOv('shareOv'),400);
+}
+function copyOrder(){
+  const text=pendingOrderText||'Tokyo Bites: '+SHOP_PHONE_TEXT;
+  const isOrder=text.startsWith('Новый заказ');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована')).catch(()=>showToast('Скопируйте текст вручную'));
+  }else{
+    showToast('Скопируйте текст вручную');
+  }
+  finishOrder();
+  setTimeout(()=>closeOv('shareOv'),400);
+}
+let lockedScrollY=0;
+function lockPageScroll(){
+  if(document.body.classList.contains('modal-lock')) return;
+  lockedScrollY=window.scrollY||document.documentElement.scrollTop||0;
+  document.body.style.top=`-${lockedScrollY}px`;
+  document.body.classList.add('modal-lock');
+}
+function unlockPageScroll(){
+  if(document.querySelector('.ov.on')) return;
+  document.body.classList.remove('modal-lock');
+  document.body.style.top='';
+  window.scrollTo(0,lockedScrollY||0);
+}
+function openOv(id){
+  const ov=document.getElementById(id);
+  if(!ov)return;
+  lockPageScroll();
+  ov.classList.add('on');
+}
+function closeOv(id){
+  const ov=document.getElementById(id);
+  if(!ov)return;
+  ov.classList.remove('on');
+  setTimeout(unlockPageScroll,20);
+}
+function bgClose(e,id){if(e.target&&e.target.id===id)closeOv(id);}
+function showToast(msg){
+  const el=document.getElementById('toastEl');
+  el.textContent=msg;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  setTimeout(()=>el.classList.remove('on'),2600);
+}
+
+/* ── USER REQUEST JS: animated popular dots + smart sticky detection ── */
+function renderPopularDots(){
+  const dots=document.getElementById('popDots');
+  if(!dots)return;
+  dots.innerHTML=POPULAR_IDS.map((id,idx)=>`<button class="dot-item ${idx===popIndex?'active':''}" onclick="setPopular(${idx})" aria-label="Популярное ${idx+1}"></button>`).join('');
+}
+function updatePopularDots(progress=0,dir=0){
+  const dots=[...document.querySelectorAll('#popDots .dot-item')];
+  if(!dots.length)return;
+  const total=dots.length;
+  const next=dir<0?(popIndex+1)%total:dir>0?(popIndex-1+total)%total:-1;
+  dots.forEach((dot,idx)=>{
+    dot.classList.toggle('active',idx===popIndex && progress===0);
+    dot.style.removeProperty('width');
+    dot.style.removeProperty('height');
+    dot.style.removeProperty('opacity');
+    dot.style.removeProperty('border-radius');
+    dot.style.removeProperty('transform');
+  });
+  if(progress>0){
+    const p=Math.max(0,Math.min(1,progress));
+    const current=dots[popIndex];
+    if(current){
+      current.classList.remove('active');
+      current.style.width=(96-(42*p))+'px';
+      current.style.height='4px';
+      current.style.borderRadius='999px';
+      current.style.opacity=String(1-.18*p);
+    }
+    const target=dots[next];
+    if(target){
+      target.style.width=(5+(64*p))+'px';
+      target.style.height=(5-(1*p))+'px';
+      target.style.borderRadius='999px';
+      target.style.opacity=String(.92+(.08*p));
+    }
+  }
+}
+function updatePopular(pxOffset=0){
+  const track=document.getElementById('popularTrack');
+  if(!track)return;
+  track.style.transform=pxOffset?`translateX(calc(${-popIndex*100}% + ${pxOffset}px))`:`translateX(${-popIndex*100}%)`;
+  const area=document.getElementById('popularCard');
+  const w=area?(area.clientWidth||1):1;
+  const progress=pxOffset?Math.min(1,Math.abs(pxOffset)/Math.min(120,w*.24)):0;
+  const dir=pxOffset<0?-1:pxOffset>0?1:0;
+  updatePopularDots(progress,dir);
+}
+function initSmartStickySearch(){
+  const bar=document.querySelector('.sticky-bar');
+  if(!bar)return;
+
+  let placeholder=document.querySelector('.sticky-placeholder');
+  if(!placeholder){
+    placeholder=document.createElement('div');
+    placeholder.className='sticky-placeholder';
+    bar.parentNode.insertBefore(placeholder,bar);
+  }
+
+  let triggerY=0;
+  let barH=0;
+  let ticking=false;
+
+  function unlockForMeasure(){
+    bar.classList.remove('is-stuck');
+    placeholder.style.display='none';
+    placeholder.style.height='0px';
+  }
+
+  function measure(){
+    const wasStuck=bar.classList.contains('is-stuck');
+    if(wasStuck) unlockForMeasure();
+
+    const rect=bar.getBoundingClientRect();
+    triggerY=rect.top+window.pageYOffset;
+    barH=bar.offsetHeight;
+    placeholder.style.height=barH+'px';
+
+    update(true);
+  }
+
+  function update(force=false){
+    const shouldStick=window.pageYOffset>=triggerY;
+
+    if(shouldStick){
+      placeholder.style.display='block';
+      placeholder.style.height=barH+'px';
+      bar.classList.add('is-stuck');
+    }else{
+      bar.classList.remove('is-stuck');
+      placeholder.style.display='none';
+      placeholder.style.height='0px';
+    }
+  }
+
+  function onScroll(){
+    if(ticking)return;
+    ticking=true;
+    requestAnimationFrame(()=>{
+      ticking=false;
+      update();
+    });
+  }
+
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',()=>requestAnimationFrame(measure),{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(measure,250),{passive:true});
+  window.addEventListener('load',()=>setTimeout(measure,80));
+
+  requestAnimationFrame(measure);
+  setTimeout(measure,250);
+}
+initSmartStickySearch();
+
+</script>
+</body>
+</html>
