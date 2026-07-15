@@ -2392,6 +2392,7 @@ function copyOrder(){
 }
 let lockedScrollY=0;
 const dialogOpeners=new WeakMap();
+const dialogFocusGenerations=new WeakMap();
 const dialogSuppressedStates=new WeakMap();
 const openDialogs=[];
 const dialogFocusableSelector='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -2483,8 +2484,14 @@ function openOv(id,openerOverride){
   if(existingIndex>=0)openDialogs.splice(existingIndex,1);
   openDialogs.push(ov);
   syncDialogAccessibility();
+  const focusGeneration=(dialogFocusGenerations.get(ov)||0)+1;
+  dialogFocusGenerations.set(ov,focusGeneration);
   requestAnimationFrame(()=>{
-    if(ov.classList.contains('on')&&getTopmostOpenDialog()===ov)focusDialog(ov);
+    if(dialogFocusGenerations.get(ov)!==focusGeneration||!ov.classList.contains('on')||getTopmostOpenDialog()!==ov)return;
+    focusDialog(ov);
+    if(!ov.contains(document.activeElement))requestAnimationFrame(()=>{
+      if(dialogFocusGenerations.get(ov)===focusGeneration&&ov.classList.contains('on')&&getTopmostOpenDialog()===ov)focusDialog(ov);
+    });
   });
 }
 function closeOv(id,shouldRestoreFocus=true){

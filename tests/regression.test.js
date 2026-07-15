@@ -223,8 +223,15 @@ function runCookieScript(storedValue) {
   return { context, cookieBar, storage };
 }
 
-function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = false } = {}) {
+function dialogHarness({
+  fallbackPrecedesOpener = false,
+  openerFocusFails = false,
+  firstFrameHidden = false,
+  deferAnimationFrames = false,
+} = {}) {
   const scheduled = [];
+  const animationFrames = [];
+  let animationFrame = 0;
   const bodyClassList = makeClassList();
   const opener = makeElement();
   const fallback = makeElement();
@@ -251,7 +258,7 @@ function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = fals
     );
     overlay.querySelectorAll = () => [shareButton, closeButton];
     overlay.focus = function focus() {
-      document.activeElement = this;
+      if(!firstFrameHidden || animationFrame >= 2) document.activeElement = this;
     };
     closeButton.closest = () => overlay;
     shareButton.closest = () => overlay;
@@ -318,12 +325,13 @@ function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = fals
       getComputedStyle(element) {
         return {
           display: element.getClientRects().length ? 'block' : 'none',
-          visibility: 'visible',
+          visibility: firstFrameHidden && animationFrame < 2 ? 'hidden' : 'visible',
         };
       },
     },
     requestAnimationFrame(callback) {
-      callback();
+      if(firstFrameHidden || deferAnimationFrames) animationFrames.push(callback);
+      else callback();
     },
     runAfterMotion(callback) {
       scheduled.push(callback);
@@ -340,6 +348,7 @@ function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = fals
   const declarations = [
     "let lockedScrollY=0",
     "const dialogOpeners=new WeakMap()",
+    "const dialogFocusGenerations=new WeakMap()",
     "const dialogSuppressedStates=new WeakMap()",
     "const openDialogs=[]",
     "const dialogFocusableSelector='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])'",
@@ -374,6 +383,15 @@ function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = fals
     overlay: overlays.cartOv,
     overlays,
     shareButtons,
+    runNextAnimationFrame() {
+      animationFrame += 1;
+      animationFrames.shift()?.();
+    },
+    runAnimationFrame() {
+      animationFrame += 1;
+      const callbacks = animationFrames.splice(0);
+      callbacks.forEach((callback) => callback());
+    },
     runScheduled() {
       while (scheduled.length) scheduled.shift()();
     },
@@ -708,6 +726,42 @@ test('dialog lifecycle stores and restores focus while preserving order transiti
   assert.match(restoreFocus, /getTopmostOpenDialog\(\)/);
   assert.match(placeOrder, /const transitionOpener=dialogOpeners\.get\(document\.getElementById\('cartOv'\)\);/);
   assert.match(placeOrder, /closeOv\('cartOv',false\);\s*openOv\('shareOv',transitionOpener\);/);
+});
+
+test('initial focus retries after first-frame transition visibility and enters each top dialog', () => {
+  for (const id of ['prodOv', 'shareOv', 'cartOv']) {
+    const dialog = dialogHarness({ firstFrameHidden: true });
+
+    dialog.context.openOv(id);
+    dialog.runAnimationFrame();
+    assert.equal(dialog.context.document.activeElement, dialog.opener);
+
+    dialog.runAnimationFrame();
+    assert.equal(dialog.context.document.activeElement, dialog.closeButtons[id]);
+  }
+});
+
+test('delayed initial focus does not enter a dialog that closed during its transition', () => {
+  const dialog = dialogHarness({ firstFrameHidden: true });
+
+  dialog.context.openOv('prodOv');
+  dialog.runAnimationFrame();
+  dialog.context.closeOv('prodOv', false);
+  dialog.runAnimationFrame();
+
+  assert.notEqual(dialog.context.document.activeElement, dialog.closeButtons.prodOv);
+});
+
+test('stale initial focus does not enter the same dialog after it is closed and reopened', () => {
+  const dialog = dialogHarness({ deferAnimationFrames: true });
+
+  dialog.context.openOv('prodOv');
+  dialog.context.closeOv('prodOv', false);
+  dialog.context.openOv('prodOv');
+  dialog.runNextAnimationFrame();
+
+  assert.equal(dialog.context.document.activeElement, dialog.opener);
+  assert.equal(dialog.closeButtons.prodOv.focused, false);
 });
 
 test('closing cart restores focus after modal lock stops hiding its opener', () => {
