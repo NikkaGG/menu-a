@@ -212,7 +212,8 @@ html,body{background:#fff;color:#111;font-family:'Manrope','Segoe UI',Roboto,Ari
 .dopt.on{background:#111;color:#fff;font-weight:800}
 .addr-inp{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e0e0e0;background:#fafafa;font-size:14px;outline:none;color:#111;margin-bottom:7px;font-family:inherit}
 .addr-inp:focus{border-color:#999;background:#fff}
-.addr-err{font-size:12px;color:#e74c3c;margin-bottom:10px;display:none}
+.addr-err{font-size:12px;color:#e74c3c;margin-bottom:10px}
+.addr-err[hidden]{display:none}
 .cmnt-title{font-size:14px;font-weight:800;margin-bottom:4px;margin-top:8px}
 .cmnt-hint{font-size:12px;color:#aaa;line-height:1.5;margin-bottom:8px}
 .cmnt-ta{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e0e0e0;background:#fafafa;font-size:13px;outline:none;resize:none;height:84px;line-height:1.5;font-family:inherit;color:#111}
@@ -753,8 +754,6 @@ html,body{font-family:sfProText,'sfProText Fallback',-apple-system,BlinkMacSyste
 .del-row{background:#efeff4;border:0;border-radius:999px;padding:3px}
 .dopt{background:transparent!important;color:#000!important;font-weight:400;border-radius:999px}
 .dopt.on{background:#fff!important;color:#000!important;font-weight:400}
-/* Красная подсказка адреса видна сразу, как на референсе */
-#addrErr.addr-err{display:block}
 /* Пояснение к комментарию: чёрный обычный текст над заголовком */
 .cmnt-hint{font-size:16px;color:#000;line-height:1.5;margin:10px 0 12px}
 .cmnt-title{font-size:18px;font-weight:700}
@@ -1239,7 +1238,6 @@ button,input,textarea,select,
   border-radius:12px!important;
 }
 .cmnt-ta{height:96px!important;margin-top:8px!important; overflow: hidden!important;}
-#phoneErr{display:none}
 .cs-foot{
   display:flex!important;
   flex-direction:column!important;
@@ -1640,20 +1638,20 @@ body.modal-lock .cart-pill-shell{
           <div class="cmnt-title">Контакты</div>
           <div class="order-grid two">
             <input class="addr-inp" type="text" id="nameInp" placeholder="Имя" oninput="updateOrderState()">
-            <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+7 999 123 45 67" oninput="updateOrderState()">
+            <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+7 999 123 45 67" aria-describedby="phoneErr" oninput="updateOrderState()">
           </div>
-          <div class="addr-err" id="phoneErr">Укажите корректный номер для связи.</div>
+          <div class="addr-err" id="phoneErr" hidden>Укажите корректный номер для связи.</div>
         </div>
         <div id="addrBlock" class="cart-form-section">
           <div class="cmnt-title">Укажите адрес доставки</div>
-          <input class="addr-inp" type="text" id="addrInp" placeholder="Улица, дом" oninput="updateOrderState()">
+          <input class="addr-inp" type="text" id="addrInp" placeholder="Улица, дом" aria-describedby="addrErr" oninput="updateOrderState()">
           <div class="order-grid four">
             <input class="addr-inp" type="text" id="entranceInp" placeholder="Подъезд">
             <input class="addr-inp" type="text" id="floorInp" placeholder="Этаж">
             <input class="addr-inp" type="text" id="flatInp" placeholder="Кв./офис">
             <input class="addr-inp" type="text" id="intercomInp" placeholder="Домофон">
           </div>
-          <div class="addr-err" id="addrErr">Укажите адрес доставки.</div>
+          <div class="addr-err" id="addrErr" hidden>Укажите адрес доставки.</div>
         </div>
         <div class="cart-form-section">
           <div class="cmnt-title">Уточнения</div>
@@ -1880,7 +1878,28 @@ function syncCardState(id=null,animate=false){
   syncAddButtons(id,animate);
 }
 function refreshCatalogState(){renderPopular();render();syncCardState();}
-function updateOrderState(){const btn=document.getElementById('orderBtn');if(!btn)return;const hasItems=Object.keys(cart).some(k=>cart[k]>0);const addr=(document.getElementById('addrInp')?.value||'').trim();const phone=(document.getElementById('phoneInp')?.value||'').trim();btn.disabled=!hasItems||(delMode==='d'&&!addr)||(phone&& !validPhone(phone));}
+function updateOrderState(){
+  const btn=document.getElementById('orderBtn');
+  if(!btn)return;
+  const hasItems=Object.keys(cart).some(k=>cart[k]>0);
+  const addrInp=document.getElementById('addrInp');
+  const phoneInp=document.getElementById('phoneInp');
+  const addr=(addrInp?.value||'').trim();
+  const phone=(phoneInp?.value||'').trim();
+  const phoneValid=validPhone(phone);
+  const addressValid=delMode!=='d'||!!addr;
+  if(phoneValid){
+    const phoneErr=document.getElementById('phoneErr');
+    if(phoneErr)phoneErr.hidden=true;
+    phoneInp?.removeAttribute('aria-invalid');
+  }
+  if(addressValid){
+    const addrErr=document.getElementById('addrErr');
+    if(addrErr)addrErr.hidden=true;
+    addrInp?.removeAttribute('aria-invalid');
+  }
+  btn.disabled=!hasItems||!phoneValid||!addressValid;
+}
 
 rebuildCats();
 
@@ -2093,7 +2112,7 @@ function currentTotal(){
     const item=getItem(id);return s+(item?item.p*cart[id]:0);
   },0);
 }
-function validPhone(phone){return phone.replace(/\D/g,'').length>=9;}
+function validPhone(phone){const digits=phone.replace(/\D/g,'');return digits.length>=10&&digits.length<=15;}
 function buildOrderText(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
   const name=(document.getElementById('nameInp')?.value||'').trim();
@@ -2177,18 +2196,21 @@ function placeOrder(){
   if(!Object.keys(cart).filter(k=>cart[k]>0).length){showToast('Корзина пуста');return;}
   const phone=(document.getElementById('phoneInp')?.value||'').trim();
   const address=(document.getElementById('addrInp')?.value||'').trim();
+  const phoneInp=document.getElementById('phoneInp');
+  const addrInp=document.getElementById('addrInp');
   const phoneErr=document.getElementById('phoneErr');
   const addrErr=document.getElementById('addrErr');
-  if(phoneErr)phoneErr.style.display='none';
-  if(addrErr)addrErr.style.display='none';
-  if(phone && !validPhone(phone)){
-    if(phoneErr)phoneErr.style.display='block';
+  const phoneInvalid=!validPhone(phone);
+  const addressInvalid=delMode==='d'&&!address;
+  if(phoneErr)phoneErr.hidden=!phoneInvalid;
+  if(addrErr)addrErr.hidden=!addressInvalid;
+  if(phoneInvalid)phoneInp?.setAttribute('aria-invalid','true');
+  else phoneInp?.removeAttribute('aria-invalid');
+  if(addressInvalid)addrInp?.setAttribute('aria-invalid','true');
+  else addrInp?.removeAttribute('aria-invalid');
+  if(phoneInvalid||addressInvalid){
     updateOrderState();
-    return;
-  }
-  if(delMode==='d'&&!address){
-    if(addrErr)addrErr.style.display='block';
-    updateOrderState();
+    (phoneInvalid?phoneInp:addrInp)?.focus();
     return;
   }
   pendingOrderText=buildOrderText();
