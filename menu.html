@@ -709,6 +709,7 @@ html,body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-ser
 html,body{font-family:sfProText,'sfProText Fallback',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
  .s-wrap{box-shadow:0 0 6px rgba(0,0,0,.25);border-radius:999px;background:#fff}.s-inp{border:0!important;box-shadow:none!important;padding-left:16px!important;padding-right:44px!important}.s-action{position:absolute;top:50%;right:14px;transform:translateY(-50%);width:24px;height:24px;border:0;background:transparent;color:#111;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.s-action .ui-icon{width:20px;height:20px}.s-icon{display:none!important}
  .cart-add-btn{touch-action:manipulation;pointer-events:auto;z-index:10;transition:transform .18s cubic-bezier(.22,1,.36,1),background .18s ease,box-shadow .18s ease}.cart-add-btn.in-cart{cursor:pointer;font-weight:700;font-size:16px;line-height:1;background:rgba(239,239,244,.86);color:#000}.cart-add-btn.in-cart p{font:inherit;font-weight:700;line-height:1;margin:0}.cart-add-btn.qty-pop{animation:qtyPop .28s cubic-bezier(.2,1.35,.35,1)}.price-live{transition:transform .18s cubic-bezier(.22,1,.36,1),opacity .18s ease,color .18s ease}.price-live.price-bump{animation:priceBump .32s cubic-bezier(.2,1.2,.35,1)}@keyframes qtyPop{0%{transform:scale(.92)}55%{transform:scale(1.12)}100%{transform:scale(1)}}@keyframes priceBump{0%{transform:translateY(0);opacity:.78}45%{transform:translateY(-2px) scale(1.045);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}.gc{display:flex;flex-direction:column}
+.pop-card,.gc,.lc{position:relative}.product-details-btn{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}.product-details-btn:focus-visible{outline:2px solid #111;outline-offset:-2px}
 @media(min-width:720px){.page{max-width:720px}.banner{height:180px;max-height:none}.rest-info{padding:0 10px;gap:20px}.avatar{width:140px;height:140px}.avatar-wrap{bottom:22px}.rest-name{font-size:24px}.rest-tags{font-size:16px}.rest-detail{font-size:14px}.popular-section{padding:0 10px 28px}.pop-card{height:213px}.pop-img{width:160px;min-width:160px}.sticky-bar.is-stuck{width:min(720px,calc(100vw - 18px))!important}.g4{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.gc{height:360px}.gc-name{font-size:16px}.gc-weight{font-size:14px}.gc-price{font-size:16px}.menu-area{padding-left:10px;padding-right:10px}}
 .banner{height:25vw!important;max-height:121px;min-height:96px}.rest-detail{font-size:10px!important;line-height:1.5!important;margin:0 0 8px!important}.product-img{object-fit:contain!important}.avatar-photo{object-fit:contain!important}@media(max-width:719px){.contact-btn{margin:15px 10px 32px!important}.sec-title{margin-bottom:35px!important}.popular-section{padding-bottom:20px!important}.sticky-bar{margin-bottom:4px!important}.menu-sec-title{line-height:1!important;margin:31px 0 16px!important}}
 @media(min-width:720px){.banner{height:180px!important;max-height:none}.rest-detail{font-size:14px!important}}
@@ -1570,13 +1571,13 @@ body.modal-lock .cart-pill-shell{
 </div>
 
 <!-- PRODUCT OVERLAY -->
-<div class="ov" id="prodOv" onclick="bgClose(event,'prodOv')">
+<div class="ov" id="prodOv" role="dialog" aria-modal="true" aria-labelledby="prodTitle" onclick="bgClose(event,'prodOv')">
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-scroll">
       <div class="handle"></div>
       <div class="ps-top">
-        <button class="ps-icon-btn" onclick="openShare('product')" title="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
-        <button class="ps-icon-btn" onclick="closeOv('prodOv')"><span class="ui-icon svg-slot" data-icon="chevron-left"></span></button>
+        <button class="ps-icon-btn" onclick="openShare('product')" title="Поделиться" aria-label="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
+        <button class="ps-icon-btn" onclick="closeOv('prodOv')" aria-label="Закрыть товар" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="chevron-left"></span></button>
       </div>
       <div id="prodContent"></div>
     </div>
@@ -1584,10 +1585,10 @@ body.modal-lock .cart-pill-shell{
 </div>
 
 <!-- SEND / CONTACT SERVICES OVERLAY -->
-<div class="ov" id="shareOv" onclick="bgClose(event,'shareOv')">
+<div class="ov" id="shareOv" role="dialog" aria-modal="true" aria-labelledby="shareTitle" onclick="bgClose(event,'shareOv')">
   <div class="sheet share-sheet" onclick="event.stopPropagation()">
     <div class="handle"></div>
-    <button class="ss-x" type="button" onclick="closeOv('shareOv')" aria-label="Закрыть"><span class="ui-icon svg-slot" data-icon="x"></span></button>
+    <button class="ss-x" type="button" onclick="closeOv('shareOv')" aria-label="Закрыть" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="x"></span></button>
     <div class="ss-body ios-services" id="shareBody">
       <div class="ss-title" id="shareTitle">Выберите удобный сервис для связи с нами</div>
       <div class="ss-sub" id="shareSub"></div>
@@ -1616,14 +1617,14 @@ body.modal-lock .cart-pill-shell{
 </div>
 
 <!-- CART OVERLAY -->
-<div class="ov" id="cartOv" onclick="bgClose(event,'cartOv')">
+<div class="ov" id="cartOv" role="dialog" aria-modal="true" aria-labelledby="cartTitle" onclick="bgClose(event,'cartOv')">
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-scroll">
       <div class="handle"></div>
       <div class="cs-head">
-        <button class="cs-trash" onclick="clearCart()" title="Очистить корзину"><span class="ui-icon svg-slot" data-icon="trash"></span></button>
-        <div class="cs-title">Корзина</div>
-        <button class="cs-close" onclick="closeOv('cartOv')"><span class="ui-icon svg-slot" data-icon="x"></span></button>
+        <button class="cs-trash" onclick="clearCart()" title="Очистить корзину" aria-label="Очистить корзину"><span class="ui-icon svg-slot" data-icon="trash"></span></button>
+        <div class="cs-title" id="cartTitle">Корзина</div>
+        <button class="cs-close" onclick="closeOv('cartOv')" aria-label="Закрыть корзину" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="x"></span></button>
       </div>
       <div class="cs-body-scroll">
         <div id="cartItems"></div>
@@ -1776,9 +1777,9 @@ function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
   area.addEventListener('pointercancel',end);
   area.addEventListener('lostpointercapture',end);
 }
-function openPopularItem(id){
+function openPopularItem(id,opener){
   if(popularDidDrag){popularDidDrag=false;return;}
-  openProd(id);
+  openProd(id,opener);
 }
 
 function foodIcon(type){
@@ -1907,7 +1908,8 @@ function renderPopular(){
     const item=getItem(id);
     if(!item)return '';
     return `<div class="popular-slide">
-      <div class="pop-card" onclick="openPopularItem(${item.id})">
+      <div class="pop-card">
+        <button type="button" class="product-details-btn" onclick="openPopularItem(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
         <div class="pop-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
         ${cartAddButton(item.id,'add-sq pop-add-top')}
         <div class="pop-body">
@@ -1962,7 +1964,8 @@ function render(){
     if(isGrid){
       html+=`<div class="g4">`;
       byCat[cat].forEach(item=>{
-        html+=`<div class="gc" onclick="openProd(${item.id})">
+        html+=`<div class="gc">
+          <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
           <div class="gc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}
             ${cartAddButton(item.id,'gc-plus')}
           </div>
@@ -1977,7 +1980,8 @@ function render(){
     } else {
       html+=`<div class="lv">`;
       byCat[cat].forEach(item=>{
-        html+=`<div class="lc" onclick="openProd(${item.id})">
+        html+=`<div class="lc">
+          <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
           <div class="lc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
           <div class="lc-info">
             <div class="lc-name">${item.n}</div>
@@ -2014,14 +2018,14 @@ if(viewBtn){
 }
 setViewIcon();
 
-function openProd(id){
+function openProd(id,opener){
   const item=getItem(id);
   if(!item)return;
   document.getElementById('prodContent').innerHTML=`
     <div class="ps-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
     <div class="ps-dot" aria-hidden="true"></div>
     <div class="ps-body">
-      <div class="ps-name">${item.n}</div>
+      <div class="ps-name" id="prodTitle">${item.n}</div>
       <div class="ps-weight">${item.w}</div>
       <div class="ps-desc">${item.d}</div>
     </div>
@@ -2029,7 +2033,7 @@ function openProd(id){
       ${qtyPriceHtml(item,'ps-price')}
       ${cartAddButton(item.id,'ps-add')}
     </div>`;
-  openOv('prodOv');
+  openOv('prodOv',opener);
 }
 function addCart(id){
   cart[id]=(cart[id]||0)+1;
@@ -2214,8 +2218,9 @@ function placeOrder(){
   }
   pendingOrderText=buildOrderText();
   prepareServiceSheet('order');
-  closeOv('cartOv');
-  openOv('shareOv');
+  const transitionOpener=dialogOpeners.get(document.getElementById('cartOv'));
+  closeOv('cartOv',false);
+  openOv('shareOv',transitionOpener);
 }
 function openShare(mode='contact'){
   prepareServiceSheet(mode);
@@ -2263,6 +2268,75 @@ function copyOrder(){
   setTimeout(()=>closeOv('shareOv'),400);
 }
 let lockedScrollY=0;
+const dialogOpeners=new WeakMap();
+const dialogSuppressedStates=new WeakMap();
+const openDialogs=[];
+const dialogFocusableSelector='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function isFocusable(element){
+  if(!element||!element.isConnected||!element.matches?.(dialogFocusableSelector))return false;
+  const parentDialog=element.closest?.('.ov');
+  if(parentDialog&&!parentDialog.classList.contains('on'))return false;
+  if(!element.getClientRects().length)return false;
+  const style=window.getComputedStyle(element);
+  return style.display!=='none'&&style.visibility!=='hidden'&&style.opacity!=='0';
+}
+function focusElement(element){
+  if(!isFocusable(element))return false;
+  element.focus();
+  return document.activeElement===element;
+}
+function getDialogFocusable(ov){
+  return [...ov.querySelectorAll(dialogFocusableSelector)].filter(isFocusable);
+}
+function getTopmostOpenDialog(){
+  for(let i=openDialogs.length-1;i>=0;i--){
+    if(openDialogs[i].classList.contains('on'))return openDialogs[i];
+  }
+  return null;
+}
+function setDialogSuppressed(element,suppressed){
+  if(suppressed){
+    if(dialogSuppressedStates.has(element))return;
+    dialogSuppressedStates.set(element,{
+      inert:element.inert,
+      ariaHidden:element.getAttribute('aria-hidden'),
+    });
+    element.inert=true;
+    element.setAttribute('aria-hidden','true');
+    return;
+  }
+  const previous=dialogSuppressedStates.get(element);
+  if(!previous)return;
+  element.inert=previous.inert;
+  if(previous.ariaHidden===null)element.removeAttribute('aria-hidden');
+  else element.setAttribute('aria-hidden',previous.ariaHidden);
+  dialogSuppressedStates.delete(element);
+}
+function syncDialogAccessibility(){
+  const topmost=getTopmostOpenDialog();
+  [...document.body.children].forEach(element=>{
+    setDialogSuppressed(element,!!topmost&&element!==topmost);
+  });
+}
+function focusDialog(ov){
+  const initial=ov.querySelector('[data-dialog-initial-focus]');
+  const target=isFocusable(initial)?initial:getDialogFocusable(ov)[0];
+  if(target)target.focus();
+  else{
+    ov.setAttribute('tabindex','-1');
+    ov.focus();
+  }
+}
+function restoreFocus(opener){
+  const topmost=getTopmostOpenDialog();
+  if(topmost){
+    if(topmost.contains(opener)&&focusElement(opener))return;
+    else focusDialog(topmost);
+    return;
+  }
+  if(focusElement(opener))return;
+  [...document.querySelectorAll('#cpill.on,.contact-btn')].some(focusElement);
+}
 function lockPageScroll(){
   if(document.body.classList.contains('modal-lock')) return;
   lockedScrollY=window.scrollY||document.documentElement.scrollTop||0;
@@ -2275,19 +2349,63 @@ function unlockPageScroll(){
   document.body.style.top='';
   window.scrollTo(0,lockedScrollY||0);
 }
-function openOv(id){
+function openOv(id,openerOverride){
   const ov=document.getElementById(id);
   if(!ov)return;
+  const opener=openerOverride||document.activeElement;
+  if(openerOverride?opener?.isConnected:isFocusable(opener))dialogOpeners.set(ov,opener);
   lockPageScroll();
   ov.classList.add('on');
+  const existingIndex=openDialogs.indexOf(ov);
+  if(existingIndex>=0)openDialogs.splice(existingIndex,1);
+  openDialogs.push(ov);
+  syncDialogAccessibility();
+  requestAnimationFrame(()=>{
+    if(ov.classList.contains('on')&&getTopmostOpenDialog()===ov)focusDialog(ov);
+  });
 }
-function closeOv(id){
+function closeOv(id,shouldRestoreFocus=true){
   const ov=document.getElementById(id);
   if(!ov)return;
+  const opener=dialogOpeners.get(ov);
   ov.classList.remove('on');
-  setTimeout(unlockPageScroll,20);
+  const openIndex=openDialogs.indexOf(ov);
+  if(openIndex>=0)openDialogs.splice(openIndex,1);
+  dialogOpeners.delete(ov);
+  syncDialogAccessibility();
+  if(shouldRestoreFocus&&getTopmostOpenDialog())restoreFocus(opener);
+  setTimeout(()=>{
+    unlockPageScroll();
+    if(shouldRestoreFocus&&!getTopmostOpenDialog())restoreFocus(opener);
+  },20);
 }
 function bgClose(e,id){if(e.target&&e.target.id===id)closeOv(id);}
+function handleDialogKeydown(e){
+  const topmost=getTopmostOpenDialog();
+  if(!topmost)return;
+  if(e.key==='Escape'){
+    e.preventDefault();
+    closeOv(topmost.id);
+    return;
+  }
+  if(e.key!=='Tab')return;
+  const focusable=getDialogFocusable(topmost);
+  if(!focusable.length){
+    e.preventDefault();
+    focusDialog(topmost);
+    return;
+  }
+  const first=focusable[0];
+  const last=focusable[focusable.length-1];
+  if(e.shiftKey&&(document.activeElement===first||!topmost.contains(document.activeElement))){
+    e.preventDefault();
+    last.focus();
+  }else if(!e.shiftKey&&(document.activeElement===last||!topmost.contains(document.activeElement))){
+    e.preventDefault();
+    first.focus();
+  }
+}
+document.addEventListener('keydown',handleDialogKeydown);
 function showToast(msg){
   const el=document.getElementById('toastEl');
   el.textContent=msg;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');

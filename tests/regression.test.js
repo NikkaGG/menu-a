@@ -48,6 +48,8 @@ function makeElement(value = '') {
     value,
     disabled: false,
     hidden: true,
+    inert: false,
+    isConnected: true,
     focused: false,
     setAttribute(name, valueToSet) {
       attributes.set(name, String(valueToSet));
@@ -106,6 +108,7 @@ function checkoutHarness({ phone = '', address = '', mode = 'd', hasItems = true
     },
     closeOv() {},
     openOv() {},
+    dialogOpeners: new WeakMap(),
     pendingOrderText: '',
   });
 
@@ -198,11 +201,420 @@ function runCookieScript(storedValue) {
   return { context, cookieBar, storage };
 }
 
+function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = false } = {}) {
+  const scheduled = [];
+  const bodyClassList = makeClassList();
+  const opener = makeElement();
+  const fallback = makeElement();
+  const background = makeElement();
+  const cookieBar = makeElement();
+  const cartPill = makeElement();
+  const phoneInp = makeElement('1234567890');
+  const addrInp = makeElement('Main 1');
+  const phoneErr = makeElement();
+  const addrErr = makeElement();
+  const overlays = {};
+  const closeButtons = {};
+  const shareButtons = {};
+
+  for (const id of ['prodOv', 'shareOv', 'cartOv']) {
+    const closeButton = makeElement();
+    const shareButton = makeElement();
+    const overlay = makeElement();
+    overlay.id = id;
+    overlay.classList = makeClassList();
+    overlay.contains = (element) => element === closeButton || element === shareButton;
+    overlay.querySelector = (selector) => (
+      selector === '[data-dialog-initial-focus]' ? closeButton : null
+    );
+    overlay.querySelectorAll = () => [shareButton, closeButton];
+    overlay.focus = function focus() {
+      document.activeElement = this;
+    };
+    closeButton.closest = () => overlay;
+    shareButton.closest = () => overlay;
+    closeButtons[id] = closeButton;
+    shareButtons[id] = shareButton;
+    overlays[id] = overlay;
+  }
+
+  for (const element of [opener, fallback, ...Object.values(closeButtons), ...Object.values(shareButtons)]) {
+    element.matches = () => true;
+    if (!element.closest) element.closest = () => null;
+    element.getClientRects = () => {
+      const hiddenByModalLock = element === opener && bodyClassList.contains('modal-lock');
+      return hiddenByModalLock ? [] : [{}];
+    };
+  }
+  const document = {
+    activeElement: opener,
+    body: {
+      classList: bodyClassList,
+      style: {},
+      children: [background, cookieBar, cartPill, overlays.prodOv, overlays.shareOv, overlays.cartOv],
+    },
+    documentElement: { scrollTop: 0 },
+    getElementById(id) {
+      return overlays[id] || { phoneInp, addrInp, phoneErr, addrErr }[id] || null;
+    },
+    querySelector(selector) {
+      if (selector === '.ov.on') {
+        return Object.values(overlays).find((overlay) => overlay.classList.contains('on')) || null;
+      }
+      if (selector === '#cpill.on,.contact-btn') return fallbackPrecedesOpener ? fallback : opener;
+      return null;
+    },
+    querySelectorAll(selector) {
+      if (selector !== '#cpill.on,.contact-btn') return [];
+      return fallbackPrecedesOpener ? [fallback, opener] : [opener, fallback];
+    },
+  };
+  opener.focus = function focus() {
+    if (!openerFocusFails && this.getClientRects().length) {
+      this.focused = true;
+      document.activeElement = this;
+    }
+  };
+  fallback.focus = function focus() {
+    this.focused = true;
+    document.activeElement = this;
+  };
+  for (const element of [...Object.values(closeButtons), ...Object.values(shareButtons)]) {
+    element.focus = function focus() {
+      this.focused = true;
+      document.activeElement = this;
+    };
+  }
+  const context = vm.createContext({
+    cart: { 1: 1 },
+    delMode: 'd',
+    pendingOrderText: '',
+    document,
+    window: {
+      scrollY: 0,
+      scrollTo() {},
+      getComputedStyle(element) {
+        return {
+          display: element.getClientRects().length ? 'block' : 'none',
+          visibility: 'visible',
+        };
+      },
+    },
+    requestAnimationFrame(callback) {
+      callback();
+    },
+    setTimeout(callback) {
+      scheduled.push(callback);
+    },
+    buildOrderText() {
+      return 'order';
+    },
+    prepareServiceSheet() {},
+    showToast() {},
+  });
+  const declarations = [
+    "let lockedScrollY=0",
+    "const dialogOpeners=new WeakMap()",
+    "const dialogSuppressedStates=new WeakMap()",
+    "const openDialogs=[]",
+    "const dialogFocusableSelector='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])'",
+  ].join(';');
+  const accessibilityFunctions = indexSource.includes('function syncDialogAccessibility(')
+    ? ['setDialogSuppressed', 'syncDialogAccessibility'].map((name) => extractFunction(indexSource, name))
+    : ['function syncDialogAccessibility(){}'];
+  const functions = [
+    'isFocusable',
+    'focusElement',
+    'getDialogFocusable',
+    'getTopmostOpenDialog',
+    'focusDialog',
+    'restoreFocus',
+    'lockPageScroll',
+    'unlockPageScroll',
+    'openOv',
+    'closeOv',
+    'validPhone',
+    'placeOrder',
+  ].map((name) => extractFunction(indexSource, name)).concat(accessibilityFunctions).join('\n');
+  vm.runInContext(`${declarations};${functions}`, context);
+
+  return {
+    context,
+    background,
+    cartPill,
+    closeButtons,
+    cookieBar,
+    fallback,
+    opener,
+    overlay: overlays.cartOv,
+    overlays,
+    shareButtons,
+    runScheduled() {
+      while (scheduled.length) scheduled.shift()();
+    },
+  };
+}
+
+function productCardHarness({ grid = true } = {}) {
+  const dialog = dialogHarness();
+  const elements = {
+    menuArea: makeElement(),
+    popularCard: makeElement(),
+    popDots: makeElement(),
+    popularTrack: { style: {} },
+    prodContent: makeElement(),
+  };
+  const originalGetElementById = dialog.context.document.getElementById;
+  dialog.context.document.getElementById = (id) => elements[id] || originalGetElementById(id);
+
+  vm.runInContext(`
+    const M=[{id:1,c:'f',n:'Тестовый ролл',w:'200 г',d:'Описание',p:500,img:'roll.webp',i:'r'}];
+    const CATS=[{id:'f',l:'Роллы'}];
+    const CN={f:'Роллы'};
+    const POPULAR_IDS=[1];
+    let isGrid=${grid},activeCat='all',search='',popIndex=0,popularDidDrag=false;
+    ${[
+    'getItem',
+    'fmt',
+    'priceText',
+    'shownQty',
+    'shownTotal',
+    'addBtnHtml',
+    'addBtnAria',
+    'cartAddButton',
+    'priceMarkup',
+    'qtyPriceHtml',
+    'renderPopular',
+    'renderPopularDots',
+    'updatePopular',
+    'filtered',
+    'render',
+    'openPopularItem',
+    'openProd',
+  ].map((name) => extractFunction(indexSource, name)).join('\n')}
+  `, dialog.context);
+
+  dialog.context.renderPopular();
+  dialog.context.render();
+
+  return { ...dialog, elements };
+}
+
+function invokeRenderedDetailsControl(context, html) {
+  const match = html.match(/<button[^>]*class="product-details-btn"[^>]*onclick="([^"]+)"/);
+  assert.ok(match, 'Expected a rendered product details button');
+  const control = makeElement();
+  control.matches = () => true;
+  control.closest = () => null;
+  control.getClientRects = () => [{}];
+  control.focus = function focus() {
+    this.focused = true;
+    context.document.activeElement = this;
+  };
+  context.renderedControl = control;
+  vm.runInContext(`(function(){${match[1]}}).call(renderedControl)`, context);
+  return control;
+}
+
+function assertNoNestedButtons(html) {
+  let buttonDepth = 0;
+  for (const match of html.matchAll(/<\/?button\b[^>]*>/g)) {
+    if (match[0].startsWith('</')) buttonDepth -= 1;
+    else buttonDepth += 1;
+    assert.ok(buttonDepth <= 1, `Found nested buttons in rendered HTML: ${match[0]}`);
+  }
+  assert.equal(buttonDepth, 0);
+}
+
 test('index.html and menu.html remain byte-identical', () => {
   assert.deepEqual(
     fs.readFileSync(path.join(root, 'index.html')),
     fs.readFileSync(path.join(root, 'menu.html')),
   );
+});
+
+test('all overlays expose named modal dialog semantics', () => {
+  assert.match(indexSource, /id="prodOv"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="prodTitle"/);
+  assert.match(indexSource, /id="shareOv"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="shareTitle"/);
+  assert.match(indexSource, /id="cartOv"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="cartTitle"/);
+  assert.match(indexSource, /class="ps-name" id="prodTitle">\$\{item\.n\}<\/div>/);
+  assert.match(indexSource, /class="cs-title" id="cartTitle">Корзина<\/div>/);
+});
+
+test('icon-only product and cart controls have accessible names', () => {
+  assert.match(indexSource, /class="ps-icon-btn"[^>]*aria-label="Поделиться"/);
+  assert.match(indexSource, /class="ps-icon-btn"[^>]*aria-label="Закрыть товар"/);
+  assert.match(indexSource, /class="cs-trash"[^>]*aria-label="Очистить корзину"/);
+  assert.match(indexSource, /class="cs-close"[^>]*aria-label="Закрыть корзину"/);
+});
+
+test('rendered popular card opens product details from a named native button and restores focus to it', () => {
+  const card = productCardHarness();
+  const html = card.elements.popularCard.innerHTML;
+
+  assert.match(html, /<div class="pop-card">/);
+  assert.match(html, /<button type="button" class="product-details-btn"[^>]*aria-label="Подробнее о Тестовый ролл"/);
+  assert.match(html, /<button type="button" class="add-sq pop-add-top cart-add-btn/);
+  assertNoNestedButtons(html);
+
+  const control = invokeRenderedDetailsControl(card.context, html);
+  card.context.closeOv('prodOv');
+  card.runScheduled();
+
+  assert.equal(control.focused, true);
+  assert.equal(card.context.document.activeElement, control);
+});
+
+test('rendered grid card opens product details from a named native button and restores focus to it', () => {
+  const card = productCardHarness();
+  const html = card.elements.menuArea.innerHTML;
+
+  assert.match(html, /<div class="gc">/);
+  assert.match(html, /<button type="button" class="product-details-btn"[^>]*aria-label="Подробнее о Тестовый ролл"/);
+  assert.match(html, /<button type="button" class="gc-plus cart-add-btn/);
+  assertNoNestedButtons(html);
+
+  const control = invokeRenderedDetailsControl(card.context, html);
+  card.context.closeOv('prodOv');
+  card.runScheduled();
+
+  assert.equal(control.focused, true);
+  assert.equal(card.context.document.activeElement, control);
+});
+
+test('rendered list card opens product details from a named native button and restores focus to it', () => {
+  const card = productCardHarness({ grid: false });
+  const html = card.elements.menuArea.innerHTML;
+
+  assert.match(html, /<div class="lc">/);
+  assert.match(html, /<button type="button" class="product-details-btn"[^>]*aria-label="Подробнее о Тестовый ролл"/);
+  assert.match(html, /<button type="button" class="add-sq cart-add-btn/);
+  assertNoNestedButtons(html);
+
+  const control = invokeRenderedDetailsControl(card.context, html);
+  card.context.closeOv('prodOv');
+  card.runScheduled();
+
+  assert.equal(control.focused, true);
+  assert.equal(card.context.document.activeElement, control);
+});
+
+test('dialog lifecycle stores and restores focus while preserving order transition focus', () => {
+  const openOv = extractFunction(indexSource, 'openOv');
+  const closeOv = extractFunction(indexSource, 'closeOv');
+  const restoreFocus = extractFunction(indexSource, 'restoreFocus');
+  const placeOrder = extractFunction(indexSource, 'placeOrder');
+
+  assert.match(openOv, /document\.activeElement/);
+  assert.match(openOv, /dialogOpeners\.set\(ov,/);
+  assert.match(openOv, /focusDialog\(ov\)/);
+  assert.match(closeOv, /restoreFocus/);
+  assert.match(closeOv, /dialogOpeners\.get\(ov\)/);
+  assert.match(restoreFocus, /getTopmostOpenDialog\(\)/);
+  assert.match(placeOrder, /const transitionOpener=dialogOpeners\.get\(document\.getElementById\('cartOv'\)\);/);
+  assert.match(placeOrder, /closeOv\('cartOv',false\);\s*openOv\('shareOv',transitionOpener\);/);
+});
+
+test('closing cart restores focus after modal lock stops hiding its opener', () => {
+  const dialog = dialogHarness();
+
+  dialog.context.openOv('cartOv');
+  dialog.context.closeOv('cartOv');
+
+  assert.equal(dialog.opener.focused, false);
+  assert.equal(dialog.context.document.body.classList.contains('modal-lock'), true);
+
+  dialog.runScheduled();
+
+  assert.equal(dialog.context.document.body.classList.contains('modal-lock'), false);
+  assert.equal(dialog.opener.focused, true);
+});
+
+test('failed opener focus falls back to the next visible safe control', () => {
+  const dialog = dialogHarness({ openerFocusFails: true });
+
+  dialog.context.openOv('cartOv');
+  dialog.context.closeOv('cartOv');
+  dialog.runScheduled();
+
+  assert.equal(dialog.opener.focused, false);
+  assert.equal(dialog.fallback.focused, true);
+});
+
+test('cart-to-share transition restores focus to the original visible cart opener', () => {
+  const dialog = dialogHarness({ fallbackPrecedesOpener: true });
+
+  dialog.context.openOv('cartOv');
+  dialog.context.placeOrder();
+  dialog.context.closeOv('shareOv');
+  dialog.runScheduled();
+
+  assert.equal(dialog.fallback.focused, false);
+  assert.equal(dialog.opener.focused, true);
+  assert.equal(dialog.context.document.activeElement, dialog.opener);
+});
+
+test('only the topmost nested dialog remains exposed and interactive', () => {
+  const dialog = dialogHarness();
+
+  dialog.context.openOv('prodOv');
+
+  assert.equal(dialog.overlays.prodOv.inert, false);
+  assert.equal(dialog.overlays.prodOv.getAttribute('aria-hidden'), null);
+  assert.equal(dialog.background.inert, true);
+  assert.equal(dialog.background.getAttribute('aria-hidden'), 'true');
+
+  dialog.context.document.activeElement = dialog.shareButtons.prodOv;
+  dialog.context.openOv('shareOv');
+
+  assert.equal(dialog.overlays.shareOv.inert, false);
+  assert.equal(dialog.overlays.shareOv.getAttribute('aria-hidden'), null);
+  assert.equal(dialog.overlays.prodOv.inert, true);
+  assert.equal(dialog.overlays.prodOv.getAttribute('aria-hidden'), 'true');
+  assert.equal(dialog.background.inert, true);
+  assert.equal(dialog.background.getAttribute('aria-hidden'), 'true');
+});
+
+test('closing the top nested dialog restores the lower dialog before the page', () => {
+  const dialog = dialogHarness();
+
+  dialog.context.openOv('prodOv');
+  dialog.context.document.activeElement = dialog.shareButtons.prodOv;
+  dialog.context.openOv('shareOv');
+  dialog.context.closeOv('shareOv');
+
+  assert.equal(dialog.overlays.prodOv.inert, false);
+  assert.equal(dialog.overlays.prodOv.getAttribute('aria-hidden'), null);
+  assert.equal(dialog.background.inert, true);
+  assert.equal(dialog.background.getAttribute('aria-hidden'), 'true');
+
+  dialog.context.closeOv('prodOv');
+  dialog.runScheduled();
+
+  assert.equal(dialog.background.inert, false);
+  assert.equal(dialog.background.getAttribute('aria-hidden'), null);
+  assert.equal(dialog.cookieBar.inert, false);
+  assert.equal(dialog.cartPill.getAttribute('aria-hidden'), null);
+});
+
+test('one global keyboard handler traps Tab and closes only the topmost dialog', () => {
+  const handler = extractFunction(indexSource, 'handleDialogKeydown');
+  const registrations = indexSource.match(/document\.addEventListener\('keydown',handleDialogKeydown\)/g) || [];
+
+  assert.equal(registrations.length, 1);
+  assert.match(handler, /getTopmostOpenDialog\(\)/);
+  assert.match(handler, /e\.key==='Escape'/);
+  assert.match(handler, /closeOv\(topmost\.id\)/);
+  assert.match(handler, /e\.key!=='Tab'/);
+  assert.match(handler, /e\.shiftKey/);
+  assert.match(handler, /focusable\[focusable\.length-1\]/);
+  assert.match(handler, /focusable\[0\]/);
+});
+
+test('background-click closure remains wired for every dialog', () => {
+  for (const id of ['prodOv', 'shareOv', 'cartOv']) {
+    assert.match(indexSource, new RegExp(`id="${id}"[^>]*onclick="bgClose\\(event,'${id}'\\)"`));
+  }
 });
 
 test('cookie consent is visible until cookieOk is persisted', () => {
