@@ -774,7 +774,6 @@ html,body{font-family:sfProText,'sfProText Fallback',-apple-system,BlinkMacSyste
 .ss-opt.ss-mini:hover .ss-mini-glyph{color:#3a3a3e}
 
 /* ── FINAL REFERENCE ALIGNMENT ── */
-.cookie-bar{display:none!important}
 .sticky-bar{padding-left:11px!important;padding-right:11px!important}
 .search-row{gap:20px!important}
 .menu-area{padding-left:14px!important;padding-right:14px!important}
@@ -2253,8 +2252,8 @@ function shareVia(v){
   setTimeout(()=>closeOv('shareOv'),400);
 }
 function copyOrder(){
-  const text=pendingOrderText||'Sushi Crazy: '+SHOP_PHONE_TEXT;
-  const isOrder=text.startsWith('Новый заказ');
+  const isOrder=document.getElementById('shareOv')?.classList.contains('order-mode');
+  const text=isOrder?pendingOrderText:location.href;
   if(navigator.clipboard){
     navigator.clipboard.writeText(text).then(()=>showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована')).catch(()=>showToast('Скопируйте текст вручную'));
   }else{

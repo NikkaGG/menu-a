@@ -64,6 +64,21 @@ function makeElement(value = '') {
   };
 }
 
+function makeClassList(initial = []) {
+  const classes = new Set(initial);
+  return {
+    add(...names) {
+      names.forEach((name) => classes.add(name));
+    },
+    remove(...names) {
+      names.forEach((name) => classes.delete(name));
+    },
+    contains(name) {
+      return classes.has(name);
+    },
+  };
+}
+
 function checkoutHarness({ phone = '', address = '', mode = 'd', hasItems = true } = {}) {
   const elements = {
     orderBtn: makeElement(),
@@ -101,11 +116,145 @@ function checkoutHarness({ phone = '', address = '', mode = 'd', hasItems = true
   return { context, elements, wasPrepared: () => prepared };
 }
 
+function sharingHarness({ clipboardRejects = false } = {}) {
+  const elements = {
+    shareOv: { classList: makeClassList() },
+    shareTitle: makeElement(),
+    shareSub: makeElement(),
+    shareWaLabel: makeElement(),
+    shareCopyBtn: makeElement(),
+  };
+  const copied = [];
+  const toasts = [];
+  const location = { href: 'https://example.test/menu?category=rolls#popular' };
+  const context = vm.createContext({
+    SHOP_PHONE: '+998711234567',
+    SHOP_PHONE_TEXT: '+998 71 123 45 67',
+    pendingOrderText: '',
+    cart: { 1: 2 },
+    document: {
+      getElementById(id) {
+        return elements[id] || null;
+      },
+    },
+    location,
+    window: { location },
+    navigator: {
+      clipboard: {
+        writeText(text) {
+          copied.push(text);
+          return clipboardRejects
+            ? Promise.reject(new Error('clipboard unavailable'))
+            : Promise.resolve();
+        },
+      },
+    },
+    setSecondService() {},
+    setTimeout(callback) {
+      callback();
+    },
+    closeOv() {},
+    updatePill() {},
+    syncCardState() {},
+    renderCart() {},
+    showToast(message) {
+      toasts.push(message);
+    },
+  });
+
+  for (const name of ['prepareServiceSheet', 'finishOrder', 'copyOrder']) {
+    vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
+  }
+
+  return { context, copied, elements, toasts };
+}
+
+function runCookieScript(storedValue) {
+  const cookieBar = { classList: makeClassList() };
+  const storage = new Map();
+  if (storedValue !== undefined) storage.set('cookieOk', storedValue);
+  const context = vm.createContext({
+    document: {
+      getElementById(id) {
+        return id === 'cookieBar' ? cookieBar : null;
+      },
+    },
+    localStorage: {
+      getItem(key) {
+        return storage.get(key) ?? null;
+      },
+      setItem(key, value) {
+        storage.set(key, String(value));
+      },
+    },
+  });
+  const marker = '/* ── COOKIE BAR ── */';
+  const start = indexSource.indexOf(marker);
+  const end = indexSource.indexOf('/* ── CATEGORY SCROLL-SPY', start);
+  assert.notEqual(start, -1);
+  assert.notEqual(end, -1);
+  vm.runInContext(indexSource.slice(start + marker.length, end), context);
+
+  return { context, cookieBar, storage };
+}
+
 test('index.html and menu.html remain byte-identical', () => {
   assert.deepEqual(
     fs.readFileSync(path.join(root, 'index.html')),
     fs.readFileSync(path.join(root, 'menu.html')),
   );
+});
+
+test('cookie consent is visible until cookieOk is persisted', () => {
+  assert.doesNotMatch(indexSource, /\.cookie-bar\{display:none!important\}/);
+
+  const firstVisit = runCookieScript();
+  assert.equal(firstVisit.cookieBar.classList.contains('on'), true);
+
+  firstVisit.context.acceptCookies();
+  assert.equal(firstVisit.storage.get('cookieOk'), '1');
+  assert.equal(firstVisit.cookieBar.classList.contains('on'), false);
+
+  const acceptedReload = runCookieScript('1');
+  assert.equal(acceptedReload.cookieBar.classList.contains('on'), false);
+});
+
+test('contact and product copy actions copy the current page link without clearing the cart', async () => {
+  for (const mode of ['contact', 'product']) {
+    const sharing = sharingHarness();
+    sharing.context.prepareServiceSheet(mode);
+    sharing.context.copyOrder();
+    await new Promise(setImmediate);
+
+    assert.deepEqual(sharing.copied, ['https://example.test/menu?category=rolls#popular']);
+    assert.deepEqual(sharing.context.cart, { 1: 2 });
+    assert.equal(sharing.context.pendingOrderText.includes('+998 71 123 45 67'), true);
+    assert.equal(sharing.toasts.includes('Ссылка скопирована'), true);
+    assert.equal(sharing.toasts.includes('Текст заказа скопирован'), false);
+  }
+});
+
+test('order copy action copies pending order text and preserves its cart-clearing behavior', async () => {
+  const sharing = sharingHarness();
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.prepareServiceSheet('order');
+  sharing.context.copyOrder();
+  await new Promise(setImmediate);
+
+  assert.deepEqual(sharing.copied, ['Новый заказ № 42']);
+  assert.equal(Object.keys(sharing.context.cart).length, 0);
+  assert.equal(sharing.toasts.includes('Текст заказа скопирован'), true);
+  assert.equal(sharing.toasts.includes('Ссылка скопирована'), false);
+});
+
+test('failed copy reports failure without a success toast', async () => {
+  const sharing = sharingHarness({ clipboardRejects: true });
+  sharing.context.prepareServiceSheet('contact');
+  sharing.context.copyOrder();
+  await new Promise(setImmediate);
+
+  assert.deepEqual(sharing.toasts, ['Скопируйте текст вручную']);
+  assert.deepEqual(sharing.context.cart, { 1: 2 });
 });
 
 test('phone and address fields have static error descriptions and hidden errors', () => {
