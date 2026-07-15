@@ -81,6 +81,25 @@ function makeClassList(initial = []) {
   };
 }
 
+function makeTrackedClassList(initial = []) {
+  const classes = new Set(initial);
+  const operations = [];
+  return {
+    operations,
+    add(...names) {
+      operations.push(['add', ...names]);
+      names.forEach((name) => classes.add(name));
+    },
+    remove(...names) {
+      operations.push(['remove', ...names]);
+      names.forEach((name) => classes.delete(name));
+    },
+    contains(name) {
+      return classes.has(name);
+    },
+  };
+}
+
 function checkoutHarness({ phone = '', address = '', mode = 'd', hasItems = true } = {}) {
   const elements = {
     orderBtn: makeElement(),
@@ -153,6 +172,9 @@ function sharingHarness({ clipboardRejects = false } = {}) {
       },
     },
     setSecondService() {},
+    runAfterMotion(callback) {
+      callback();
+    },
     setTimeout(callback) {
       callback();
     },
@@ -303,6 +325,9 @@ function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = fals
     requestAnimationFrame(callback) {
       callback();
     },
+    runAfterMotion(callback) {
+      scheduled.push(callback);
+    },
     setTimeout(callback) {
       scheduled.push(callback);
     },
@@ -357,6 +382,7 @@ function dialogHarness({ fallbackPrecedesOpener = false, openerFocusFails = fals
 
 function productCardHarness({ grid = true } = {}) {
   const dialog = dialogHarness();
+  dialog.context.prefersReducedMotion = () => false;
   const elements = {
     menuArea: makeElement(),
     popularCard: makeElement(),
@@ -431,6 +457,175 @@ test('index.html and menu.html remain byte-identical', () => {
     fs.readFileSync(path.join(root, 'index.html')),
     fs.readFileSync(path.join(root, 'menu.html')),
   );
+});
+
+test('restaurant header uses the exact requested schedule and delivery text', () => {
+  assert.match(indexSource, />График: с 11:00 до 22:40</);
+  assert.match(indexSource, />Доставка: от 4 900₸ бесплатная в радиусе 10 км\.</);
+  assert.doesNotMatch(indexSource, /График:С|Доставка:От/);
+});
+
+test('fixed and sticky mobile surfaces account for every safe-area inset', () => {
+  assert.match(indexSource, /viewport-fit=cover/);
+  for (const inset of ['top', 'right', 'bottom', 'left']) {
+    assert.match(indexSource, new RegExp(`env\\(safe-area-inset-${inset}, 0px\\)`));
+  }
+  assert.match(indexSource, /\.cart-pill-shell[\s\S]*safe-area-inset-bottom/);
+  assert.match(indexSource, /\.cookie-bar[\s\S]*safe-area-inset-bottom/);
+  assert.match(indexSource, /\.ov[\s\S]*safe-area-inset-top/);
+  assert.match(indexSource, /\.sticky-bar\.is-stuck[\s\S]*safe-area-inset-top/);
+  assert.match(indexSource, /#prodOv \.ps-top[\s\S]*safe-area-inset-right/);
+  assert.match(indexSource, /#cartOv \.cs-head[\s\S]*safe-area-inset-left/);
+});
+
+test('mobile interactive controls expose at least 44px CSS hit areas', () => {
+  const requiredSelectors = [
+    '.add-sq', '.gc-plus', '.ps-add', '.qb', '.cs-trash', '.cs-close',
+    '.ps-icon-btn', '.ss-x', '.ss-copy', '.ss-opt', '.s-action',
+    '.cookie-ok', '.grid-toggle', '.cat', '.dot-item', '.cart-pill',
+  ];
+  for (const selector of requiredSelectors) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(
+      indexSource,
+      new RegExp(`${escaped}[^{}]*\\{[^}]*min-(?:width|inline-size):44px[^}]*min-(?:height|block-size):44px`),
+      `Expected a 44x44 hit-area rule for ${selector}`,
+    );
+  }
+  assert.match(indexSource, /\.dot-item::before\{[^}]*width:5px[^}]*height:5px/);
+});
+
+test('mobile form inputs and textareas retain at least 44px actual hit heights', () => {
+  assert.match(
+    indexSource,
+    /\.contact-btn,\.dopt,\.order-btn,\.addr-inp,\.s-inp,\.cmnt-ta\{min-height:44px!important\}/,
+  );
+  assert.match(indexSource, /#cartOv \.addr-inp\{min-height:44px!important/);
+  assert.match(indexSource, /#cartOv \.cmnt-ta\{[^}]*min-height:(?:[4-9]\d|\d{3,})px!important/);
+
+  const formControls = [...indexSource.matchAll(/<(?:input|textarea)\b[^>]*class="([^"]+)"/g)];
+  assert.ok(formControls.length > 0);
+  for (const [, classes] of formControls) {
+    assert.match(classes, /(?:^|\s)(?:addr-inp|s-inp|cmnt-ta)(?:\s|$)/);
+  }
+});
+
+test('reduced motion disables CSS motion and bypasses timed JavaScript effects', () => {
+  assert.match(indexSource, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*scroll-behavior:auto!important/);
+  assert.match(indexSource, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*animation:none!important[\s\S]*transition:none!important/);
+  assert.match(indexSource, /matchMedia\?\.\('\(prefers-reduced-motion: reduce\)'\)/);
+  assert.match(extractFunction(indexSource, 'prefersReducedMotion'), /reducedMotionQuery\?\.matches/);
+  assert.match(extractFunction(indexSource, 'slowScrollTo'), /if\(prefersReducedMotion\(\)\)\{window\.scrollTo\(0,endY\);return;\}/);
+  assert.match(extractFunction(indexSource, 'animateCardsIn'), /if\(prefersReducedMotion\(\)\)return;/);
+  assert.match(indexSource, /window\.toggleView=function\(\)\{[\s\S]*if\(prefersReducedMotion\(\)\)/);
+  assert.match(extractFunction(indexSource, 'updatePopular'), /prefersReducedMotion\(\)/);
+});
+
+test('reduced motion centralizes immediate modal and share closure delays', () => {
+  const runAfterMotion = extractFunction(indexSource, 'runAfterMotion');
+  const closeOv = extractFunction(indexSource, 'closeOv');
+  const shareVia = extractFunction(indexSource, 'shareVia');
+  const copyOrder = extractFunction(indexSource, 'copyOrder');
+
+  assert.match(runAfterMotion, /if\(prefersReducedMotion\(\)\)\{callback\(\);return;\}/);
+  assert.match(closeOv, /runAfterMotion\(\(\)=>\{[\s\S]*\},20\)/);
+  assert.match(shareVia, /runAfterMotion\(\(\)=>closeOv\('shareOv'\),400\)/);
+  assert.match(copyOrder, /runAfterMotion\(\(\)=>closeOv\('shareOv'\),400\)/);
+
+  const scheduled = [];
+  let calls = 0;
+  const context = vm.createContext({
+    prefersReducedMotion: () => true,
+    setTimeout(callback, delay) {
+      scheduled.push({ callback, delay });
+    },
+  });
+  vm.runInContext(`${runAfterMotion};this.runAfterMotion=runAfterMotion;`, context);
+  context.callback = () => {
+    calls += 1;
+  };
+  vm.runInContext('runAfterMotion(callback, 400)', context);
+  assert.equal(calls, 1);
+  assert.equal(scheduled.length, 0);
+
+  context.prefersReducedMotion = () => false;
+  vm.runInContext('runAfterMotion(callback, 400)', context);
+  assert.equal(calls, 1);
+  assert.equal(scheduled[0].delay, 400);
+  scheduled[0].callback();
+  assert.equal(calls, 2);
+});
+
+test('reduced-motion toast stays readable without forced animation choreography and auto-clears', () => {
+  const classList = makeTrackedClassList(['on']);
+  let reflows = 0;
+  const toast = { classList, textContent: '' };
+  Object.defineProperty(toast, 'offsetWidth', {
+    get() {
+      reflows += 1;
+      return 100;
+    },
+  });
+  const scheduled = [];
+  const context = vm.createContext({
+    document: {
+      getElementById(id) {
+        return id === 'toastEl' ? toast : null;
+      },
+    },
+    prefersReducedMotion: () => true,
+    setTimeout(callback, delay) {
+      scheduled.push({ callback, delay });
+    },
+  });
+  for (const name of ['restartMotionClass', 'showToast']) {
+    vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
+  }
+
+  context.showToast('Готово');
+
+  assert.equal(toast.textContent, 'Готово');
+  assert.equal(toast.classList.contains('on'), true);
+  assert.equal(reflows, 0);
+  assert.deepEqual(classList.operations, [['add', 'on']]);
+  assert.equal(scheduled.length, 1);
+  assert.equal(scheduled[0].delay, 2600);
+
+  scheduled[0].callback();
+  assert.equal(toast.classList.contains('on'), false);
+});
+
+test('normal-motion toast preserves forced restart choreography and timing', () => {
+  const classList = makeTrackedClassList(['on']);
+  let reflows = 0;
+  const toast = { classList, textContent: '' };
+  Object.defineProperty(toast, 'offsetWidth', {
+    get() {
+      reflows += 1;
+      return 100;
+    },
+  });
+  const scheduled = [];
+  const context = vm.createContext({
+    document: {
+      getElementById() {
+        return toast;
+      },
+    },
+    prefersReducedMotion: () => false,
+    setTimeout(callback, delay) {
+      scheduled.push({ callback, delay });
+    },
+  });
+  for (const name of ['restartMotionClass', 'showToast']) {
+    vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
+  }
+
+  context.showToast('Готово');
+
+  assert.equal(reflows, 1);
+  assert.deepEqual(classList.operations, [['remove', 'on'], ['add', 'on']]);
+  assert.equal(scheduled[0].delay, 2600);
 });
 
 test('all overlays expose named modal dialog semantics', () => {

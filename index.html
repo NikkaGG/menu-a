@@ -1393,7 +1393,15 @@ button,input,textarea,select,
   100%{opacity:1;transform:translateY(0) scale(1)}
 }
 @media(prefers-reduced-motion:reduce){
-  .card-enter,.menu-sec-title.cat-target-flash{animation:none!important}
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    animation:none!important;
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+    transition:none!important;
+  }
 }
 
 
@@ -1458,7 +1466,7 @@ body.modal-lock .cart-pill-shell{
 #cartOv .del-label,#cartOv .cmnt-title{font-size:15px!important;margin-bottom:6px!important}
 #cartOv .del-row{margin-bottom:8px!important}
 #cartOv .order-grid{gap:7px!important;margin-top:7px!important}
-#cartOv .addr-inp{min-height:36px!important;padding:8px 12px!important;font-size:13px!important;margin-bottom:0!important}
+#cartOv .addr-inp{min-height:44px!important;padding:8px 12px!important;font-size:13px!important;margin-bottom:0!important}
 #cartOv .cmnt-ta{height:58px!important;min-height:58px!important;padding:9px 12px!important;font-size:13px!important;margin-top:7px!important}
 #cartOv .cmnt-hint{font-size:12.5px!important;line-height:1.35!important;margin:6px 0 7px!important}
 #cartOv .addr-err{font-size:11px!important;margin:4px 0 5px!important}
@@ -1486,6 +1494,108 @@ body.modal-lock .cart-pill-shell{
   transform:none!important;
 }
 
+/* ── MOBILE ACCESSIBILITY: safe areas and 44px touch targets ── */
+.page{
+  padding-left:env(safe-area-inset-left, 0px);
+  padding-right:env(safe-area-inset-right, 0px);
+}
+.sticky-bar.is-stuck{
+  top:env(safe-area-inset-top, 0px)!important;
+  padding-left:max(11px, env(safe-area-inset-left, 0px))!important;
+  padding-right:max(11px, env(safe-area-inset-right, 0px))!important;
+}
+.cart-pill-shell{
+  width:min(var(--catalog-shell-width), calc(100vw - var(--catalog-side-gap) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)))!important;
+  padding-left:max(14px, env(safe-area-inset-left, 0px))!important;
+  padding-right:max(14px, env(safe-area-inset-right, 0px))!important;
+  padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px))!important;
+}
+.cookie-bar{
+  bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+  width:min(460px, calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+}
+.ov{
+  padding-top:env(safe-area-inset-top, 0px)!important;
+  padding-left:env(safe-area-inset-left, 0px)!important;
+  padding-right:env(safe-area-inset-right, 0px)!important;
+}
+#cartOv{
+  padding-top:env(safe-area-inset-top, 0px)!important;
+  padding-left:env(safe-area-inset-left, 0px)!important;
+  padding-right:env(safe-area-inset-right, 0px)!important;
+}
+.sheet{padding-bottom:env(safe-area-inset-bottom, 0px)}
+#cartOv .sheet{
+  width:min(720px, calc(100vw - 18px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)))!important;
+  max-height:calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))!important;
+}
+#cartOv .sheet-scroll{
+  max-height:calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))!important;
+}
+#prodOv .ps-top{
+  top:calc(30px + env(safe-area-inset-top, 0px));
+  right:calc(12px + env(safe-area-inset-right, 0px));
+}
+#shareOv .ss-x{
+  top:calc(26px + env(safe-area-inset-top, 0px));
+  right:calc(14px + env(safe-area-inset-right, 0px));
+}
+#cartOv .cs-head{
+  padding-left:max(18px, env(safe-area-inset-left, 0px))!important;
+  padding-right:max(18px, env(safe-area-inset-right, 0px))!important;
+}
+#cartOv .cs-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px))!important}
+
+.add-sq,.gc-plus,.ps-add,.qb,.cs-trash,.cs-close,.ps-icon-btn,.ss-x,
+.ss-copy,.ss-opt,.s-action,.cookie-ok,.grid-toggle,.cat,.dot-item,.cart-pill{
+  min-width:44px;
+  min-height:44px;
+}
+.contact-btn,.dopt,.order-btn,.addr-inp,.s-inp,.cmnt-ta{min-height:44px!important}
+.dot-item{
+  position:relative;
+  width:44px!important;
+  height:44px!important;
+  min-width:44px;
+  min-height:44px;
+  background:transparent!important;
+  opacity:1!important;
+}
+.dot-item::before{
+  content:'';
+  display:block;
+  width:5px;
+  height:5px;
+  margin:auto;
+  border-radius:999px;
+  background:#333;
+}
+.dot-item.active::before{width:min(96px, 100%);height:4px}
+.dot-item.active{width:96px!important}
+.pop-dots{gap:0;margin-top:-3px;min-height:44px}
+.qb .plus-icon{width:16px;height:16px}
+.cs-trash,.cs-close,.ps-icon-btn,.ss-x,.s-action,.grid-toggle{display:flex;align-items:center;justify-content:center}
+@media(max-width:520px){
+  .cart-pill-shell{
+    width:calc(100vw - 18px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))!important;
+    padding-left:max(12px, env(safe-area-inset-left, 0px))!important;
+    padding-right:max(12px, env(safe-area-inset-right, 0px))!important;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px))!important;
+  }
+  #shareOv .ss-x{
+    top:calc(24px + env(safe-area-inset-top, 0px));
+    right:calc(10px + env(safe-area-inset-right, 0px));
+  }
+  #cartOv .sheet{
+    width:calc(100vw - 10px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))!important;
+    max-height:calc(100dvh - 10px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))!important;
+  }
+  #cartOv .sheet-scroll{
+    max-height:calc(100dvh - 10px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))!important;
+  }
+}
+@media(max-width:370px){.dot-item.active{width:78px!important}}
+
 </style>
 </head>
 <body>
@@ -1512,8 +1622,8 @@ body.modal-lock .cart-pill-shell{
   <div class="rest-meta">
     <div class="rest-name">Sushi Crazy</div>
     <div class="rest-tags">СУШИ | ФАСТФУД | ПИЦЦА | ГРОЗНЫЙ</div>
-    <div class="rest-detail"><span class="dot">•</span> <span>График:С 11:00 до 22:40</span></div>
-    <div class="rest-detail"><span class="dot">•</span> <span>Доставка:От 4 900₸ бесплатная в радиусе 10 км.</span></div>
+    <div class="rest-detail"><span class="dot">•</span> <span>График: с 11:00 до 22:40</span></div>
+    <div class="rest-detail"><span class="dot">•</span> <span>Доставка: от 4 900₸ бесплатная в радиусе 10 км.</span></div>
   </div>
 </div>
 <button class="contact-btn" onclick="openShare('contact')">Связаться с нами</button>
@@ -1727,6 +1837,18 @@ function renderSvgSlots(root=document){
 renderSvgSlots();
 const SHOP_PHONE='+998711234567';
 const SHOP_PHONE_TEXT='+998 71 123 45 67';
+const reducedMotionQuery=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+function prefersReducedMotion(){return !!reducedMotionQuery?.matches;}
+function runAfterMotion(callback,duration){
+  if(prefersReducedMotion()){callback();return;}
+  setTimeout(callback,duration);
+}
+function restartMotionClass(node,cls){
+  if(prefersReducedMotion()){node.classList.add(cls);return;}
+  node.classList.remove(cls);
+  void node.offsetWidth;
+  node.classList.add(cls);
+}
 
 // Свои iOS-иконки клади рядом с HTML в папку icons/ и называй так:
 // icons/whatsapp-ios.png, icons/messages-ios.png, icons/phone-ios.png, icons/maps-ios.png
@@ -1937,6 +2059,7 @@ function renderPopularDots(){
 function updatePopular(pxOffset=0){
   const track=document.getElementById('popularTrack');
   if(!track)return;
+  track.style.transition=prefersReducedMotion()?'none':'';
   track.style.transform=pxOffset?`translateX(calc(${-popIndex*100}% + ${pxOffset}px))`:`translateX(${-popIndex*100}%)`;
   renderPopularDots();
 }
@@ -2254,7 +2377,7 @@ function shareVia(v){
     window.open('https://www.google.com/maps/search/?api=1&query=Sushi%20Crazy%20Grozny','_blank');
     showToast('Открываем карту');
   }
-  setTimeout(()=>closeOv('shareOv'),400);
+  runAfterMotion(()=>closeOv('shareOv'),400);
 }
 function copyOrder(){
   const isOrder=document.getElementById('shareOv')?.classList.contains('order-mode');
@@ -2265,7 +2388,7 @@ function copyOrder(){
     showToast('Скопируйте текст вручную');
   }
   finishOrder();
-  setTimeout(()=>closeOv('shareOv'),400);
+  runAfterMotion(()=>closeOv('shareOv'),400);
 }
 let lockedScrollY=0;
 const dialogOpeners=new WeakMap();
@@ -2374,7 +2497,7 @@ function closeOv(id,shouldRestoreFocus=true){
   dialogOpeners.delete(ov);
   syncDialogAccessibility();
   if(shouldRestoreFocus&&getTopmostOpenDialog())restoreFocus(opener);
-  setTimeout(()=>{
+  runAfterMotion(()=>{
     unlockPageScroll();
     if(shouldRestoreFocus&&!getTopmostOpenDialog())restoreFocus(opener);
   },20);
@@ -2408,7 +2531,8 @@ function handleDialogKeydown(e){
 document.addEventListener('keydown',handleDialogKeydown);
 function showToast(msg){
   const el=document.getElementById('toastEl');
-  el.textContent=msg;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  el.textContent=msg;
+  restartMotionClass(el,'on');
   setTimeout(()=>el.classList.remove('on'),2600);
 }
 
@@ -2453,6 +2577,7 @@ function updatePopularDots(progress=0,dir=0){
 function updatePopular(pxOffset=0){
   const track=document.getElementById('popularTrack');
   if(!track)return;
+  track.style.transition=prefersReducedMotion()?'none':'';
   track.style.transform=pxOffset?`translateX(calc(${-popIndex*100}% + ${pxOffset}px))`:`translateX(${-popIndex*100}%)`;
   const area=document.getElementById('popularCard');
   const w=area?(area.clientWidth||1):1;
@@ -2557,7 +2682,7 @@ function acceptCookies(){
       b.classList.toggle('on',on);
       if(on){
         const c=document.getElementById('catsEl');
-        if(c)c.scrollTo({left:Math.max(0,b.offsetLeft-16),behavior:'smooth'});
+        if(c)c.scrollTo({left:Math.max(0,b.offsetLeft-16),behavior:prefersReducedMotion()?'auto':'smooth'});
       }
     });
   }
@@ -2619,6 +2744,7 @@ function acceptCookies(){
     const startY=window.pageYOffset||document.documentElement.scrollTop||0;
     const maxY=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
     const endY=Math.max(0,Math.min(maxY,targetY));
+    if(prefersReducedMotion()){window.scrollTo(0,endY);return;}
     const delta=endY-startY;
     const start=performance.now();
     function step(now){
@@ -2639,7 +2765,7 @@ function acceptCookies(){
     document.querySelectorAll('#catsEl .cat').forEach(x=>x.classList.remove('on'));
     btn.classList.add('on');
     const wrap=document.getElementById('catsEl');
-    if(wrap)wrap.scrollTo({left:Math.max(0,btn.offsetLeft-16),behavior:'smooth'});
+    if(wrap)wrap.scrollTo({left:Math.max(0,btn.offsetLeft-16),behavior:prefersReducedMotion()?'auto':'smooth'});
   }
   function goToCat(catId,btn){
     const sec=document.getElementById('sec-'+catId);
@@ -2649,6 +2775,7 @@ function acceptCookies(){
     const y=sec.getBoundingClientRect().top+(window.pageYOffset||0)-stickyOffset();
     sec.classList.remove('cat-target-flash');
     slowScrollTo(y,980);
+    if(prefersReducedMotion())return;
     setTimeout(()=>{sec.classList.add('cat-target-flash');setTimeout(()=>sec.classList.remove('cat-target-flash'),1000);},520);
   }
 
@@ -2668,6 +2795,7 @@ function acceptCookies(){
   }
 
   function animateCardsIn(){
+    if(prefersReducedMotion())return;
     const cards=[...document.querySelectorAll('#menuArea .gc,#menuArea .lc')];
     cards.forEach((card,i)=>{
       card.classList.remove('card-enter');
@@ -2683,6 +2811,12 @@ function acceptCookies(){
   window.toggleView=function(){
     if(switchingView)return;
     const area=document.getElementById('menuArea');
+    if(prefersReducedMotion()){
+      isGrid=!isGrid;
+      setViewIcon();
+      render();
+      return;
+    }
     switchingView=true;
     if(area)area.classList.add('view-switch-out');
     setTimeout(()=>{
