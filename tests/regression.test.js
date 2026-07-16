@@ -1325,6 +1325,10 @@ test('active pages expose one required native payment method select with exact o
     assert.deepEqual(options, expectedOptions);
     assert.match(source, /id="paymentMethodErr"[^>]*hidden/);
     assert.match(source, /const PAYMENT_METHOD_LABELS=Object\.freeze\(\{/);
+    assert.match(
+      source,
+      /<label class="cmnt-title" for="paymentMethodInp">Способ оплаты<\/label>[\s\S]*?id="paymentMethodErr"[^>]*hidden[^>]*>[\s\S]*?<div class="cmnt-title">Уточнения<\/div>\s*<textarea\b[^>]*id="commentTa"/,
+    );
   }
 });
 

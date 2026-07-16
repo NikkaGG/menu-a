@@ -1743,7 +1743,6 @@ body.modal-lock .cart-pill-shell{
           <div class="addr-err" id="addrErr" hidden>Укажите адрес доставки.</div>
         </div>
         <div class="cart-form-section">
-          <div class="cmnt-title">Уточнения</div>
           <label class="cmnt-title" for="paymentMethodInp">Способ оплаты</label>
           <select class="addr-inp" id="paymentMethodInp" required aria-describedby="paymentMethodErr" onchange="updateOrderState()">
             <option value="" disabled selected>Способ оплаты</option>
@@ -1752,6 +1751,7 @@ body.modal-lock .cart-pill-shell{
             <option value="cash">Оплата наличными</option>
           </select>
           <div class="addr-err" id="paymentMethodErr" hidden>Выберите способ оплаты.</div>
+          <div class="cmnt-title">Уточнения</div>
           <textarea class="cmnt-ta" id="commentTa" placeholder="Комментарий: без лука, соус отдельно, приборы на 2 персоны, доставка к 19:00."></textarea>
         </div>
       </div>
