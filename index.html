@@ -1597,7 +1597,7 @@ body.modal-lock .cart-pill-shell{
 .pickup-time-slot[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
 .pickup-time-unavailable{padding:16px 8px;color:#777;text-align:center;font-size:14px}
 @media(max-width:600px){
-  #pickupTimeOv{background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;pointer-events:auto}
+  #pickupTimeOv{background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;padding:0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px)!important;pointer-events:auto}
   #pickupTimeOv .pickup-time-panel{position:relative!important;left:auto!important;top:auto!important;width:100%;max-height:min(78dvh,620px);border:0;border-radius:18px 18px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px));box-shadow:0 -10px 32px rgba(0,0,0,.18);opacity:1;transform:translateY(102%);transform-origin:center bottom;transition:transform .28s cubic-bezier(.22,1,.36,1)}
   #pickupTimeOv.on .pickup-time-panel{transform:translateY(0)}
   .pickup-time-handle{display:block}
@@ -1891,7 +1891,7 @@ function formatTimeMinutes(minutes){
   return String(Math.floor(normalized/60)).padStart(2,'0')+':'+String(normalized%60).padStart(2,'0');
 }
 function getRestaurantLocalMinutes(date){
-  const utcMinutes=date.getUTCHours()*60+date.getUTCMinutes();
+  const utcMinutes=date.getUTCHours()*60+date.getUTCMinutes()+date.getUTCSeconds()/60+date.getUTCMilliseconds()/60000;
   return ((utcMinutes+SHOP_SCHEDULE.utcOffsetMinutes)%1440+1440)%1440;
 }
 function getAvailablePickupSlots(date){

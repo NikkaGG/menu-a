@@ -1632,6 +1632,8 @@ test('pickup time helpers use injected dates and UTC-only restaurant arithmetic'
   const cases = [
     ['2026-07-16T05:00:00Z', ['11:00', '11:20']],
     ['2026-07-16T07:07:00Z', ['13:00', '13:20']],
+    ['2026-07-16T07:20:00Z', ['13:00', '13:20']],
+    ['2026-07-16T07:20:01Z', ['13:20', '13:40']],
     ['2026-07-16T17:00:00Z', ['22:40']],
     ['2026-07-16T17:01:00Z', []],
     ['2026-07-16T20:30:00Z', ['11:00', '11:20']],
@@ -1672,6 +1674,10 @@ test('pickup picker has responsive popover, mobile sheet, safe-area, and reduced
   assert.match(indexSource, /#pickupTimeOv\{[^}]*background:transparent/);
   assert.match(indexSource, /#pickupTimeOv \.pickup-time-panel\{[^}]*position:fixed[^}]*transform:scale\(/);
   assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv\{[^}]*align-items:flex-end/);
+  assert.match(
+    indexSource,
+    /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv\{[^}]*padding:0 env\(safe-area-inset-right, 0px\) 0 env\(safe-area-inset-left, 0px\)!important/,
+  );
   assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv \.pickup-time-panel\{[^}]*padding-bottom:calc\([^}]*safe-area-inset-bottom/);
   assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*\.pickup-time-slot\{[^}]*min-height:44px/);
   assert.match(indexSource, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*#pickupTimeOv \.pickup-time-panel/);
