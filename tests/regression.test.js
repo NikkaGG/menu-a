@@ -1308,6 +1308,10 @@ test('active pages expose one required native payment method select with exact o
 
   for (const source of [indexSource, menuSource]) {
     assert.doesNotMatch(source, /id="(?:personsInp|paymentInp)"/);
+    assert.match(
+      source,
+      /<label class="cmnt-title" for="paymentMethodInp">Способ оплаты<\/label>\s*<select\b[^>]*id="paymentMethodInp"/,
+    );
     const selects = [...source.matchAll(/<select\b[^>]*id="paymentMethodInp"[^>]*>([\s\S]*?)<\/select>/g)];
     assert.equal(selects.length, 1);
     assert.match(selects[0][0], /<select\b[^>]*\brequired\b/);
