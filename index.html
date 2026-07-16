@@ -1596,7 +1596,7 @@ body.modal-lock .cart-pill-shell{
 .pickup-time-slot{min-height:40px;border:1px solid #dedee3;border-radius:10px;background:#fff;color:#111;font:inherit;font-weight:600;cursor:pointer}
 .pickup-time-slot[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
 .pickup-time-unavailable{padding:16px 8px;color:#777;text-align:center;font-size:14px}
-@media(max-width:600px){
+@media(max-width:600px), (max-height:600px) and (pointer:coarse){
   #pickupTimeOv{background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;padding:0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px)!important;pointer-events:auto}
   #pickupTimeOv .pickup-time-panel{position:relative!important;left:auto!important;top:auto!important;width:100%;max-height:min(78dvh,620px);border:0;border-radius:18px 18px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px));box-shadow:0 -10px 32px rgba(0,0,0,.18);opacity:1;transform:translateY(102%);transform-origin:center bottom;transition:transform .28s cubic-bezier(.22,1,.36,1)}
   #pickupTimeOv.on .pickup-time-panel{transform:translateY(0)}
@@ -1910,6 +1910,9 @@ function renderShopSchedule(){
 renderShopSchedule();
 const reducedMotionQuery=window.matchMedia?.('(prefers-reduced-motion: reduce)');
 function prefersReducedMotion(){return !!reducedMotionQuery?.matches;}
+const PICKUP_TIME_SHEET_MEDIA='(max-width:600px), (max-height:600px) and (pointer:coarse)';
+const pickupTimeSheetQuery=window.matchMedia?.(PICKUP_TIME_SHEET_MEDIA);
+function isPickupTimeSheetMode(){return !!pickupTimeSheetQuery?.matches;}
 function runAfterMotion(callback,duration){
   if(prefersReducedMotion()){callback();return;}
   setTimeout(callback,duration);
@@ -2092,9 +2095,9 @@ function renderPickupTimeSlots(slots){
   if(grid)grid.innerHTML=slots.map(time=>`<button class="pickup-time-slot" type="button" aria-pressed="${time===pickupTime}" onclick="selectPickupTime('${time}')">${time}</button>`).join('');
   if(unavailable)unavailable.hidden=slots.length>0;
 }
-function positionPickupTimePanel(trigger){
+function positionPickupTimePanel(trigger,sheetMode){
   const panel=document.getElementById('pickupTimePanel');
-  if(!panel||window.matchMedia('(max-width: 600px)').matches)return;
+  if(!panel||sheetMode)return;
   const rect=trigger.getBoundingClientRect();
   const width=Math.min(320,window.innerWidth-24);
   const left=Math.min(Math.max(12,rect.left),window.innerWidth-width-12);
@@ -2105,13 +2108,14 @@ function positionPickupTimePanel(trigger){
   panel.style.top=top+'px';
 }
 function openPickupTimePicker(trigger){
+  const sheetMode=isPickupTimeSheetMode();
   const slots=getAvailablePickupSlots(new Date());
   if(pickupTime&&!slots.includes(pickupTime)){
     pickupTime='';
     syncPickupTimeControl();
   }
   renderPickupTimeSlots(slots);
-  positionPickupTimePanel(trigger);
+  positionPickupTimePanel(trigger,sheetMode);
   trigger.setAttribute('aria-expanded','true');
   openOv('pickupTimeOv',trigger);
 }
@@ -2143,7 +2147,7 @@ function resetPickupDrag(){
   cleanupPickupDrag();
 }
 function startPickupDrag(event){
-  if(!window.matchMedia('(max-width: 600px)').matches||event.button!==0)return;
+  if(!isPickupTimeSheetMode()||event.button!==0)return;
   cleanupPickupDrag();
   pickupDragTarget=event.currentTarget;
   pickupDragPointerId=event.pointerId;

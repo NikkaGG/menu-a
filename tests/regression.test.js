@@ -1671,20 +1671,66 @@ test('pickup controls and body-level dialog expose accessible semantics', () => 
 });
 
 test('pickup picker has responsive popover, mobile sheet, safe-area, and reduced-motion styling', () => {
+  const sheetMedia = '(max-width:600px), (max-height:600px) and (pointer:coarse)';
   assert.match(indexSource, /#pickupTimeOv\{[^}]*background:transparent/);
   assert.match(indexSource, /#pickupTimeOv \.pickup-time-panel\{[^}]*position:fixed[^}]*transform:scale\(/);
-  assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv\{[^}]*align-items:flex-end/);
-  assert.match(
-    indexSource,
-    /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv\{[^}]*padding:0 env\(safe-area-inset-right, 0px\) 0 env\(safe-area-inset-left, 0px\)!important/,
-  );
-  assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv \.pickup-time-panel\{[^}]*padding-bottom:calc\([^}]*safe-area-inset-bottom/);
-  assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*\.pickup-time-slot\{[^}]*min-height:44px/);
+  for (const source of [indexSource, menuSource]) {
+    const mediaStart = source.indexOf(`@media${sheetMedia}{`);
+    assert.notEqual(mediaStart, -1);
+    const mediaStyles = source.slice(mediaStart, source.indexOf('@media(prefers-reduced-motion:reduce)', mediaStart));
+    assert.match(mediaStyles, /#pickupTimeOv\{[^}]*align-items:flex-end/);
+    assert.match(
+      mediaStyles,
+      /#pickupTimeOv\{[^}]*padding:0 env\(safe-area-inset-right, 0px\) 0 env\(safe-area-inset-left, 0px\)!important/,
+    );
+    assert.match(mediaStyles, /#pickupTimeOv \.pickup-time-panel\{[^}]*padding-bottom:calc\([^}]*safe-area-inset-bottom/);
+    assert.match(mediaStyles, /\.pickup-time-slot\{[^}]*min-height:44px/);
+  }
   assert.match(indexSource, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*#pickupTimeOv \.pickup-time-panel/);
+});
+
+test('pickup sheet breakpoint covers portrait and coarse-pointer landscape but not short mouse desktops', () => {
+  const declarations = indexSource.match(
+    /const PICKUP_TIME_SHEET_MEDIA='[^']+';\s*const pickupTimeSheetQuery=window\.matchMedia\?\.\(PICKUP_TIME_SHEET_MEDIA\);/,
+  );
+  assert.ok(declarations);
+  const predicate = extractFunction(indexSource, 'isPickupTimeSheetMode');
+  const cases = [
+    [{ width: 390, height: 844, pointer: 'coarse' }, true],
+    [{ width: 844, height: 390, pointer: 'coarse' }, true],
+    [{ width: 844, height: 390, pointer: 'fine' }, false],
+    [{ width: 1024, height: 768, pointer: 'coarse' }, false],
+  ];
+
+  for (const [viewport, expected] of cases) {
+    let requestedMedia = '';
+    const context = vm.createContext({
+      window: {
+        matchMedia(media) {
+          requestedMedia = media;
+          return {
+            matches: viewport.width <= 600
+              || (viewport.height <= 600 && viewport.pointer === 'coarse'),
+          };
+        },
+      },
+    });
+    vm.runInContext(
+      `${declarations[0]}${predicate};this.isPickupTimeSheetMode=isPickupTimeSheetMode;`,
+      context,
+    );
+
+    assert.equal(
+      requestedMedia,
+      '(max-width:600px), (max-height:600px) and (pointer:coarse)',
+    );
+    assert.equal(context.isPickupTimeSheetMode(), expected);
+  }
 });
 
 test('pickup picker generation, stale clearing, selection, and drag lifecycle are wired', () => {
   const openPicker = extractFunction(indexSource, 'openPickupTimePicker');
+  const positionPanel = extractFunction(indexSource, 'positionPickupTimePanel');
   const selectTime = extractFunction(indexSource, 'selectPickupTime');
   const dragStart = extractFunction(indexSource, 'startPickupDrag');
   const dragMove = extractFunction(indexSource, 'movePickupDrag');
@@ -1693,9 +1739,11 @@ test('pickup picker generation, stale clearing, selection, and drag lifecycle ar
 
   assert.match(openPicker, /getAvailablePickupSlots\(new Date\(\)\)/);
   assert.match(openPicker, /pickupTime=''[\s\S]*syncPickupTimeControl/);
-  assert.match(openPicker, /positionPickupTimePanel/);
+  assert.match(openPicker, /const sheetMode=isPickupTimeSheetMode\(\)/);
+  assert.match(openPicker, /positionPickupTimePanel\(trigger,sheetMode\)/);
   assert.match(openPicker, /renderPickupTimeSlots/);
   assert.match(openPicker, /openOv\('pickupTimeOv'/);
+  assert.match(positionPanel, /if\(!panel\|\|sheetMode\)return/);
   assert.match(selectTime, /getAvailablePickupSlots\(new Date\(\)\)/);
   assert.match(selectTime, /pickupTime=time/);
   assert.match(selectTime, /closeOv\('pickupTimeOv'\)/);
@@ -1703,6 +1751,7 @@ test('pickup picker generation, stale clearing, selection, and drag lifecycle ar
 
   assert.match(indexSource, /id="pickupTimeDragZone"[^>]*onpointerdown="startPickupDrag\(event\)"/);
   assert.doesNotMatch(indexSource, /id="pickupTimeSlots"[^>]*onpointerdown/);
+  assert.match(dragStart, /if\(!isPickupTimeSheetMode\(\)\|\|event\.button!==0\)return/);
   assert.match(dragStart, /setPointerCapture/);
   assert.match(dragStart, /addEventListener\('pointermove',movePickupDrag\)/);
   assert.match(dragMove, /translateY/);
