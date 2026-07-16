@@ -210,6 +210,8 @@ function checkoutHarness({
   paymentMethod = 'card',
   mode = 'd',
   hasItems = true,
+  pickupTime = mode === 'p' ? '13:00' : '',
+  availablePickupSlots = ['13:00', '13:20'],
 } = {}) {
   const elements = {
     orderBtn: makeElement(),
@@ -219,8 +221,12 @@ function checkoutHarness({
     phoneErr: makeElement(),
     addrErr: makeElement(),
     paymentMethodErr: makeElement(),
+    pickupTimeBlock: { style: {} },
+    pickupTimeTrigger: makeElement(),
+    pickupTimeErr: makeElement(),
     addrBlock: { style: {} },
   };
+  elements.pickupTimeTrigger.textContent = pickupTime || 'Выберите время';
   const deliveryButtons = [
     { classList: makeClassList(['on']) },
     { classList: makeClassList() },
@@ -232,6 +238,7 @@ function checkoutHarness({
   const context = vm.createContext({
     cart: hasItems ? { 1: 1 } : {},
     delMode: mode,
+    pickupTime,
     PAYMENT_METHOD_LABELS: {
       kaspi_invoice: 'Выставить счёт на оплату Kaspi',
       card: 'Оплата картой',
@@ -246,6 +253,10 @@ function checkoutHarness({
       },
     },
     showToast() {},
+    resetPickupDrag() {},
+    getAvailablePickupSlots() {
+      return [...availablePickupSlots];
+    },
     buildOrderPayload() {
       return orderPayload;
     },
@@ -263,7 +274,7 @@ function checkoutHarness({
     pendingOrderPayload: null,
   });
 
-  for (const name of ['validPhone', 'updateOrderState', 'setDel', 'placeOrder']) {
+  for (const name of ['validPhone', 'syncPickupTimeControl', 'updateOrderState', 'setDel', 'placeOrder']) {
     vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
   }
 
@@ -293,6 +304,7 @@ function orderPayloadHarness({ mode = 'd', paymentMethod = 'kaspi_invoice' } = {
   const context = vm.createContext({
     cart: { 7: 2 },
     delMode: mode,
+    pickupTime: mode === 'p' ? '13:20' : '19:00',
     PAYMENT_METHOD_LABELS: Object.freeze({
       kaspi_invoice: 'Выставить счёт на оплату Kaspi',
       card: 'Оплата картой',
@@ -323,7 +335,10 @@ function sharingHarness({ clipboardRejects = false } = {}) {
     shareSub: makeElement(),
     shareWaLabel: makeElement(),
     shareCopyBtn: makeElement(),
+    pickupTimeTrigger: makeElement(),
+    pickupTimeErr: makeElement(),
   };
+  elements.pickupTimeTrigger.textContent = '13:20';
   const copied = [];
   const toasts = [];
   const location = { href: 'https://example.test/menu?category=rolls#popular' };
@@ -332,6 +347,7 @@ function sharingHarness({ clipboardRejects = false } = {}) {
     SHOP_PHONE_TEXT: '+998 71 123 45 67',
     pendingOrderText: '',
     pendingOrderPayload: null,
+    pickupTime: '13:20',
     cart: { 1: 2 },
     document: {
       getElementById(id) {
@@ -366,7 +382,7 @@ function sharingHarness({ clipboardRejects = false } = {}) {
     },
   });
 
-  for (const name of ['prepareServiceSheet', 'finishOrder', 'copyOrder']) {
+  for (const name of ['syncPickupTimeControl', 'prepareServiceSheet', 'finishOrder', 'copyOrder']) {
     vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
   }
 
@@ -423,11 +439,13 @@ function dialogHarness({
   const phoneErr = makeElement();
   const addrErr = makeElement();
   const paymentMethodErr = makeElement();
+  const pickupTimeTrigger = makeElement();
+  const pickupTimeErr = makeElement();
   const overlays = {};
   const closeButtons = {};
   const shareButtons = {};
 
-  for (const id of ['prodOv', 'shareOv', 'cartOv']) {
+  for (const id of ['prodOv', 'shareOv', 'cartOv', 'pickupTimeOv']) {
     const closeButton = makeElement();
     const shareButton = makeElement();
     const overlay = makeElement();
@@ -461,12 +479,21 @@ function dialogHarness({
     body: {
       classList: bodyClassList,
       style: {},
-      children: [background, cookieBar, cartPill, overlays.prodOv, overlays.shareOv, overlays.cartOv],
+      children: [background, cookieBar, cartPill, overlays.prodOv, overlays.shareOv, overlays.cartOv, overlays.pickupTimeOv],
     },
     documentElement: { scrollTop: 0 },
     getElementById(id) {
       return overlays[id]
-        || { phoneInp, addrInp, paymentMethodInp, phoneErr, addrErr, paymentMethodErr }[id]
+        || {
+          phoneInp,
+          addrInp,
+          paymentMethodInp,
+          phoneErr,
+          addrErr,
+          paymentMethodErr,
+          pickupTimeTrigger,
+          pickupTimeErr,
+        }[id]
         || null;
     },
     querySelector(selector) {
@@ -500,6 +527,7 @@ function dialogHarness({
   const context = vm.createContext({
     cart: { 1: 1 },
     delMode: 'd',
+    pickupTime: '',
     PAYMENT_METHOD_LABELS: {
       kaspi_invoice: 'Выставить счёт на оплату Kaspi',
       card: 'Оплата картой',
@@ -536,6 +564,10 @@ function dialogHarness({
     },
     prepareServiceSheet() {},
     showToast() {},
+    resetPickupDrag() {},
+    getAvailablePickupSlots() {
+      return [];
+    },
   });
   const declarations = [
     "let lockedScrollY=0",
@@ -696,7 +728,8 @@ test('horizontal overflow protection does not create a sticky-breaking root scro
 });
 
 test('restaurant header uses the exact requested schedule and delivery text', () => {
-  assert.match(indexSource, />График: с 11:00 до 22:40</);
+  assert.match(indexSource, /<span id="shopSchedule"><\/span>/);
+  assert.match(extractFunction(indexSource, 'renderShopSchedule'), /`График: с \$\{SHOP_SCHEDULE\.open\} до \$\{SHOP_SCHEDULE\.close\}`/);
   assert.match(indexSource, />Доставка: от 4 900₸ бесплатная в радиусе 10 км\.</);
   assert.doesNotMatch(indexSource, /График:С|Доставка:От/);
 });
@@ -1522,6 +1555,7 @@ test('buildOrderPayload returns the exact copied delivery snapshot contract', ()
       flat: '4',
       intercom: '45',
     },
+    pickupTime: null,
     paymentMethod: 'kaspi_invoice',
     comment: 'Без лука',
   });
@@ -1554,4 +1588,216 @@ test('buildOrderText renders the readable payment label without a persons line',
 
   assert.match(text, /Оплата: Оплата картой/);
   assert.doesNotMatch(text, /Персон:/);
+});
+
+test('pickup schedule has one machine-readable source and the header renders from it', () => {
+  assert.match(
+    indexSource,
+    /const SHOP_SCHEDULE=Object\.freeze\(\{open:'11:00',close:'22:40',utcOffsetMinutes:300\}\);/,
+  );
+  assert.match(indexSource, /const PICKUP_PREPARATION_MINUTES=40;/);
+  assert.match(indexSource, /const PICKUP_SLOT_STEP_MINUTES=20;/);
+  assert.equal((indexSource.match(/11:00/g) || []).length, 1);
+  assert.equal((indexSource.match(/22:40/g) || []).length, 1);
+  assert.match(indexSource, /id="shopSchedule"/);
+  assert.match(
+    extractFunction(indexSource, 'renderShopSchedule'),
+    /SHOP_SCHEDULE\.open[\s\S]*SHOP_SCHEDULE\.close/,
+  );
+});
+
+test('pickup time helpers use injected dates and UTC-only restaurant arithmetic', () => {
+  const declarations = [
+    "const SHOP_SCHEDULE=Object.freeze({open:'11:00',close:'22:40',utcOffsetMinutes:300})",
+    'const PICKUP_PREPARATION_MINUTES=40',
+    'const PICKUP_SLOT_STEP_MINUTES=20',
+  ].join(';');
+  const helperNames = [
+    'parseTimeMinutes',
+    'formatTimeMinutes',
+    'getRestaurantLocalMinutes',
+    'getAvailablePickupSlots',
+  ];
+  const context = vm.createContext({});
+  vm.runInContext(
+    `${declarations};${helperNames.map((name) => extractFunction(indexSource, name)).join('\n')};`
+      + `this.helpers={${helperNames.join(',')}};`,
+    context,
+  );
+  const helpers = context.helpers;
+
+  assert.equal(helpers.parseTimeMinutes('11:00'), 660);
+  assert.equal(helpers.formatTimeMinutes(1360), '22:40');
+  assert.equal(helpers.getRestaurantLocalMinutes(new Date('2026-07-16T05:00:00Z')), 600);
+  const cases = [
+    ['2026-07-16T05:00:00Z', ['11:00', '11:20']],
+    ['2026-07-16T07:07:00Z', ['13:00', '13:20']],
+    ['2026-07-16T17:00:00Z', ['22:40']],
+    ['2026-07-16T17:01:00Z', []],
+    ['2026-07-16T20:30:00Z', ['11:00', '11:20']],
+  ];
+  for (const [instant, expectedStart] of cases) {
+    const slots = [...helpers.getAvailablePickupSlots(new Date(instant))];
+    assert.deepEqual(slots.slice(0, expectedStart.length), expectedStart);
+    if (!expectedStart.length) assert.deepEqual(slots, []);
+  }
+});
+
+test('pickup controls and body-level dialog expose accessible semantics', () => {
+  const commentEnd = indexSource.indexOf('</textarea>', indexSource.indexOf('id="commentTa"'));
+  const pickupBlock = indexSource.indexOf('id="pickupTimeBlock"', commentEnd);
+  assert.ok(pickupBlock > commentEnd);
+  assert.equal(indexSource.slice(commentEnd + 11, pickupBlock).trim().startsWith('<div'), true);
+  assert.match(
+    indexSource,
+    /id="pickupTimeBlock"[^>]*hidden[\s\S]*?<label[^>]*for="pickupTimeTrigger"[^>]*>Время самовывоза<\/label>[\s\S]*?<button[^>]*id="pickupTimeTrigger"[^>]*aria-haspopup="dialog"[^>]*aria-controls="pickupTimeOv"[^>]*aria-expanded="false"[^>]*aria-describedby="pickupTimeErr"[^>]*>Выберите время<\/button>[\s\S]*?id="pickupTimeErr"[^>]*hidden/,
+  );
+
+  const cartStart = indexSource.indexOf('<div class="ov" id="cartOv"');
+  const cartEnd = indexSource.indexOf('<div class="toast"', cartStart);
+  const pickupDialog = indexSource.indexOf('<div class="ov pickup-time-ov" id="pickupTimeOv"');
+  assert.ok(pickupDialog > cartEnd, 'pickup dialog must be a body-level sibling after cart');
+  assert.match(
+    indexSource,
+    /id="pickupTimeOv"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="pickupTimeTitle"[^>]*aria-describedby="pickupTimeDescription"[^>]*onclick="bgClose\(event,'pickupTimeOv'\)"/,
+  );
+  assert.match(indexSource, /id="pickupTimeTitle"[^>]*>Время самовывоза</);
+  assert.match(indexSource, /id="pickupTimeDescription"/);
+  assert.match(indexSource, /id="pickupTimeClose"[^>]*data-dialog-initial-focus/);
+  assert.match(indexSource, /id="pickupTimeSlots"/);
+  assert.match(indexSource, /id="pickupTimeUnavailable"[^>]*role="status"/);
+});
+
+test('pickup picker has responsive popover, mobile sheet, safe-area, and reduced-motion styling', () => {
+  assert.match(indexSource, /#pickupTimeOv\{[^}]*background:transparent/);
+  assert.match(indexSource, /#pickupTimeOv \.pickup-time-panel\{[^}]*position:fixed[^}]*transform:scale\(/);
+  assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv\{[^}]*align-items:flex-end/);
+  assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*#pickupTimeOv \.pickup-time-panel\{[^}]*padding-bottom:calc\([^}]*safe-area-inset-bottom/);
+  assert.match(indexSource, /@media\(max-width:600px\)\{[\s\S]*\.pickup-time-slot\{[^}]*min-height:44px/);
+  assert.match(indexSource, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*#pickupTimeOv \.pickup-time-panel/);
+});
+
+test('pickup picker generation, stale clearing, selection, and drag lifecycle are wired', () => {
+  const openPicker = extractFunction(indexSource, 'openPickupTimePicker');
+  const selectTime = extractFunction(indexSource, 'selectPickupTime');
+  const dragStart = extractFunction(indexSource, 'startPickupDrag');
+  const dragMove = extractFunction(indexSource, 'movePickupDrag');
+  const dragEnd = extractFunction(indexSource, 'endPickupDrag');
+  const dragCancel = extractFunction(indexSource, 'cancelPickupDrag');
+
+  assert.match(openPicker, /getAvailablePickupSlots\(new Date\(\)\)/);
+  assert.match(openPicker, /pickupTime=''[\s\S]*syncPickupTimeControl/);
+  assert.match(openPicker, /positionPickupTimePanel/);
+  assert.match(openPicker, /renderPickupTimeSlots/);
+  assert.match(openPicker, /openOv\('pickupTimeOv'/);
+  assert.match(selectTime, /getAvailablePickupSlots\(new Date\(\)\)/);
+  assert.match(selectTime, /pickupTime=time/);
+  assert.match(selectTime, /closeOv\('pickupTimeOv'\)/);
+  assert.match(indexSource, /aria-pressed="\$\{time===pickupTime\}"/);
+
+  assert.match(indexSource, /id="pickupTimeDragZone"[^>]*onpointerdown="startPickupDrag\(event\)"/);
+  assert.doesNotMatch(indexSource, /id="pickupTimeSlots"[^>]*onpointerdown/);
+  assert.match(dragStart, /setPointerCapture/);
+  assert.match(dragStart, /addEventListener\('pointermove',movePickupDrag\)/);
+  assert.match(dragMove, /translateY/);
+  assert.match(dragEnd, /releasePointerCapture/);
+  assert.match(dragEnd, /pickupDragOffset>[\d]+[\s\S]*closeOv\('pickupTimeOv'\)/);
+  assert.match(dragCancel, /resetPickupDrag/);
+  assert.match(extractFunction(indexSource, 'cleanupPickupDrag'), /removeEventListener\('pointermove',movePickupDrag\)/);
+});
+
+test('pickup is freshly required only for pickup checkout and stale state is not mutated by availability checks', () => {
+  const stale = checkoutHarness({
+    phone: '1234567890',
+    mode: 'p',
+    pickupTime: '13:00',
+    availablePickupSlots: ['13:20'],
+  });
+  stale.context.updateOrderState();
+  assert.equal(stale.elements.orderBtn.disabled, true);
+  assert.equal(stale.context.pickupTime, '13:00');
+
+  const delivery = checkoutHarness({
+    phone: '1234567890',
+    address: 'Main 1',
+    mode: 'd',
+    pickupTime: '',
+    availablePickupSlots: [],
+  });
+  delivery.context.updateOrderState();
+  assert.equal(delivery.elements.orderBtn.disabled, false);
+});
+
+test('placeOrder clears and focuses stale pickup selection after valid phone', () => {
+  const checkout = checkoutHarness({
+    phone: '1234567890',
+    mode: 'p',
+    pickupTime: '13:00',
+    availablePickupSlots: ['13:20'],
+  });
+  checkout.context.placeOrder();
+
+  assert.equal(checkout.wasPrepared(), false);
+  assert.equal(checkout.context.pickupTime, '');
+  assert.equal(checkout.elements.pickupTimeTrigger.textContent, 'Выберите время');
+  assert.equal(checkout.elements.pickupTimeErr.hidden, false);
+  assert.equal(checkout.elements.pickupTimeTrigger.getAttribute('aria-invalid'), 'true');
+  assert.equal(checkout.elements.pickupTimeTrigger.focused, true);
+});
+
+test('placeOrder focuses missing pickup time before payment after a valid phone', () => {
+  const checkout = checkoutHarness({
+    phone: '1234567890',
+    paymentMethod: '',
+    mode: 'p',
+    pickupTime: '',
+  });
+  checkout.context.placeOrder();
+
+  assert.equal(checkout.elements.pickupTimeTrigger.focused, true);
+  assert.equal(checkout.elements.paymentMethodInp.focused, false);
+});
+
+test('pickup payload and text include time while delivery payload explicitly stores null', () => {
+  const pickupHarness = orderPayloadHarness({ mode: 'p', paymentMethod: 'cash' });
+  const pickupPayload = pickupHarness.context.buildOrderPayload();
+  assert.equal(pickupPayload.pickupTime, '13:20');
+  assert.match(pickupHarness.context.buildOrderText(pickupPayload), /Время самовывоза: 13:20/);
+
+  const deliveryHarness = orderPayloadHarness();
+  const deliveryPayload = deliveryHarness.context.buildOrderPayload();
+  assert.equal(deliveryPayload.pickupTime, null);
+  assert.doesNotMatch(deliveryHarness.context.buildOrderText(deliveryPayload), /Время самовывоза:/);
+});
+
+test('finishOrder resets pickup state, trigger, and error with pending order state', () => {
+  const sharing = sharingHarness();
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { pickupTime: '13:20' };
+  sharing.elements.pickupTimeErr.hidden = false;
+  sharing.elements.pickupTimeTrigger.setAttribute('aria-invalid', 'true');
+
+  sharing.context.finishOrder();
+
+  assert.equal(sharing.context.pickupTime, '');
+  assert.equal(sharing.elements.pickupTimeTrigger.textContent, 'Выберите время');
+  assert.equal(sharing.elements.pickupTimeTrigger.getAttribute('aria-invalid'), null);
+  assert.equal(sharing.elements.pickupTimeErr.hidden, true);
+  assert.equal(sharing.context.pendingOrderText, '');
+  assert.equal(sharing.context.pendingOrderPayload, null);
+});
+
+test('pickup dialog participates in nested focus, suppression, and restoration lifecycle', () => {
+  const dialog = dialogHarness();
+  dialog.context.openOv('cartOv');
+  dialog.context.document.activeElement = dialog.shareButtons.cartOv;
+  dialog.context.openOv('pickupTimeOv');
+
+  assert.equal(dialog.overlays.pickupTimeOv.inert, false);
+  assert.equal(dialog.overlays.cartOv.inert, true);
+  assert.equal(dialog.context.document.activeElement, dialog.closeButtons.pickupTimeOv);
+
+  dialog.context.closeOv('pickupTimeOv');
+  assert.equal(dialog.overlays.cartOv.inert, false);
+  assert.equal(dialog.context.document.activeElement, dialog.shareButtons.cartOv);
 });
