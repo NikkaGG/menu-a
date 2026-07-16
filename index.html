@@ -735,10 +735,10 @@ html,body{font-family:sfProText,'sfProText Fallback',-apple-system,BlinkMacSyste
 .qb{width:22px;height:22px;border:0;background:transparent}
 .qb:hover{background:transparent}
 .qb .plus-icon{width:16px;height:16px}
-/* Способ заказа: активный сегмент белый с чёрной рамкой на сером фоне */
+/* Способ заказа: активный сегмент тёмный на сером фоне */
 .del-row{background:#efeff4;border:0;border-radius:999px;padding:3px}
-.dopt{background:transparent!important;color:#000!important;font-weight:400;border-radius:999px}
-.dopt.on{background:#fff!important;color:#000!important;font-weight:400}
+.dopt{background:transparent!important;color:#000!important;font-weight:400;border-radius:999px;transition:background-color 180ms ease-out,color 180ms ease-out}
+.dopt.on{background:#3f3f3f!important;color:#fff!important;font-weight:400}
 /* Пояснение к комментарию: чёрный обычный текст над заголовком */
 .cmnt-hint{font-size:16px;color:#000;line-height:1.5;margin:10px 0 12px}
 .cmnt-title{font-size:18px;font-weight:700}

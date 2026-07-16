@@ -581,6 +581,25 @@ test('index.html and menu.html remain byte-identical', () => {
   );
 });
 
+test('order method control clearly transitions its active state', () => {
+  for (const source of [indexSource, menuSource]) {
+    const stylesStart = source.lastIndexOf('.del-row{background:#efeff4');
+    const stylesEnd = source.indexOf('/* Пояснение к комментарию', stylesStart);
+    assert.notEqual(stylesStart, -1);
+    assert.notEqual(stylesEnd, -1);
+
+    const effectiveStyles = source.slice(stylesStart, stylesEnd);
+    assert.match(
+      effectiveStyles,
+      /\.dopt\{[^}]*transition:background-color 180ms ease-out,color 180ms ease-out[^}]*\}/,
+    );
+    assert.match(
+      effectiveStyles,
+      /\.dopt\.on\{[^}]*background:#3f3f3f!important;[^}]*color:#fff!important;[^}]*\}/,
+    );
+  }
+});
+
 test('horizontal overflow protection does not create a sticky-breaking root scroll container', () => {
   for (const source of [indexSource, menuSource]) {
     assert.doesNotMatch(source, /html,body\{[^}]*overflow-x:hidden/);
