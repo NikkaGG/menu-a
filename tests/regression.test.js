@@ -1684,6 +1684,10 @@ test('pickup picker has nested stacking, responsive modes, safe-area, and reduce
     const rule = source.match(/#pickupTimeOv\{[^}]*z-index:(\d+)!important[^}]*\}/);
     assert.ok(rule, 'Expected an explicit #pickupTimeOv z-index');
     assert.ok(Number(rule[1]) > 130, 'Expected #pickupTimeOv to stack above #cartOv');
+    const dragZoneRule = source.match(/\.pickup-time-drag-zone\{([^}]*)\}/);
+    assert.ok(dragZoneRule, 'Expected pickup drag-zone styling');
+    assert.match(dragZoneRule[1], /(?:^|;)-webkit-user-select:none(?:;|$)/);
+    assert.match(dragZoneRule[1], /(?:^|;)user-select:none(?:;|$)/);
   }
   assert.match(indexSource, /#pickupTimeOv\{[^}]*background:transparent/);
   assert.match(indexSource, /#pickupTimeOv \.pickup-time-panel\{[^}]*position:fixed[^}]*transform:scale\(/);

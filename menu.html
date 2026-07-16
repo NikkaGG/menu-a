@@ -1585,7 +1585,7 @@ body.modal-lock .cart-pill-shell{
 #pickupTimeOv.on{display:flex}
 #pickupTimeOv .pickup-time-panel{position:fixed;width:min(320px,calc(100vw - 24px));max-height:min(420px,calc(100dvh - 24px));overflow:hidden;background:#fff;border:1px solid #dedee3;border-radius:14px;box-shadow:0 14px 42px rgba(0,0,0,.22);opacity:0;transform:scale(.97);transform-origin:top left;transition:opacity .16s ease,transform .16s ease;pointer-events:auto}
 #pickupTimeOv.on .pickup-time-panel{opacity:1;transform:scale(1)}
-.pickup-time-drag-zone{touch-action:none}
+.pickup-time-drag-zone{touch-action:none;-webkit-user-select:none;user-select:none}
 .pickup-time-handle{display:none;width:38px;height:4px;margin:8px auto 2px;border-radius:999px;background:#d1d1d6}
 .pickup-time-header{display:grid;grid-template-columns:1fr 44px;align-items:start;padding:14px 12px 8px 16px}
 .pickup-time-title{font-size:17px;font-weight:700;color:#111}
