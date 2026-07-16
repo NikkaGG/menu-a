@@ -1670,6 +1670,14 @@ test('pickup controls and body-level dialog expose accessible semantics', () => 
   assert.match(indexSource, /id="pickupTimeUnavailable"[^>]*role="status"/);
 });
 
+test('cart overlay closes before the body-level toast and pickup dialog', () => {
+  const closingBoundary = /<button class="order-btn" id="orderBtn"[^>]*>Оформить заказ<\/button>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<div class="toast" id="toastEl"><\/div>\s*<!-- PICKUP TIME OVERLAY -->\s*<div class="ov pickup-time-ov" id="pickupTimeOv"/;
+
+  for (const source of [indexSource, menuSource]) {
+    assert.match(source, closingBoundary);
+  }
+});
+
 test('pickup picker has nested stacking, responsive modes, safe-area, and reduced-motion styling', () => {
   const sheetMedia = '(max-width:600px), (max-height:600px) and (pointer:coarse)';
   for (const source of [indexSource, menuSource]) {
