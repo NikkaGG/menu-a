@@ -204,26 +204,53 @@ function stickySearchHarness({ intersectionObserver = true, sentinelTop = 12, st
   };
 }
 
-function checkoutHarness({ phone = '', address = '', mode = 'd', hasItems = true } = {}) {
+function checkoutHarness({
+  phone = '',
+  address = '',
+  paymentMethod = 'card',
+  mode = 'd',
+  hasItems = true,
+} = {}) {
   const elements = {
     orderBtn: makeElement(),
     phoneInp: makeElement(phone),
     addrInp: makeElement(address),
+    paymentMethodInp: makeElement(paymentMethod),
     phoneErr: makeElement(),
     addrErr: makeElement(),
+    paymentMethodErr: makeElement(),
+    addrBlock: { style: {} },
   };
+  const deliveryButtons = [
+    { classList: makeClassList(['on']) },
+    { classList: makeClassList() },
+  ];
   let prepared = false;
+  let builtTextPayload = null;
+  const orderPayload = { snapshot: true };
 
   const context = vm.createContext({
     cart: hasItems ? { 1: 1 } : {},
     delMode: mode,
+    PAYMENT_METHOD_LABELS: {
+      kaspi_invoice: 'Выставить счёт на оплату Kaspi',
+      card: 'Оплата картой',
+      cash: 'Оплата наличными',
+    },
     document: {
       getElementById(id) {
         return elements[id] || null;
       },
+      querySelectorAll(selector) {
+        return selector === '.dopt' ? deliveryButtons : [];
+      },
     },
     showToast() {},
-    buildOrderText() {
+    buildOrderPayload() {
+      return orderPayload;
+    },
+    buildOrderText(payload) {
+      builtTextPayload = payload;
       return 'order';
     },
     prepareServiceSheet() {
@@ -233,13 +260,60 @@ function checkoutHarness({ phone = '', address = '', mode = 'd', hasItems = true
     openOv() {},
     dialogOpeners: new WeakMap(),
     pendingOrderText: '',
+    pendingOrderPayload: null,
   });
 
-  for (const name of ['validPhone', 'updateOrderState', 'placeOrder']) {
+  for (const name of ['validPhone', 'updateOrderState', 'setDel', 'placeOrder']) {
     vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
   }
 
-  return { context, elements, wasPrepared: () => prepared };
+  return {
+    context,
+    deliveryButtons,
+    elements,
+    orderPayload,
+    builtTextPayload: () => builtTextPayload,
+    wasPrepared: () => prepared,
+  };
+}
+
+function orderPayloadHarness({ mode = 'd', paymentMethod = 'kaspi_invoice' } = {}) {
+  const elements = {
+    nameInp: makeElement('  Алина  '),
+    phoneInp: makeElement('  +7 999 123 45 67  '),
+    addrInp: makeElement('  Ленина, 1  '),
+    entranceInp: makeElement('  2  '),
+    floorInp: makeElement('  3  '),
+    flatInp: makeElement('  4  '),
+    intercomInp: makeElement('  45  '),
+    paymentMethodInp: makeElement(paymentMethod),
+    commentTa: makeElement('  Без лука  '),
+  };
+  const item = { id: 7, n: 'Филадельфия', p: 400 };
+  const context = vm.createContext({
+    cart: { 7: 2 },
+    delMode: mode,
+    PAYMENT_METHOD_LABELS: Object.freeze({
+      kaspi_invoice: 'Выставить счёт на оплату Kaspi',
+      card: 'Оплата картой',
+      cash: 'Оплата наличными',
+    }),
+    document: {
+      getElementById(id) {
+        return elements[id] || null;
+      },
+    },
+    getItem(id) {
+      return Number(id) === item.id ? item : null;
+    },
+    fmt(value) {
+      return `${value} ₸`;
+    },
+  });
+  for (const name of ['currentTotal', 'buildOrderPayload', 'buildOrderText']) {
+    vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
+  }
+  return { context, elements, item };
 }
 
 function sharingHarness({ clipboardRejects = false } = {}) {
@@ -257,6 +331,7 @@ function sharingHarness({ clipboardRejects = false } = {}) {
     SHOP_PHONE: '+998711234567',
     SHOP_PHONE_TEXT: '+998 71 123 45 67',
     pendingOrderText: '',
+    pendingOrderPayload: null,
     cart: { 1: 2 },
     document: {
       getElementById(id) {
@@ -344,8 +419,10 @@ function dialogHarness({
   const cartPill = makeElement();
   const phoneInp = makeElement('1234567890');
   const addrInp = makeElement('Main 1');
+  const paymentMethodInp = makeElement('card');
   const phoneErr = makeElement();
   const addrErr = makeElement();
+  const paymentMethodErr = makeElement();
   const overlays = {};
   const closeButtons = {};
   const shareButtons = {};
@@ -388,7 +465,9 @@ function dialogHarness({
     },
     documentElement: { scrollTop: 0 },
     getElementById(id) {
-      return overlays[id] || { phoneInp, addrInp, phoneErr, addrErr }[id] || null;
+      return overlays[id]
+        || { phoneInp, addrInp, paymentMethodInp, phoneErr, addrErr, paymentMethodErr }[id]
+        || null;
     },
     querySelector(selector) {
       if (selector === '.ov.on') {
@@ -421,7 +500,13 @@ function dialogHarness({
   const context = vm.createContext({
     cart: { 1: 1 },
     delMode: 'd',
+    PAYMENT_METHOD_LABELS: {
+      kaspi_invoice: 'Выставить счёт на оплату Kaspi',
+      card: 'Оплата картой',
+      cash: 'Оплата наличными',
+    },
     pendingOrderText: '',
+    pendingOrderPayload: null,
     document,
     window: {
       scrollY: 0,
@@ -442,6 +527,9 @@ function dialogHarness({
     },
     setTimeout(callback) {
       scheduled.push(callback);
+    },
+    buildOrderPayload() {
+      return { snapshot: true };
     },
     buildOrderText() {
       return 'order';
@@ -1162,6 +1250,7 @@ test('cookie consent is visible until cookieOk is persisted', () => {
 test('contact and product copy actions copy the current page link without clearing the cart', async () => {
   for (const mode of ['contact', 'product']) {
     const sharing = sharingHarness();
+    sharing.context.pendingOrderPayload = { existing: true };
     sharing.context.prepareServiceSheet(mode);
     sharing.context.copyOrder();
     await new Promise(setImmediate);
@@ -1169,6 +1258,7 @@ test('contact and product copy actions copy the current page link without cleari
     assert.deepEqual(sharing.copied, ['https://example.test/menu?category=rolls#popular']);
     assert.deepEqual(sharing.context.cart, { 1: 2 });
     assert.equal(sharing.context.pendingOrderText.includes('+998 71 123 45 67'), true);
+    assert.deepEqual(sharing.context.pendingOrderPayload, { existing: true });
     assert.equal(sharing.toasts.includes('Ссылка скопирована'), true);
     assert.equal(sharing.toasts.includes('Текст заказа скопирован'), false);
   }
@@ -1177,12 +1267,15 @@ test('contact and product copy actions copy the current page link without cleari
 test('order copy action copies pending order text and preserves its cart-clearing behavior', async () => {
   const sharing = sharingHarness();
   sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { order: 42 };
   sharing.context.prepareServiceSheet('order');
   sharing.context.copyOrder();
   await new Promise(setImmediate);
 
   assert.deepEqual(sharing.copied, ['Новый заказ № 42']);
   assert.equal(Object.keys(sharing.context.cart).length, 0);
+  assert.equal(sharing.context.pendingOrderText, '');
+  assert.equal(sharing.context.pendingOrderPayload, null);
   assert.equal(sharing.toasts.includes('Текст заказа скопирован'), true);
   assert.equal(sharing.toasts.includes('Ссылка скопирована'), false);
 });
@@ -1203,6 +1296,32 @@ test('phone and address fields have static error descriptions and hidden errors'
   assert.match(indexSource, /id="phoneErr"[^>]*hidden/);
   assert.match(indexSource, /id="addrErr"[^>]*hidden/);
   assert.match(indexSource, /const SHOP_PHONE='\+998711234567';/);
+});
+
+test('active pages expose one required native payment method select with exact options', () => {
+  const expectedOptions = [
+    ['', 'Способ оплаты'],
+    ['kaspi_invoice', 'Выставить счёт на оплату Kaspi'],
+    ['card', 'Оплата картой'],
+    ['cash', 'Оплата наличными'],
+  ];
+
+  for (const source of [indexSource, menuSource]) {
+    assert.doesNotMatch(source, /id="(?:personsInp|paymentInp)"/);
+    const selects = [...source.matchAll(/<select\b[^>]*id="paymentMethodInp"[^>]*>([\s\S]*?)<\/select>/g)];
+    assert.equal(selects.length, 1);
+    assert.match(selects[0][0], /<select\b[^>]*\brequired\b/);
+    assert.match(selects[0][0], /aria-describedby="paymentMethodErr"/);
+    assert.match(
+      selects[0][1],
+      /^\s*<option value="" disabled selected>Способ оплаты<\/option>/,
+    );
+    const options = [...selects[0][1].matchAll(/<option value="([^"]*)"[^>]*>([^<]+)<\/option>/g)]
+      .map((match) => [match[1], match[2]]);
+    assert.deepEqual(options, expectedOptions);
+    assert.match(source, /id="paymentMethodErr"[^>]*hidden/);
+    assert.match(source, /const PAYMENT_METHOD_LABELS=Object\.freeze\(\{/);
+  }
 });
 
 test('validPhone accepts only normalized phone numbers containing 10 to 15 digits', () => {
@@ -1239,6 +1358,19 @@ test('updateOrderState requires an address only for delivery', () => {
   const pickup = checkoutHarness({ phone: '1234567890', address: '', mode: 'p' });
   pickup.context.updateOrderState();
   assert.equal(pickup.elements.orderBtn.disabled, false);
+});
+
+test('updateOrderState requires a payment method for delivery and pickup', () => {
+  for (const mode of ['d', 'p']) {
+    const checkout = checkoutHarness({
+      phone: '1234567890',
+      address: 'Main 1',
+      paymentMethod: '',
+      mode,
+    });
+    checkout.context.updateOrderState();
+    assert.equal(checkout.elements.orderBtn.disabled, true);
+  }
 });
 
 test('validation errors remain hidden until an invalid submit is attempted', () => {
@@ -1287,6 +1419,23 @@ test('placeOrder blocks pickup with an invalid phone and focuses phone', () => {
   assert.equal(checkout.elements.addrErr.hidden, true);
 });
 
+test('placeOrder rejects an otherwise valid checkout without payment in both modes', () => {
+  for (const mode of ['d', 'p']) {
+    const checkout = checkoutHarness({
+      phone: '1234567890',
+      address: 'Main 1',
+      paymentMethod: '',
+      mode,
+    });
+    checkout.context.placeOrder();
+
+    assert.equal(checkout.wasPrepared(), false);
+    assert.equal(checkout.elements.paymentMethodErr.hidden, false);
+    assert.equal(checkout.elements.paymentMethodInp.getAttribute('aria-invalid'), 'true');
+    assert.equal(checkout.elements.paymentMethodInp.focused, true);
+  }
+});
+
 test('placeOrder proceeds with valid checkout contacts', () => {
   const checkout = checkoutHarness({
     phone: '+7 (999) 123-45-67',
@@ -1298,6 +1447,8 @@ test('placeOrder proceeds with valid checkout contacts', () => {
   assert.equal(checkout.wasPrepared(), true);
   assert.equal(checkout.elements.phoneErr.hidden, true);
   assert.equal(checkout.elements.addrErr.hidden, true);
+  assert.equal(checkout.context.pendingOrderPayload, checkout.orderPayload);
+  assert.equal(checkout.builtTextPayload(), checkout.orderPayload);
 });
 
 test('correcting invalid inputs clears stale errors and aria-invalid', () => {
@@ -1313,4 +1464,86 @@ test('correcting invalid inputs clears stale errors and aria-invalid', () => {
   assert.equal(checkout.elements.phoneInp.getAttribute('aria-invalid'), null);
   assert.equal(checkout.elements.addrInp.getAttribute('aria-invalid'), null);
   assert.equal(checkout.elements.orderBtn.disabled, false);
+});
+
+test('choosing payment clears its stale error and enables submit', () => {
+  const checkout = checkoutHarness({
+    phone: '1234567890',
+    address: 'Main 1',
+    paymentMethod: '',
+  });
+  checkout.context.placeOrder();
+  assert.equal(checkout.elements.paymentMethodErr.hidden, false);
+
+  checkout.elements.paymentMethodInp.value = 'cash';
+  checkout.context.updateOrderState();
+
+  assert.equal(checkout.elements.paymentMethodErr.hidden, true);
+  assert.equal(checkout.elements.paymentMethodInp.getAttribute('aria-invalid'), null);
+  assert.equal(checkout.elements.orderBtn.disabled, false);
+});
+
+test('setDel preserves the selected payment method', () => {
+  const checkout = checkoutHarness({ paymentMethod: 'kaspi_invoice' });
+  const pickupButton = checkout.deliveryButtons[1];
+
+  checkout.context.setDel('p', pickupButton);
+
+  assert.equal(checkout.elements.paymentMethodInp.value, 'kaspi_invoice');
+});
+
+test('buildOrderPayload returns the exact copied delivery snapshot contract', () => {
+  const harness = orderPayloadHarness();
+  const payload = harness.context.buildOrderPayload();
+
+  assert.deepEqual(JSON.parse(JSON.stringify(payload)), {
+    items: [{
+      id: 7,
+      name: 'Филадельфия',
+      quantity: 2,
+      unitPrice: 400,
+      lineTotal: 800,
+    }],
+    total: 800,
+    orderMethod: 'delivery',
+    contact: { name: 'Алина', phone: '+7 999 123 45 67' },
+    deliveryAddress: {
+      address: 'Ленина, 1',
+      entrance: '2',
+      floor: '3',
+      flat: '4',
+      intercom: '45',
+    },
+    paymentMethod: 'kaspi_invoice',
+    comment: 'Без лука',
+  });
+
+  harness.context.cart[7] = 9;
+  harness.item.n = 'Изменено';
+  harness.item.p = 999;
+  harness.elements.nameInp.value = 'Другой клиент';
+  harness.elements.addrInp.value = 'Другой адрес';
+  assert.equal(payload.items[0].name, 'Филадельфия');
+  assert.equal(payload.items[0].quantity, 2);
+  assert.equal(payload.items[0].unitPrice, 400);
+  assert.equal(payload.contact.name, 'Алина');
+  assert.equal(payload.deliveryAddress.address, 'Ленина, 1');
+});
+
+test('buildOrderPayload uses pickup and omits delivery address', () => {
+  const harness = orderPayloadHarness({ mode: 'p', paymentMethod: 'cash' });
+  const payload = harness.context.buildOrderPayload();
+
+  assert.equal(payload.orderMethod, 'pickup');
+  assert.equal(payload.deliveryAddress, null);
+  assert.equal(payload.paymentMethod, 'cash');
+});
+
+test('buildOrderText renders the readable payment label without a persons line', () => {
+  const harness = orderPayloadHarness({ paymentMethod: 'card' });
+  const payload = harness.context.buildOrderPayload();
+  const text = harness.context.buildOrderText(payload);
+
+  assert.match(text, /Оплата: Оплата картой/);
+  assert.doesNotMatch(text, /Персон:/);
 });

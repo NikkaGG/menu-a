@@ -1744,10 +1744,13 @@ body.modal-lock .cart-pill-shell{
         </div>
         <div class="cart-form-section">
           <div class="cmnt-title">Уточнения</div>
-          <div class="order-grid two">
-            <input class="addr-inp" type="number" min="1" inputmode="numeric" id="personsInp" placeholder="Персон">
-            <input class="addr-inp" type="text" id="paymentInp" placeholder="наличные / карта">
-          </div>
+          <select class="addr-inp" id="paymentMethodInp" required aria-describedby="paymentMethodErr" onchange="updateOrderState()">
+            <option value="" disabled selected>Способ оплаты</option>
+            <option value="kaspi_invoice">Выставить счёт на оплату Kaspi</option>
+            <option value="card">Оплата картой</option>
+            <option value="cash">Оплата наличными</option>
+          </select>
+          <div class="addr-err" id="paymentMethodErr" hidden>Выберите способ оплаты.</div>
           <textarea class="cmnt-ta" id="commentTa" placeholder="Комментарий: без лука, соус отдельно, приборы на 2 персоны, доставка к 19:00."></textarea>
         </div>
       </div>
@@ -1838,12 +1841,18 @@ const ICON_PATHS={
   phone:'icons/phone-ios.png',
   map:'icons/maps-ios.png'
 };
+const PAYMENT_METHOD_LABELS=Object.freeze({
+  kaspi_invoice:'Выставить счёт на оплату Kaspi',
+  card:'Оплата картой',
+  cash:'Оплата наличными'
+});
 function iosIconImg(service,alt,mini=false){
   const cls=mini?'ios-mini-img':'ios-app-img';
   const src=ICON_PATHS[service]||'';
   return `<img class="${cls}" src="${src}" alt="${alt}" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')">`;
 }
 let pendingOrderText='';
+let pendingOrderPayload=null;
 
 let popularDidDrag=false;
 function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
@@ -1985,10 +1994,13 @@ function updateOrderState(){
   const hasItems=Object.keys(cart).some(k=>cart[k]>0);
   const addrInp=document.getElementById('addrInp');
   const phoneInp=document.getElementById('phoneInp');
+  const paymentMethodInp=document.getElementById('paymentMethodInp');
   const addr=(addrInp?.value||'').trim();
   const phone=(phoneInp?.value||'').trim();
+  const paymentMethod=paymentMethodInp?.value||'';
   const phoneValid=validPhone(phone);
   const addressValid=delMode!=='d'||!!addr;
+  const paymentMethodValid=!!PAYMENT_METHOD_LABELS[paymentMethod];
   if(phoneValid){
     const phoneErr=document.getElementById('phoneErr');
     if(phoneErr)phoneErr.hidden=true;
@@ -1999,7 +2011,12 @@ function updateOrderState(){
     if(addrErr)addrErr.hidden=true;
     addrInp?.removeAttribute('aria-invalid');
   }
-  btn.disabled=!hasItems||!phoneValid||!addressValid;
+  if(paymentMethodValid){
+    const paymentMethodErr=document.getElementById('paymentMethodErr');
+    if(paymentMethodErr)paymentMethodErr.hidden=true;
+    paymentMethodInp?.removeAttribute('aria-invalid');
+  }
+  btn.disabled=!hasItems||!phoneValid||!addressValid||!paymentMethodValid;
 }
 
 rebuildCats();
@@ -2218,39 +2235,57 @@ function currentTotal(){
   },0);
 }
 function validPhone(phone){const digits=phone.replace(/\D/g,'');return digits.length>=10&&digits.length<=15;}
-function buildOrderText(){
+function buildOrderPayload(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
-  const name=(document.getElementById('nameInp')?.value||'').trim();
-  const phone=(document.getElementById('phoneInp')?.value||'').trim();
-  const address=(document.getElementById('addrInp')?.value||'').trim();
-  const entrance=(document.getElementById('entranceInp')?.value||'').trim();
-  const floor=(document.getElementById('floorInp')?.value||'').trim();
-  const flat=(document.getElementById('flatInp')?.value||'').trim();
-  const intercom=(document.getElementById('intercomInp')?.value||'').trim();
-  const persons=(document.getElementById('personsInp')?.value||'').trim();
-  const payment=(document.getElementById('paymentInp')?.value||'').trim();
-  const comment=(document.getElementById('commentTa')?.value||'').trim();
-  let lines=['Новый заказ Sushi Crazy',''];
-  keys.forEach((id,idx)=>{
+  const items=keys.map(id=>{
     const item=getItem(id);
-    if(item)lines.push(`${idx+1}. ${item.n} × ${cart[id]} — ${fmt(item.p*cart[id])}`);
+    if(!item)return null;
+    const quantity=cart[id];
+    return {
+      id:item.id,
+      name:item.n,
+      quantity,
+      unitPrice:item.p,
+      lineTotal:item.p*quantity
+    };
+  }).filter(Boolean);
+  const read=id=>(document.getElementById(id)?.value||'').trim();
+  return {
+    items,
+    total:items.reduce((sum,item)=>sum+item.lineTotal,0),
+    orderMethod:delMode==='d'?'delivery':'pickup',
+    contact:{name:read('nameInp'),phone:read('phoneInp')},
+    deliveryAddress:delMode==='d'?{
+      address:read('addrInp'),
+      entrance:read('entranceInp'),
+      floor:read('floorInp'),
+      flat:read('flatInp'),
+      intercom:read('intercomInp')
+    }:null,
+    paymentMethod:read('paymentMethodInp'),
+    comment:read('commentTa')
+  };
+}
+function buildOrderText(payload=buildOrderPayload()){
+  let lines=['Новый заказ Sushi Crazy',''];
+  payload.items.forEach((item,idx)=>{
+    lines.push(`${idx+1}. ${item.name} × ${item.quantity} — ${fmt(item.lineTotal)}`);
   });
-  lines.push('',`Итого: ${fmt(currentTotal())}`);
-  lines.push(`Способ: ${delMode==='d'?'доставка':'самовывоз'}`);
-  if(name)lines.push(`Имя: ${name}`);
-  if(phone)lines.push(`Номер клиента: ${phone}`);
-  if(delMode==='d'){
-    lines.push(`Адрес: ${address}`);
+  lines.push('',`Итого: ${fmt(payload.total)}`);
+  lines.push(`Способ: ${payload.orderMethod==='delivery'?'доставка':'самовывоз'}`);
+  if(payload.contact.name)lines.push(`Имя: ${payload.contact.name}`);
+  if(payload.contact.phone)lines.push(`Номер клиента: ${payload.contact.phone}`);
+  if(payload.deliveryAddress){
+    lines.push(`Адрес: ${payload.deliveryAddress.address}`);
     const details=[];
-    if(entrance)details.push(`подъезд ${entrance}`);
-    if(floor)details.push(`этаж ${floor}`);
-    if(flat)details.push(`кв./офис ${flat}`);
-    if(intercom)details.push(`домофон ${intercom}`);
+    if(payload.deliveryAddress.entrance)details.push(`подъезд ${payload.deliveryAddress.entrance}`);
+    if(payload.deliveryAddress.floor)details.push(`этаж ${payload.deliveryAddress.floor}`);
+    if(payload.deliveryAddress.flat)details.push(`кв./офис ${payload.deliveryAddress.flat}`);
+    if(payload.deliveryAddress.intercom)details.push(`домофон ${payload.deliveryAddress.intercom}`);
     if(details.length)lines.push(`Уточнение адреса: ${details.join(', ')}`);
   }
-  if(persons)lines.push(`Персон: ${persons}`);
-  if(payment)lines.push(`Оплата: ${payment}`);
-  if(comment)lines.push(`Комментарий: ${comment}`);
+  lines.push(`Оплата: ${PAYMENT_METHOD_LABELS[payload.paymentMethod]}`);
+  if(payload.comment)lines.push(`Комментарий: ${payload.comment}`);
   return lines.join('\\n');
 }
 function setSecondService(labelText='Напишите нам в сообщения'){
@@ -2301,24 +2336,32 @@ function placeOrder(){
   if(!Object.keys(cart).filter(k=>cart[k]>0).length){showToast('Корзина пуста');return;}
   const phone=(document.getElementById('phoneInp')?.value||'').trim();
   const address=(document.getElementById('addrInp')?.value||'').trim();
+  const paymentMethod=document.getElementById('paymentMethodInp')?.value||'';
   const phoneInp=document.getElementById('phoneInp');
   const addrInp=document.getElementById('addrInp');
+  const paymentMethodInp=document.getElementById('paymentMethodInp');
   const phoneErr=document.getElementById('phoneErr');
   const addrErr=document.getElementById('addrErr');
+  const paymentMethodErr=document.getElementById('paymentMethodErr');
   const phoneInvalid=!validPhone(phone);
   const addressInvalid=delMode==='d'&&!address;
+  const paymentMethodInvalid=!PAYMENT_METHOD_LABELS[paymentMethod];
   if(phoneErr)phoneErr.hidden=!phoneInvalid;
   if(addrErr)addrErr.hidden=!addressInvalid;
+  if(paymentMethodErr)paymentMethodErr.hidden=!paymentMethodInvalid;
   if(phoneInvalid)phoneInp?.setAttribute('aria-invalid','true');
   else phoneInp?.removeAttribute('aria-invalid');
   if(addressInvalid)addrInp?.setAttribute('aria-invalid','true');
   else addrInp?.removeAttribute('aria-invalid');
-  if(phoneInvalid||addressInvalid){
+  if(paymentMethodInvalid)paymentMethodInp?.setAttribute('aria-invalid','true');
+  else paymentMethodInp?.removeAttribute('aria-invalid');
+  if(phoneInvalid||addressInvalid||paymentMethodInvalid){
     updateOrderState();
-    (phoneInvalid?phoneInp:addrInp)?.focus();
+    (phoneInvalid?phoneInp:addressInvalid?addrInp:paymentMethodInp)?.focus();
     return;
   }
-  pendingOrderText=buildOrderText();
+  pendingOrderPayload=buildOrderPayload();
+  pendingOrderText=buildOrderText(pendingOrderPayload);
   prepareServiceSheet('order');
   const transitionOpener=dialogOpeners.get(document.getElementById('cartOv'));
   closeOv('cartOv',false);
@@ -2334,6 +2377,7 @@ function finishOrder(){
     updatePill();
     syncCardState(null,true);renderCart();
     pendingOrderText='';
+    pendingOrderPayload=null;
     showToast('Заказ подготовлен к отправке');
   }
 }
