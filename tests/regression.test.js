@@ -100,6 +100,110 @@ function makeTrackedClassList(initial = []) {
   };
 }
 
+function stickySearchHarness({ intersectionObserver = true, sentinelTop = 12, stickyTop = 0 } = {}) {
+  const bar = { classList: makeClassList(), parentNode: null };
+  const listeners = new Map();
+  const viewportListeners = new Map();
+  const animationFrames = [];
+  let currentSentinelTop = sentinelTop;
+  let currentStickyTop = stickyTop;
+  let observerCallback = null;
+  let observerOptions = null;
+  let observedElement = null;
+  const observers = [];
+  const inserted = [];
+  const parentNode = {
+    insertBefore(element, reference) {
+      inserted.push({ element, reference });
+      element.parentNode = this;
+    },
+  };
+  bar.parentNode = parentNode;
+  const document = {
+    documentElement: {},
+    querySelector(selector) {
+      return selector === '.sticky-bar' ? bar : null;
+    },
+    createElement(tagName) {
+      assert.equal(tagName, 'div');
+      return {
+        className: '',
+        parentNode: null,
+        setAttribute() {},
+        getBoundingClientRect() {
+          return { top: currentSentinelTop };
+        },
+      };
+    },
+  };
+  const contextValues = {
+    document,
+    window: {
+      addEventListener(type, callback) {
+        listeners.set(type, callback);
+      },
+      getComputedStyle() {
+        return { top: `${currentStickyTop}px` };
+      },
+      visualViewport: {
+        addEventListener(type, callback) {
+          viewportListeners.set(type, callback);
+        },
+      },
+    },
+    requestAnimationFrame(callback) {
+      animationFrames.push(callback);
+      return animationFrames.length;
+    },
+  };
+  contextValues.getComputedStyle = contextValues.window.getComputedStyle;
+  if (intersectionObserver) {
+    contextValues.IntersectionObserver = function IntersectionObserver(callback, options) {
+      observerCallback = callback;
+      observerOptions = options;
+      const instance = {
+        disconnected: false,
+        options,
+        observe(element) {
+          instance.observedElement = element;
+          observedElement = element;
+        },
+        disconnect() {
+          instance.disconnected = true;
+        },
+      };
+      observers.push(instance);
+      return instance;
+    };
+  }
+  const context = vm.createContext(contextValues);
+  vm.runInContext(`${extractFunction(indexSource, 'initSmartStickySearch')};initSmartStickySearch();`, context);
+
+  return {
+    bar,
+    inserted,
+    listeners,
+    viewportListeners,
+    observers,
+    observerOptions: () => observerOptions,
+    observedElement: () => observedElement,
+    pendingAnimationFrames: () => animationFrames.length,
+    runAnimationFrame() {
+      const callbacks = animationFrames.splice(0);
+      callbacks.forEach((callback) => callback());
+    },
+    setSentinelTop(value) {
+      currentSentinelTop = value;
+    },
+    setStickyTop(value) {
+      currentStickyTop = value;
+    },
+    notifyIntersection() {
+      observerCallback?.([]);
+    },
+  };
+}
+
 function checkoutHarness({ phone = '', address = '', mode = 'd', hasItems = true } = {}) {
   const elements = {
     orderBtn: makeElement(),
@@ -477,6 +581,13 @@ test('index.html and menu.html remain byte-identical', () => {
   );
 });
 
+test('horizontal overflow protection does not create a sticky-breaking root scroll container', () => {
+  for (const source of [indexSource, menuSource]) {
+    assert.doesNotMatch(source, /html,body\{[^}]*overflow-x:hidden/);
+    assert.match(source, /html,body\{[^}]*overflow-x:clip/);
+  }
+});
+
 test('restaurant header uses the exact requested schedule and delivery text', () => {
   assert.match(indexSource, />График: с 11:00 до 22:40</);
   assert.match(indexSource, />Доставка: от 4 900₸ бесплатная в радиусе 10 км\.</);
@@ -494,6 +605,155 @@ test('fixed and sticky mobile surfaces account for every safe-area inset', () =>
   assert.match(indexSource, /\.sticky-bar\.is-stuck[\s\S]*safe-area-inset-top/);
   assert.match(indexSource, /#prodOv \.ps-top[\s\S]*safe-area-inset-right/);
   assert.match(indexSource, /#cartOv \.cs-head[\s\S]*safe-area-inset-left/);
+});
+
+test('search bar uses native sticky positioning without fixed-state artifacts or placeholders', () => {
+  assert.match(
+    indexSource,
+    /\.sticky-bar\{[^}]*position:sticky!important;[^}]*top:env\(safe-area-inset-top,0px\)!important;/,
+  );
+  assert.doesNotMatch(indexSource, /\.sticky-bar\.is-stuck\{[^}]*position:fixed/);
+  assert.doesNotMatch(indexSource, /\.sticky-bar\.is-stuck\{[^}]*(?:left:50%|translateX\(-50%\))/);
+  assert.doesNotMatch(indexSource, /sticky-placeholder/);
+
+  const implementation = extractFunction(indexSource, 'initSmartStickySearch');
+  assert.match(implementation, /IntersectionObserver/);
+  assert.doesNotMatch(implementation, /pageYOffset|offsetHeight/);
+  assert.doesNotMatch(implementation, /\.style\./);
+});
+
+test('sticky search sentinel toggles only visual state across down and up transitions', () => {
+  const harness = stickySearchHarness({ sentinelTop: -1, stickyTop: 10 });
+
+  assert.equal(harness.inserted.length, 1);
+  assert.equal(harness.inserted[0].element.className, 'sticky-sentinel');
+  assert.equal(harness.inserted[0].reference, harness.bar);
+  assert.equal(harness.observedElement(), harness.inserted[0].element);
+  assert.equal(harness.observerOptions().rootMargin, '-10px 0px 0px 0px');
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+
+  harness.setSentinelTop(20);
+  harness.notifyIntersection();
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+
+  harness.setSentinelTop(5);
+  harness.notifyIntersection();
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+
+  harness.setSentinelTop(25);
+  harness.notifyIntersection();
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+
+  harness.setSentinelTop(-3);
+  harness.notifyIntersection();
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+});
+
+test('sticky observer recreates and resyncs only when the effective top changes', () => {
+  const harness = stickySearchHarness({ sentinelTop: 15, stickyTop: 10 });
+
+  assert.equal(harness.observers.length, 1);
+  assert.equal(harness.observers[0].options.rootMargin, '-10px 0px 0px 0px');
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+
+  harness.setSentinelTop(15);
+  harness.listeners.get('resize')();
+  assert.equal(harness.observers.length, 1);
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+
+  harness.setStickyTop(20);
+  harness.listeners.get('orientationchange')();
+  assert.equal(harness.observers.length, 2);
+  assert.equal(harness.observers[0].disconnected, true);
+  assert.equal(harness.observers[1].options.rootMargin, '-20px 0px 0px 0px');
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+
+  harness.setStickyTop(6);
+  harness.viewportListeners.get('resize')();
+  assert.equal(harness.observers.length, 3);
+  assert.equal(harness.observers[1].disconnected, true);
+  assert.equal(harness.observers[2].options.rootMargin, '-6px 0px 0px 0px');
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+});
+
+test('sticky observer resyncs geometry without recreation when top is unchanged', () => {
+  const harness = stickySearchHarness({ sentinelTop: 15, stickyTop: 10 });
+
+  harness.setSentinelTop(5);
+  harness.listeners.get('resize')();
+
+  assert.equal(harness.observers.length, 1);
+  assert.equal(harness.observers[0].disconnected, false);
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+});
+
+test('sticky observer clears stale visual state when scrolling ends below the sentinel', () => {
+  const harness = stickySearchHarness({ sentinelTop: -20, stickyTop: 10 });
+
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+
+  harness.setSentinelTop(765);
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+
+  harness.listeners.get('scrollend')();
+
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+  assert.equal(harness.observers.length, 1);
+  assert.equal(harness.observers[0].disconnected, false);
+});
+
+test('sticky search fallback keeps native positioning and updates visual state from sentinel geometry', () => {
+  const harness = stickySearchHarness({
+    intersectionObserver: false,
+    sentinelTop: 20,
+    stickyTop: 8,
+  });
+
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+  assert.deepEqual([...harness.listeners.keys()], ['scroll', 'resize', 'orientationchange']);
+  assert.deepEqual([...harness.viewportListeners.keys()], ['resize']);
+
+  harness.setSentinelTop(4);
+  harness.listeners.get('scroll')();
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+  harness.runAnimationFrame();
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+
+  harness.setSentinelTop(12);
+  harness.listeners.get('scroll')();
+  harness.runAnimationFrame();
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+});
+
+test('sticky fallback throttles repeated geometry updates through one animation frame', () => {
+  const harness = stickySearchHarness({
+    intersectionObserver: false,
+    sentinelTop: 20,
+    stickyTop: 8,
+  });
+
+  harness.setSentinelTop(4);
+  harness.listeners.get('scroll')();
+  harness.listeners.get('scroll')();
+  harness.listeners.get('scroll')();
+
+  assert.equal(harness.pendingAnimationFrames(), 1);
+  assert.equal(harness.bar.classList.contains('is-stuck'), false);
+
+  harness.runAnimationFrame();
+  assert.equal(harness.pendingAnimationFrames(), 0);
+  assert.equal(harness.bar.classList.contains('is-stuck'), true);
+});
+
+test('sticky visual state CSS preserves flow geometry at every breakpoint', () => {
+  const stuckRules = [...indexSource.matchAll(/\.sticky-bar\.is-stuck\s*\{([^}]*)\}/g)];
+  assert.ok(stuckRules.length > 0);
+  for (const [, declarations] of stuckRules) {
+    assert.doesNotMatch(
+      declarations,
+      /(?:^|;)\s*(?:width|max-width|padding(?:-(?:top|right|bottom|left))?|margin(?:-(?:top|right|bottom|left))?)\s*:/,
+    );
+  }
 });
 
 test('mobile interactive controls expose at least 44px CSS hit areas', () => {

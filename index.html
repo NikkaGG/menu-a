@@ -8,7 +8,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:#fff;color:#111;font-family:'Manrope','Segoe UI',Roboto,Arial,sans-serif;font-size:16px;-webkit-text-size-adjust:100%;overflow-x:hidden}body{min-width:320px}
+html,body{background:#fff;color:#111;font-family:'Manrope','Segoe UI',Roboto,Arial,sans-serif;font-size:16px;-webkit-text-size-adjust:100%;overflow-x:clip}body{min-width:320px}
 .page{max-width:720px;margin:0 auto;padding-bottom:90px;background:#fff}
 
 /* ── ICONS: готовые inline SVG, без icon-font (не будет иероглифов) ── */
@@ -574,12 +574,9 @@ body.modal-lock{position:fixed;overflow:hidden;width:100%;left:0;right:0}
   border-radius:0;
   box-shadow:none;
   overflow:visible;
-  transition:width .24s ease,max-width .24s ease,padding .24s ease,box-shadow .24s ease,border-radius .24s ease,background .24s ease;
+  transition:box-shadow .24s ease,border-radius .24s ease,background .24s ease;
 }
 .sticky-bar.is-stuck{
-  width:calc(100% - 32px);
-  max-width:720px;
-  padding:12px 16px 16px;
   border-radius:0 0 24px 24px;
   box-shadow:0 5px 18px rgba(0,0,0,.16);
   background:#fff;
@@ -619,7 +616,7 @@ body.modal-lock{position:fixed;overflow:hidden;width:100%;left:0;right:0}
 @media(max-width:520px){
   .dot-item.active{width:94px;height:4px}
   .sticky-bar{width:100%;padding:11px 12px 13px;margin-bottom:10px;border-radius:0;box-shadow:none}
-  .sticky-bar.is-stuck{width:calc(100% - 18px);max-width:none;padding:11px 12px 14px;border-radius:0 0 20px 20px;box-shadow:0 4px 15px rgba(0,0,0,.17)}
+  .sticky-bar.is-stuck{border-radius:0 0 20px 20px;box-shadow:0 4px 15px rgba(0,0,0,.17)}
   .search-row{gap:10px;margin-bottom:11px}
   .s-inp{height:42px;padding-right:44px;padding-left:15px}
   .grid-toggle{width:42px;height:42px}
@@ -628,29 +625,19 @@ body.modal-lock{position:fixed;overflow:hidden;width:100%;left:0;right:0}
 @media(max-width:370px){
   .dot-item.active{width:78px}
   .sticky-bar{padding:10px 10px 12px}
-  .sticky-bar.is-stuck{width:calc(100% - 14px);padding:10px 10px 13px;border-radius:0 0 18px 18px}
+  .sticky-bar.is-stuck{border-radius:0 0 18px 18px}
   .search-row{gap:8px}
   .cat{height:34px;padding:0 14px}
 }
 
 
-/* ── TRUE FIXED SEARCH BAR FIX ──
-   Обычно поиск стоит в потоке страницы. Когда доходит до верха окна —
-   становится position:fixed, а placeholder держит место, чтобы контент не прыгал. */
-.sticky-placeholder{display:none;width:100%;flex:0 0 auto}
+/* ── NATIVE STICKY SEARCH BAR FIX ── */
+.sticky-sentinel{height:1px;margin-bottom:-1px;visibility:hidden;pointer-events:none}
 .sticky-bar{
-  position:relative!important;
-  top:auto!important;
+  position:sticky!important;
+  top:env(safe-area-inset-top,0px)!important;
 }
 .sticky-bar.is-stuck{
-  position:fixed!important;
-  top:0!important;
-  left:50%!important;
-  right:auto!important;
-  transform:translateX(-50%)!important;
-  width:min(720px, calc(100vw - 32px))!important;
-  max-width:720px!important;
-  margin:0!important;
   z-index:90!important;
   border-radius:0 0 24px 24px!important;
   box-shadow:0 5px 18px rgba(0,0,0,.16)!important;
@@ -659,15 +646,12 @@ body.modal-lock{position:fixed;overflow:hidden;width:100%;left:0;right:0}
 }
 @media(max-width:520px){
   .sticky-bar.is-stuck{
-    width:calc(100vw - 18px)!important;
-    max-width:none!important;
     border-radius:0 0 20px 20px!important;
     box-shadow:0 4px 15px rgba(0,0,0,.17)!important;
   }
 }
 @media(max-width:370px){
   .sticky-bar.is-stuck{
-    width:calc(100vw - 14px)!important;
     border-radius:0 0 18px 18px!important;
   }
 }
@@ -697,7 +681,7 @@ body.modal-lock{position:fixed;overflow:hidden;width:100%;left:0;right:0}
 }
 
 /* ── FINAL REFERENCE ALIGNMENT ── */
-html,body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#fff;color:#000}.page{max-width:485px;padding-bottom:72px}.banner{height:25vw;max-height:121px;min-height:96px;border-radius:0;background:#eee}.banner-sushi,.banner-sushi::before,.banner-sushi::after,.banner-title,.banner-sub{display:none!important}.banner-title-wrap{position:static;display:block;padding:0;height:100%}.banner-photo{width:100%;height:100%;object-fit:cover;display:block}.rest-info{padding:0 10px;gap:21px}.avatar-wrap{bottom:19px;right:0}.avatar{width:108px;height:108px;border-radius:999px;box-shadow:none;background:#fff}.avatar-inner{background:#fff}.avatar-photo{width:100%;height:100%;object-fit:cover;border-radius:999px;display:block}.rest-meta{padding-top:0}.rest-name{font-size:18px;font-weight:700;line-height:1.25}.rest-tags{font-size:12px;font-weight:400;line-height:1.25;margin:0 0 12px}.rest-detail{font-size:16px;line-height:1.5;margin:0 0 8px;display:block}.highlight,.highlight2{color:#000!important;font-weight:400!important}.contact-btn{width:calc(100% - 20px);height:40px;margin:0 10px 44px;padding:0;border:1px solid #000;border-radius:6px;font-size:16px;font-weight:600;box-shadow:0 0 4px rgba(0,0,0,.5)}.popular-section{padding:0 10px 28px}.sec-title{font-size:24px;font-weight:700;margin-bottom:18px}#popularCard{border-radius:8px;box-shadow:none}.popular-slide{padding:1px 4px}.pop-card{height:215px;border:0;border-radius:8px;box-shadow:none;background:#fff}.pop-img{width:160px;min-width:160px;background:#f4f4f4}.product-img{width:100%;height:100%;object-fit:cover;display:block}.pop-body{min-height:213px;padding:10px 10px 10px 12px}.pop-name{font-size:16px;font-weight:600;line-height:1.25}.pop-weight{font-size:14px;color:#000;margin-top:4px}.pop-desc{font-size:14px;line-height:1.45;color:#000}.pop-price{font-size:16px;font-weight:700}.pop-price span{color:#000}.add-sq,.gc-plus{width:36px;height:36px;border:0;border-radius:6px;background:rgba(239,239,244,.7);box-shadow:0 0 6px rgba(0,0,0,.25)}.sticky-bar{padding:8px 10px 13px;margin-bottom:12px;background:#fff}.sticky-bar.is-stuck{width:min(485px,calc(100vw - 18px))!important;border-radius:0 0 20px 20px!important}.search-row{gap:12px;margin-bottom:16px}.s-inp{height:40px;font-size:16px;box-shadow:0 0 6px rgba(0,0,0,.25);padding:0 44px 0 16px}.grid-toggle{width:40px;height:40px;box-shadow:0 0 6px rgba(0,0,0,.25)}.cats{gap:8px}.cat{height:36px;padding:0 16px;border-radius:999px;background:#efeff4;color:#000;font-size:14px;font-weight:500}.cat.on{background:#3f3f3f;color:#fff}.menu-area{padding:0 10px 28px}.menu-sec-title{font-family:inherit;font-size:24px;font-weight:700;margin:38px 0 18px}.g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:28px}.gc{height:360px;border:0;border-radius:0;box-shadow:none;background:#fff}.gc-img{height:auto;aspect-ratio:3/4;background:#f4f4f4}.gc-foot{min-height:90px;padding:8px 4px 0}.gc-name{font-size:16px;font-weight:600;line-height:1.25}.gc-weight{font-size:14px;color:#000;font-weight:400;margin-top:6px}.gc-price{font-size:16px;font-weight:700;padding:0 4px;margin-top:auto;justify-content:flex-start;text-align:left}.cart-pill{background:#222;border-radius:999px}.ps-img,.ci-img{background:#f4f4f4;overflow:hidden}
+html,body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#fff;color:#000}.page{max-width:485px;padding-bottom:72px}.banner{height:25vw;max-height:121px;min-height:96px;border-radius:0;background:#eee}.banner-sushi,.banner-sushi::before,.banner-sushi::after,.banner-title,.banner-sub{display:none!important}.banner-title-wrap{position:static;display:block;padding:0;height:100%}.banner-photo{width:100%;height:100%;object-fit:cover;display:block}.rest-info{padding:0 10px;gap:21px}.avatar-wrap{bottom:19px;right:0}.avatar{width:108px;height:108px;border-radius:999px;box-shadow:none;background:#fff}.avatar-inner{background:#fff}.avatar-photo{width:100%;height:100%;object-fit:cover;border-radius:999px;display:block}.rest-meta{padding-top:0}.rest-name{font-size:18px;font-weight:700;line-height:1.25}.rest-tags{font-size:12px;font-weight:400;line-height:1.25;margin:0 0 12px}.rest-detail{font-size:16px;line-height:1.5;margin:0 0 8px;display:block}.highlight,.highlight2{color:#000!important;font-weight:400!important}.contact-btn{width:calc(100% - 20px);height:40px;margin:0 10px 44px;padding:0;border:1px solid #000;border-radius:6px;font-size:16px;font-weight:600;box-shadow:0 0 4px rgba(0,0,0,.5)}.popular-section{padding:0 10px 28px}.sec-title{font-size:24px;font-weight:700;margin-bottom:18px}#popularCard{border-radius:8px;box-shadow:none}.popular-slide{padding:1px 4px}.pop-card{height:215px;border:0;border-radius:8px;box-shadow:none;background:#fff}.pop-img{width:160px;min-width:160px;background:#f4f4f4}.product-img{width:100%;height:100%;object-fit:cover;display:block}.pop-body{min-height:213px;padding:10px 10px 10px 12px}.pop-name{font-size:16px;font-weight:600;line-height:1.25}.pop-weight{font-size:14px;color:#000;margin-top:4px}.pop-desc{font-size:14px;line-height:1.45;color:#000}.pop-price{font-size:16px;font-weight:700}.pop-price span{color:#000}.add-sq,.gc-plus{width:36px;height:36px;border:0;border-radius:6px;background:rgba(239,239,244,.7);box-shadow:0 0 6px rgba(0,0,0,.25)}.sticky-bar{padding:8px 10px 13px;margin-bottom:12px;background:#fff}.sticky-bar.is-stuck{border-radius:0 0 20px 20px!important}.search-row{gap:12px;margin-bottom:16px}.s-inp{height:40px;font-size:16px;box-shadow:0 0 6px rgba(0,0,0,.25);padding:0 44px 0 16px}.grid-toggle{width:40px;height:40px;box-shadow:0 0 6px rgba(0,0,0,.25)}.cats{gap:8px}.cat{height:36px;padding:0 16px;border-radius:999px;background:#efeff4;color:#000;font-size:14px;font-weight:500}.cat.on{background:#3f3f3f;color:#fff}.menu-area{padding:0 10px 28px}.menu-sec-title{font-family:inherit;font-size:24px;font-weight:700;margin:38px 0 18px}.g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:28px}.gc{height:360px;border:0;border-radius:0;box-shadow:none;background:#fff}.gc-img{height:auto;aspect-ratio:3/4;background:#f4f4f4}.gc-foot{min-height:90px;padding:8px 4px 0}.gc-name{font-size:16px;font-weight:600;line-height:1.25}.gc-weight{font-size:14px;color:#000;font-weight:400;margin-top:6px}.gc-price{font-size:16px;font-weight:700;padding:0 4px;margin-top:auto;justify-content:flex-start;text-align:left}.cart-pill{background:#222;border-radius:999px}.ps-img,.ci-img{background:#f4f4f4;overflow:hidden}
 @media(min-width:486px){.g4{grid-template-columns:repeat(3,minmax(0,1fr))}.banner{height:121px}}
 @media(max-width:370px){.pop-img{width:145px;min-width:145px}.gc{height:330px}.gc-name{font-size:14px}.gc-weight,.gc-price{font-size:13px}.avatar{width:98px;height:98px}.rest-info{gap:14px}.rest-detail{font-size:14px}}
 .svg-icon{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.cart-add-btn.in-cart{font-weight:700;font-size:16px;line-height:1;background:rgba(239,239,244,.86);color:#000}.gc-plus.cart-add-btn.in-cart,.add-sq.cart-add-btn.in-cart{box-shadow:0 0 6px rgba(0,0,0,.25)}.ps-add.cart-add-btn.in-cart{min-width:54px;border-radius:10px}.order-btn:disabled{opacity:.45;cursor:not-allowed}.ref-hidden{display:none!important}.qty-row .qb{color:#000}.cs-title{font-size:24px;font-weight:700}.del-label,.cmnt-title{font-size:18px;font-weight:700}.addr-inp,.cmnt-ta{border-radius:12px;border:1px solid #e5e5ea;background:#fff;box-shadow:none}.dopt{border-radius:999px}.dopt.on{background:#242424;color:#fff}
@@ -710,7 +694,7 @@ html,body{font-family:sfProText,'sfProText Fallback',-apple-system,BlinkMacSyste
  .s-wrap{box-shadow:0 0 6px rgba(0,0,0,.25);border-radius:999px;background:#fff}.s-inp{border:0!important;box-shadow:none!important;padding-left:16px!important;padding-right:44px!important}.s-action{position:absolute;top:50%;right:14px;transform:translateY(-50%);width:24px;height:24px;border:0;background:transparent;color:#111;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.s-action .ui-icon{width:20px;height:20px}.s-icon{display:none!important}
  .cart-add-btn{touch-action:manipulation;pointer-events:auto;z-index:10;transition:transform .18s cubic-bezier(.22,1,.36,1),background .18s ease,box-shadow .18s ease}.cart-add-btn.in-cart{cursor:pointer;font-weight:700;font-size:16px;line-height:1;background:rgba(239,239,244,.86);color:#000}.cart-add-btn.in-cart p{font:inherit;font-weight:700;line-height:1;margin:0}.cart-add-btn.qty-pop{animation:qtyPop .28s cubic-bezier(.2,1.35,.35,1)}.price-live{transition:transform .18s cubic-bezier(.22,1,.36,1),opacity .18s ease,color .18s ease}.price-live.price-bump{animation:priceBump .32s cubic-bezier(.2,1.2,.35,1)}@keyframes qtyPop{0%{transform:scale(.92)}55%{transform:scale(1.12)}100%{transform:scale(1)}}@keyframes priceBump{0%{transform:translateY(0);opacity:.78}45%{transform:translateY(-2px) scale(1.045);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}.gc{display:flex;flex-direction:column}
 .pop-card,.gc,.lc{position:relative}.product-details-btn{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}.product-details-btn:focus-visible{outline:2px solid #111;outline-offset:-2px}
-@media(min-width:720px){.page{max-width:720px}.banner{height:180px;max-height:none}.rest-info{padding:0 10px;gap:20px}.avatar{width:140px;height:140px}.avatar-wrap{bottom:22px}.rest-name{font-size:24px}.rest-tags{font-size:16px}.rest-detail{font-size:14px}.popular-section{padding:0 10px 28px}.pop-card{height:213px}.pop-img{width:160px;min-width:160px}.sticky-bar.is-stuck{width:min(720px,calc(100vw - 18px))!important}.g4{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.gc{height:360px}.gc-name{font-size:16px}.gc-weight{font-size:14px}.gc-price{font-size:16px}.menu-area{padding-left:10px;padding-right:10px}}
+@media(min-width:720px){.page{max-width:720px}.banner{height:180px;max-height:none}.rest-info{padding:0 10px;gap:20px}.avatar{width:140px;height:140px}.avatar-wrap{bottom:22px}.rest-name{font-size:24px}.rest-tags{font-size:16px}.rest-detail{font-size:14px}.popular-section{padding:0 10px 28px}.pop-card{height:213px}.pop-img{width:160px;min-width:160px}.g4{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.gc{height:360px}.gc-name{font-size:16px}.gc-weight{font-size:14px}.gc-price{font-size:16px}.menu-area{padding-left:10px;padding-right:10px}}
 .banner{height:25vw!important;max-height:121px;min-height:96px}.rest-detail{font-size:10px!important;line-height:1.5!important;margin:0 0 8px!important}.product-img{object-fit:contain!important}.avatar-photo{object-fit:contain!important}@media(max-width:719px){.contact-btn{margin:15px 10px 32px!important}.sec-title{margin-bottom:35px!important}.popular-section{padding-bottom:20px!important}.sticky-bar{margin-bottom:4px!important}.menu-sec-title{line-height:1!important;margin:31px 0 16px!important}}
 @media(min-width:720px){.banner{height:180px!important;max-height:none}.rest-detail{font-size:14px!important}}
 
@@ -1498,11 +1482,6 @@ body.modal-lock .cart-pill-shell{
 .page{
   padding-left:env(safe-area-inset-left, 0px);
   padding-right:env(safe-area-inset-right, 0px);
-}
-.sticky-bar.is-stuck{
-  top:env(safe-area-inset-top, 0px)!important;
-  padding-left:max(11px, env(safe-area-inset-left, 0px))!important;
-  padding-right:max(11px, env(safe-area-inset-right, 0px))!important;
 }
 .cart-pill-shell{
   width:min(var(--catalog-shell-width), calc(100vw - var(--catalog-side-gap) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)))!important;
@@ -2596,65 +2575,57 @@ function initSmartStickySearch(){
   const bar=document.querySelector('.sticky-bar');
   if(!bar)return;
 
-  let placeholder=document.querySelector('.sticky-placeholder');
-  if(!placeholder){
-    placeholder=document.createElement('div');
-    placeholder.className='sticky-placeholder';
-    bar.parentNode.insertBefore(placeholder,bar);
+  const sentinel=document.createElement('div');
+  sentinel.className='sticky-sentinel';
+  sentinel.setAttribute('aria-hidden','true');
+  bar.parentNode.insertBefore(sentinel,bar);
+
+  function stickyTop(){
+    const value=parseFloat(window.getComputedStyle(bar).top);
+    return Number.isFinite(value)?value:0;
+  }
+  function update(top=stickyTop()){
+    const shouldStick=sentinel.getBoundingClientRect().top<=top;
+    if(shouldStick)bar.classList.add('is-stuck');
+    else bar.classList.remove('is-stuck');
   }
 
-  let triggerY=0;
-  let barH=0;
-  let ticking=false;
-
-  function unlockForMeasure(){
-    bar.classList.remove('is-stuck');
-    placeholder.style.display='none';
-    placeholder.style.height='0px';
-  }
-
-  function measure(){
-    const wasStuck=bar.classList.contains('is-stuck');
-    if(wasStuck) unlockForMeasure();
-
-    const rect=bar.getBoundingClientRect();
-    triggerY=rect.top+window.pageYOffset;
-    barH=bar.offsetHeight;
-    placeholder.style.height=barH+'px';
-
-    update(true);
-  }
-
-  function update(force=false){
-    const shouldStick=window.pageYOffset>=triggerY;
-
-    if(shouldStick){
-      placeholder.style.display='block';
-      placeholder.style.height=barH+'px';
-      bar.classList.add('is-stuck');
-    }else{
-      bar.classList.remove('is-stuck');
-      placeholder.style.display='none';
-      placeholder.style.height='0px';
+  if(typeof IntersectionObserver==='function'){
+    let observedTop=null;
+    let observer=null;
+    function syncObserver(){
+      const nextTop=stickyTop();
+      update(nextTop);
+      if(nextTop===observedTop)return;
+      observer?.disconnect();
+      observedTop=nextTop;
+      observer=new IntersectionObserver(()=>update(observedTop),{
+        root:null,
+        rootMargin:`-${observedTop}px 0px 0px 0px`,
+        threshold:0
+      });
+      observer.observe(sentinel);
     }
+    syncObserver();
+    window.addEventListener('scrollend',()=>update(observedTop),{passive:true});
+    window.addEventListener('resize',syncObserver);
+    window.addEventListener('orientationchange',syncObserver);
+    window.visualViewport?.addEventListener('resize',syncObserver);
+    return;
   }
-
-  function onScroll(){
-    if(ticking)return;
-    ticking=true;
-    requestAnimationFrame(()=>{
-      ticking=false;
+  let frame=0;
+  function scheduleUpdate(){
+    if(frame)return;
+    frame=requestAnimationFrame(()=>{
+      frame=0;
       update();
     });
   }
-
-  window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',()=>requestAnimationFrame(measure),{passive:true});
-  window.addEventListener('orientationchange',()=>setTimeout(measure,250),{passive:true});
-  window.addEventListener('load',()=>setTimeout(measure,80));
-
-  requestAnimationFrame(measure);
-  setTimeout(measure,250);
+  update();
+  window.addEventListener('scroll',scheduleUpdate,{passive:true});
+  window.addEventListener('resize',scheduleUpdate);
+  window.addEventListener('orientationchange',scheduleUpdate);
+  window.visualViewport?.addEventListener('resize',scheduleUpdate);
 }
 initSmartStickySearch();
 
