@@ -1946,6 +1946,9 @@ function iosIconImg(service,alt,mini=false){
 }
 let pendingOrderText='';
 let pendingOrderPayload=null;
+let pendingOrderId=null;
+let analyticsCheckoutStarted=false;
+let analyticsOrderCompleted=false;
 
 let popularDidDrag=false;
 function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
@@ -2335,6 +2338,7 @@ setViewIcon();
 function openProd(id,opener){
   const item=getItem(id);
   if(!item)return;
+  trackProductView(item);
   document.getElementById('prodContent').innerHTML=`
     <div class="ps-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
     <div class="ps-dot" aria-hidden="true"></div>
@@ -2350,7 +2354,11 @@ function openProd(id,opener){
   openOv('prodOv',opener);
 }
 function addCart(id){
-  cart[id]=(cart[id]||0)+1;
+  const previous=cart[id]||0;
+  cart[id]=Math.min(99,previous+1);
+  if(cart[id]!==previous)pendingOrderId=null;
+  const item=getItem(id);
+  if(item&&cart[id]>previous)trackAddToCart(item,cart[id]-previous,cart[id]);
   updatePill();
   syncCardState(id,true);
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
@@ -2371,7 +2379,7 @@ function updatePill(){
     pill.classList.remove('on');
   }
 }
-function openCart(){renderCart();openOv('cartOv');}
+function openCart(){renderCart();trackCheckoutStarted();openOv('cartOv');}
 function renderCart(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
   let html='';
@@ -2410,13 +2418,18 @@ function renderCart(){
   updateOrderState();
 }
 function chQ(id,d){
-  cart[id]=(cart[id]||0)+d;
+  const previous=cart[id]||0;
+  cart[id]=d>0?Math.min(99,previous+d):previous+d;
   if(cart[id]<=0)delete cart[id];
+  if((cart[id]||0)!==previous)pendingOrderId=null;
+  const item=getItem(id);
+  if(d>0&&item&&cart[id]>previous)trackAddToCart(item,cart[id]-previous,cart[id]);
+  if(!Object.keys(cart).some(k=>cart[k]>0))resetAnalyticsCartLifecycle();
   updatePill();
   syncCardState(id,true);
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
 }
-function clearCart(){cart={};updatePill();syncCardState(null,true);renderCart();}
+function clearCart(){cart={};pendingOrderId=null;resetAnalyticsCartLifecycle();updatePill();syncCardState(null,true);renderCart();}
 function setDel(m,btn){
   delMode=m;
   document.querySelectorAll('.dopt').forEach(b=>b.classList.remove('on'));
@@ -2574,6 +2587,8 @@ function placeOrder(){
     return;
   }
   pendingOrderPayload=buildOrderPayload();
+  if(typeof pendingOrderId==='undefined'||!pendingOrderId)pendingOrderId=crypto.randomUUID();
+  trackCheckoutStarted(true);
   pendingOrderText=buildOrderText(pendingOrderPayload);
   prepareServiceSheet('order');
   const transitionOpener=dialogOpeners.get(document.getElementById('cartOv'));
@@ -2584,8 +2599,9 @@ function openShare(mode='contact'){
   prepareServiceSheet(mode);
   openOv('shareOv');
 }
-function finishOrder(){
+function finishOrder(keepalive=false,forceFetch=false){
   if(pendingOrderText.startsWith('Новый заказ')){
+    if(!trackOrderCompleted(keepalive,forceFetch))return false;
     cart={};
     pickupTime='';
     syncPickupTimeControl();
@@ -2596,19 +2612,26 @@ function finishOrder(){
     syncCardState(null,true);renderCart();
     pendingOrderText='';
     pendingOrderPayload=null;
+    pendingOrderId=null;
+    resetAnalyticsCartLifecycle();
     showToast('Заказ подготовлен к отправке');
+    return true;
   }
+  return false;
 }
 function shareVia(v){
   const text=pendingOrderText||'Sushi Crazy: '+SHOP_PHONE_TEXT;
   if(v==='wa'){
-    window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
-    finishOrder();
+    const opened=window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
+    if(opened){
+      finishOrder(true);
+    }
   }
   if(v==='sms'){
-    window.location.href='sms:'+SHOP_PHONE+'?body='+encodeURIComponent(text);
-    finishOrder();
-    showToast('Открываем сообщения');
+    if(finishOrder(true,true)){
+      window.location.href='sms:'+SHOP_PHONE+'?body='+encodeURIComponent(text);
+      showToast('Открываем сообщения');
+    }
   }
   if(v==='call'){
     window.location.href='tel:'+SHOP_PHONE;
@@ -2624,11 +2647,13 @@ function copyOrder(){
   const isOrder=document.getElementById('shareOv')?.classList.contains('order-mode');
   const text=isOrder?pendingOrderText:location.href;
   if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована')).catch(()=>showToast('Скопируйте текст вручную'));
+    navigator.clipboard.writeText(text).then(()=>{
+      showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована');
+      finishOrder();
+    }).catch(()=>showToast('Скопируйте текст вручную'));
   }else{
     showToast('Скопируйте текст вручную');
   }
-  finishOrder();
   runAfterMotion(()=>closeOv('shareOv'),400);
 }
 let lockedScrollY=0;
@@ -2895,15 +2920,195 @@ function initSmartStickySearch(){
 }
 initSmartStickySearch();
 
-/* ── COOKIE BAR ── */
+/* ── ANALYTICS ── */
+const ANALYTICS_VISITOR_KEY='analyticsVisitorId';
+const ANALYTICS_VISIT_KEY='analyticsVisitDate';
+const ANALYTICS_PENDING_ORDERS_KEY='analyticsPendingOrders';
+const ANALYTICS_PENDING_ORDER_LIMIT=20;
+const ANALYTICS_PENDING_ORDER_CHARS=16384;
+const ANALYTICS_EVENT_TYPES=new Set(['visit','product_view','add_to_cart','checkout_started','order_completed']);
+const ANALYTICS_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+let analyticsVisitorId=null;
+function analyticsRestaurantDate(){
+  return new Date(Date.now()+300*60000).toISOString().slice(0,10);
+}
+function analyticsBrowserFamily(){
+  const ua=navigator.userAgent||'';
+  if(/EdgiOS/.test(ua))return 'edge';
+  if(/EdgA/.test(ua))return 'edge';
+  if(/Edg\//.test(ua))return 'edge';
+  if(/Edge/.test(ua))return 'edge';
+  if(/CriOS/.test(ua))return 'chrome';
+  if(/Chrome/.test(ua))return 'chrome';
+  if(/FxiOS/.test(ua))return 'firefox';
+  if(/Firefox/.test(ua))return 'firefox';
+  if(/Safari/.test(ua))return 'safari';
+  return 'other';
+}
+function analyticsDeviceClass(){
+  const width=window.innerWidth||document.documentElement?.clientWidth||0;
+  const coarse=window.matchMedia?.('(pointer:coarse)').matches;
+  if(width<=600)return 'mobile';
+  if(coarse&&width<=1180)return 'tablet';
+  return 'desktop';
+}
+function sendAnalyticsEvent(event,keepalive=false,forceFetch=false){
+  if(!analyticsVisitorId||!ANALYTICS_EVENT_TYPES.has(event?.eventType)){
+    return {queued:false,success:false,completion:Promise.resolve(false)};
+  }
+  const body=JSON.stringify({...event,visitorId:analyticsVisitorId});
+  try{
+    if(keepalive&&!forceFetch&&navigator.sendBeacon){
+      if(navigator.sendBeacon('/api/events',new Blob([body],{type:'application/json'}))){
+        return {queued:true,success:true,completion:Promise.resolve(true)};
+      }
+    }
+    const completion=fetch('/api/events',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body,
+      keepalive
+    }).then(response=>response.ok===true).catch(()=>false);
+    return {queued:true,success:null,completion};
+  }catch(e){
+    return {queued:false,success:false,completion:Promise.resolve(false)};
+  }
+}
+function clearAnalyticsStorage(){
+  try{localStorage.removeItem(ANALYTICS_VISITOR_KEY)}catch(e){}
+  try{localStorage.removeItem(ANALYTICS_VISIT_KEY)}catch(e){}
+  analyticsVisitorId=null;
+}
+function removePendingOrder(event){
+  try{
+    const queue=JSON.parse(localStorage.getItem(ANALYTICS_PENDING_ORDERS_KEY)||'[]');
+    const remaining=Array.isArray(queue)?queue.filter(item=>item.orderId!==event.orderId):[];
+    if(remaining.length)localStorage.setItem(ANALYTICS_PENDING_ORDERS_KEY,JSON.stringify(remaining));
+    else localStorage.removeItem(ANALYTICS_PENDING_ORDERS_KEY);
+  }catch(e){}
+}
+function deliverPendingOrder(){
+  let queue=[];
+  try{
+    queue=JSON.parse(localStorage.getItem(ANALYTICS_PENDING_ORDERS_KEY)||'[]');
+    if(!Array.isArray(queue))return;
+  }catch(e){return}
+  queue.filter(event=>event?.eventType==='order_completed').forEach(event=>{
+    const status=sendAnalyticsEvent(event,true);
+    if(status.success===true)removePendingOrder(event);
+    else status.completion.then(ok=>{if(ok)removePendingOrder(event)});
+  });
+}
+function queuePendingOrder(event){
+  try{
+    const stored=JSON.parse(localStorage.getItem(ANALYTICS_PENDING_ORDERS_KEY)||'[]');
+    const queue=Array.isArray(stored)?stored:[];
+    if(queue.some(item=>item?.orderId===event.orderId))return true;
+    queue.push(event);
+    while(queue.length>ANALYTICS_PENDING_ORDER_LIMIT)queue.shift();
+    let serialized=JSON.stringify(queue);
+    while(serialized.length>ANALYTICS_PENDING_ORDER_CHARS&&queue.length>1){
+      queue.shift();
+      serialized=JSON.stringify(queue);
+    }
+    if(serialized.length>ANALYTICS_PENDING_ORDER_CHARS)return false;
+    localStorage.setItem(ANALYTICS_PENDING_ORDERS_KEY,serialized);
+    return true;
+  }catch(e){return false}
+}
+function initAnalytics(){
+  try{
+    if(localStorage.getItem('cookieOk')!=='1')return false;
+    analyticsVisitorId=localStorage.getItem(ANALYTICS_VISITOR_KEY);
+    if(!ANALYTICS_UUID.test(analyticsVisitorId||'')){
+      analyticsVisitorId=crypto.randomUUID();
+      localStorage.setItem(ANALYTICS_VISITOR_KEY,analyticsVisitorId);
+      localStorage.removeItem(ANALYTICS_VISIT_KEY);
+    }
+    const today=analyticsRestaurantDate();
+    if(localStorage.getItem(ANALYTICS_VISIT_KEY)!==today){
+      const status=sendAnalyticsEvent({
+        eventType:'visit',
+        deviceClass:analyticsDeviceClass(),
+        browserFamily:analyticsBrowserFamily()
+      });
+      const persistVisit=()=>{
+        try{localStorage.setItem(ANALYTICS_VISIT_KEY,today)}
+        catch(e){clearAnalyticsStorage()}
+      };
+      if(status.success===true)persistVisit();
+      else status.completion.then(ok=>{if(ok)persistVisit()});
+    }
+    deliverPendingOrder();
+    return true;
+  }catch(e){
+    clearAnalyticsStorage();
+    return false;
+  }
+}
+function analyticsProduct(item){
+  const category=CATS.find(cat=>cat.id===item.c)?.l||'Другое';
+  return {id:item.id,name:item.n,category};
+}
+function trackProductView(item){
+  if(analyticsVisitorId&&item)sendAnalyticsEvent({eventType:'product_view',product:analyticsProduct(item)});
+}
+function trackAddToCart(item,quantityAdded,cartQuantity){
+  if(analyticsVisitorId&&item&&quantityAdded>0)sendAnalyticsEvent({
+    eventType:'add_to_cart',
+    product:analyticsProduct(item),
+    quantityAdded,
+    cartQuantity
+  });
+}
+function trackCheckoutStarted(){
+  if(analyticsCheckoutStarted||!Object.keys(cart).some(id=>cart[id]>0))return;
+  const paymentMethod=document.getElementById('paymentMethodInp')?.value;
+  const event={eventType:'checkout_started',deliveryMethod:delMode==='d'?'delivery':'pickup'};
+  if(PAYMENT_METHOD_LABELS[paymentMethod])event.paymentMethod=paymentMethod;
+  sendAnalyticsEvent(event);
+  if(analyticsVisitorId)analyticsCheckoutStarted=true;
+}
+function trackOrderCompleted(keepalive=false,forceFetch=false){
+  if(analyticsOrderCompleted)return true;
+  if(!pendingOrderId||!pendingOrderPayload)return false;
+  if(!analyticsVisitorId)return true;
+  const event={
+    eventType:'order_completed',
+    orderId:pendingOrderId,
+    items:pendingOrderPayload.items.map(item=>{
+      const source=getItem(item.id);
+      return {...analyticsProduct(source||{id:item.id,n:item.name,c:''}),quantity:item.quantity,unitPrice:item.unitPrice};
+    }),
+    total:pendingOrderPayload.total,
+    deliveryMethod:pendingOrderPayload.orderMethod,
+    paymentMethod:pendingOrderPayload.paymentMethod
+  };
+  queuePendingOrder(event);
+  const status=sendAnalyticsEvent(event,keepalive,forceFetch);
+  if(status.success===true)removePendingOrder(event);
+  else status.completion.then(ok=>{if(ok)removePendingOrder(event)});
+  analyticsOrderCompleted=true;
+  return true;
+}
+function resetAnalyticsCartLifecycle(){
+  analyticsCheckoutStarted=false;
+  analyticsOrderCompleted=false;
+  pendingOrderId=null;
+}
 function acceptCookies(){
-  try{localStorage.setItem('cookieOk','1')}catch(e){}
+  try{
+    localStorage.setItem('cookieOk','1');
+    if(localStorage.getItem('cookieOk')!=='1')return;
+  }catch(e){return}
   document.getElementById('cookieBar')?.classList.remove('on');
+  initAnalytics();
 }
 (function(){
   let ok=false;
-  try{ok=!!localStorage.getItem('cookieOk')}catch(e){}
+  try{ok=localStorage.getItem('cookieOk')==='1'}catch(e){}
   if(!ok)document.getElementById('cookieBar')?.classList.add('on');
+  else initAnalytics();
 })();
 
 /* ── CATEGORY SCROLL-SPY: активная категория следует за секцией при скролле ── */
@@ -2964,20 +3169,31 @@ function acceptCookies(){
   };
 
   window.addCart=function(id){
-    cart[id]=(cart[id]||0)+1;
+    const previous=cart[id]||0;
+    cart[id]=Math.min(99,previous+1);
+    if(cart[id]!==previous)pendingOrderId=null;
+    const item=getItem(id);
+    if(item&&cart[id]>previous)trackAddToCart(item,cart[id]-previous,cart[id]);
     updatePill();
     syncCardState(id,false);
     if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
   };
   window.chQ=function(id,d){
-    cart[id]=(cart[id]||0)+d;
+    const previous=cart[id]||0;
+    cart[id]=d>0?Math.min(99,previous+d):previous+d;
     if(cart[id]<=0)delete cart[id];
+    if((cart[id]||0)!==previous)pendingOrderId=null;
+    const item=getItem(id);
+    if(d>0&&item&&cart[id]>previous)trackAddToCart(item,cart[id]-previous,cart[id]);
+    if(!Object.keys(cart).some(k=>cart[k]>0))resetAnalyticsCartLifecycle();
     updatePill();
     syncCardState(id,false);
     if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
   };
   window.clearCart=function(){
     cart={};
+    pendingOrderId=null;
+    resetAnalyticsCartLifecycle();
     updatePill();
     syncCardState(null,false);
     renderCart();

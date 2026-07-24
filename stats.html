@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Статистика — Sushi Crazy</title>
+  <style>
+    :root{color-scheme:dark;--bg:#101216;--panel:#191c22;--line:#30343d;--text:#f7f8fa;--muted:#aab0ba;--accent:#ff6b35;--green:#57d49a}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 Arial,sans-serif}
+    .wrap{max-width:1200px;margin:auto;padding:24px 18px 60px}.brand{color:var(--accent);font-weight:800;letter-spacing:.04em}
+    h1{font-size:clamp(28px,5vw,44px);margin:8px 0 22px}h2{font-size:20px;margin:0 0 15px}.sub{color:var(--muted)}
+    .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:14px}.panel{padding:18px;margin:18px 0}
+    .login{max-width:420px;margin:10vh auto}.field{display:grid;gap:7px;margin:14px 0}input,select,button{font:inherit;border-radius:9px;padding:11px 12px;border:1px solid var(--line)}
+    input,select{background:#111318;color:var(--text)}button{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;cursor:pointer}button.secondary{background:transparent;border-color:var(--muted)}
+    button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ffd166;outline-offset:2px}.error{color:#ff9b86;min-height:1.4em}.hidden{display:none!important}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.card{padding:16px}.kpi-label{color:var(--muted);font-size:14px}.kpi-value{font-size:28px;font-weight:800;margin-top:8px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.wide{grid-column:1/-1}
+    .table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:340px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:9px 7px}th{color:var(--muted);font-size:13px}td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .bars{display:grid;gap:8px;margin-bottom:14px}.bar-row{display:grid;grid-template-columns:minmax(80px,1fr) 3fr 42px;gap:8px;align-items:center;font-size:13px}.bar{height:13px;background:#30343d;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+    .empty{color:var(--muted);padding:12px 0}.note{color:var(--muted);font-size:13px}
+    @media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+    @media(max-width:430px){.wrap{padding:18px 12px 40px}.kpis{grid-template-columns:1fr 1fr}.kpi-value{font-size:22px}.bar-row{grid-template-columns:80px 1fr 34px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand">SUSHI CRAZY</div>
+    <section id="login-panel" class="panel login" aria-labelledby="login-title">
+      <h1 id="login-title">Статистика</h1>
+      <p class="sub">Закрытый раздел для владельца</p>
+      <form id="login-form">
+        <label class="field" for="password">Пароль<input id="password" name="password" type="password" autocomplete="current-password" required></label>
+        <button type="submit">Войти</button>
+        <p id="login-error" class="error" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="dashboard" class="hidden" aria-live="polite">
+      <div class="topbar"><div><h1 id="dashboard-title" tabindex="-1">Статистика</h1><p id="range-label" class="sub"></p></div><div class="controls"><label for="days">Период</label><select id="days" data-days><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select><button id="logout" class="secondary" type="button">Выйти</button></div></div>
+      <p id="status" class="error" role="status"></p>
+      <div class="kpis">
+        <article class="card"><div class="kpi-label">Визиты</div><div id="kpi-visits" class="kpi-value">—</div></article>
+        <article class="card"><div class="kpi-label">Уникальные посетители</div><div id="kpi-unique" class="kpi-value">—</div></article>
+        <article class="card"><div class="kpi-label">Заказы</div><div id="kpi-orders" class="kpi-value">—</div></article>
+        <article class="card"><div class="kpi-label">Конверсия</div><div id="kpi-conversion" class="kpi-value">—</div></article>
+        <article class="card"><div class="kpi-label">Средний чек</div><div id="kpi-average" class="kpi-value">—</div></article>
+      </div>
+      <div class="grid">
+        <section class="panel wide"><h2>Визиты по дням</h2><div id="visits-bars" class="bars"></div><div class="table-wrap"><table><caption class="note">Данные визитов по дням</caption><thead><tr><th>Дата</th><th>Визиты</th><th>Уникальные</th></tr></thead><tbody id="visits-table"></tbody></table></div></section>
+        <section class="panel"><h2>Топ просматриваемых товаров</h2><div class="table-wrap"><table><thead><tr><th>Товар</th><th>Категория</th><th>Просмотры</th></tr></thead><tbody id="viewed-table"></tbody></table></div></section>
+        <section class="panel"><h2>Топ заказываемых товаров</h2><div class="table-wrap"><table><thead><tr><th>Товар</th><th>Категория</th><th>Количество</th><th>Заказы</th></tr></thead><tbody id="ordered-table"></tbody></table></div></section>
+        <section class="panel"><h2>Заказы по часам</h2><div id="hour-bars" class="bars"></div><div class="table-wrap"><table><thead><tr><th>Час</th><th>Заказы</th></tr></thead><tbody id="hour-table"></tbody></table></div></section>
+        <section class="panel"><h2>Заказы по дням недели</h2><div id="weekday-bars" class="bars"></div><div class="table-wrap"><table><thead><tr><th>День</th><th>Заказы</th></tr></thead><tbody id="weekday-table"></tbody></table></div></section>
+        <section class="panel"><h2>Доставка и самовывоз</h2><div class="table-wrap"><table><thead><tr><th>Способ</th><th>Заказы</th><th>Доля</th></tr></thead><tbody id="delivery-table"></tbody></table></div></section>
+        <section class="panel"><h2>Способы оплаты</h2><div class="table-wrap"><table><thead><tr><th>Способ</th><th>Заказы</th><th>Доля</th></tr></thead><tbody id="payment-table"></tbody></table></div></section>
+        <section class="panel wide"><h2>Брошенные товары</h2><div class="table-wrap"><table><thead><tr><th>Товар</th><th>Категория</th><th>Количество</th><th>Посетители</th></tr></thead><tbody id="abandoned-table"></tbody></table></div></section>
+      </div>
+      <p class="note">Все данные обезличены и показаны в часовом поясе ресторана.</p>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const loginPanel = $('login-panel'), dashboard = $('dashboard'), status = $('status');
+      let latestRequest = 0;
+      const text = (element, value) => { element.textContent = value == null ? '—' : String(value); };
+      const emptyRow = (body, columns) => { const row = document.createElement('tr'); const cell = document.createElement('td'); cell.colSpan = columns; cell.className = 'empty'; cell.textContent = 'Нет данных'; row.appendChild(cell); body.appendChild(row); };
+      const rows = (id, values, columns, render) => { const body = $(id); body.textContent = ''; if (!values || !values.length) { emptyRow(body, columns); return; } values.forEach(render); };
+      const addCell = (row, value, className) => { const cell = document.createElement('td'); cell.textContent = value == null ? '—' : String(value); if (className) cell.className = className; row.appendChild(cell); };
+      function drawBars(id, values, label, amount) {
+        const root = $(id); root.textContent = ''; if (!values || !values.length) { const p = document.createElement('p'); p.className = 'empty'; p.textContent = 'Нет данных'; root.appendChild(p); return; }
+        const max = Math.max(1, ...values.map(amount)); values.forEach(item => { const row = document.createElement('div'); row.className = 'bar-row'; const name = document.createElement('span'); name.textContent = label(item); const track = document.createElement('span'); track.className = 'bar'; const fill = document.createElement('i'); fill.style.width = `${Math.round(amount(item) / max * 100)}%`; track.appendChild(fill); const number = document.createElement('span'); number.textContent = String(amount(item)); row.append(name, track, number); root.appendChild(row); });
+      }
+      function render(data) {
+        text($('range-label'), data.range ? `${data.range.from} — ${data.range.to}` : '');
+        const k = data.kpis || {}; text($('kpi-visits'), k.visits); text($('kpi-unique'), k.uniqueVisitors); text($('kpi-orders'), k.orders); text($('kpi-conversion'), `${k.conversionRate || 0}%`); text($('kpi-average'), `${k.averageCheck || 0} ₸`);
+        drawBars('visits-bars', data.visitsByDay, x => x.date, x => x.visits);
+        rows('visits-table', data.visitsByDay, 3, x => { const r = document.createElement('tr'); addCell(r,x.date); addCell(r,x.visits,'num'); addCell(r,x.uniqueVisitors,'num'); $('visits-table').appendChild(r); });
+        rows('viewed-table', data.topViewedProducts, 3, x => { const r=document.createElement('tr'); addCell(r,x.name); addCell(r,x.category); addCell(r,x.views,'num'); $('viewed-table').appendChild(r); });
+        rows('ordered-table', data.topOrderedProducts, 4, x => { const r=document.createElement('tr'); addCell(r,x.name); addCell(r,x.category); addCell(r,x.quantity,'num'); addCell(r,x.orders,'num'); $('ordered-table').appendChild(r); });
+        drawBars('hour-bars', data.ordersByHour, x => `${x.hour}:00`, x => x.orders); rows('hour-table',data.ordersByHour,2,x=>{const r=document.createElement('tr');addCell(r,`${x.hour}:00`);addCell(r,x.orders,'num');$('hour-table').appendChild(r);});
+        drawBars('weekday-bars', data.ordersByWeekday, x => x.label, x => x.orders); rows('weekday-table',data.ordersByWeekday,2,x=>{const r=document.createElement('tr');addCell(r,x.label);addCell(r,x.orders,'num');$('weekday-table').appendChild(r);});
+        rows('delivery-table',data.deliveryMethods,3,x=>{const r=document.createElement('tr');addCell(r,x.method === 'pickup' ? 'Самовывоз' : 'Доставка');addCell(r,x.orders,'num');addCell(r,`${x.share || 0}%`,'num');$('delivery-table').appendChild(r);});
+        const paymentLabels = { card: 'Оплата картой', cash: 'Оплата наличными', kaspi_invoice: 'Выставить счёт на оплату Kaspi' };
+        rows('payment-table',data.paymentMethods,3,x=>{const r=document.createElement('tr');addCell(r,paymentLabels[x.method] || 'Другой способ оплаты');addCell(r,x.orders,'num');addCell(r,`${x.share || 0}%`,'num');$('payment-table').appendChild(r);});
+        rows('abandoned-table',data.abandonedProducts,4,x=>{const r=document.createElement('tr');addCell(r,x.name);addCell(r,x.category);addCell(r,x.quantity,'num');addCell(r,x.visitors,'num');$('abandoned-table').appendChild(r);});
+      }
+      async function load(days, shouldFocus = false) {
+        const requestId = ++latestRequest;
+        status.textContent = ''; try {
+          const response = await fetch(`/api/stats?days=${days}`, { credentials: 'same-origin' });
+          if (requestId !== latestRequest) return;
+          if (response.status === 401) { showLogin(); return; }
+          if (!response.ok) throw new Error('stats');
+          const data = await response.json();
+          if (requestId !== latestRequest) return;
+          render(data); loginPanel.classList.add('hidden'); dashboard.classList.remove('hidden');
+          if (shouldFocus) $('dashboard-title').focus();
+          } catch (error) {
+          if (requestId !== latestRequest) return;
+            const message = 'Произошла ошибка загрузки. Попробуйте ещё раз.';
+            if (dashboard.classList.contains('hidden')) $('login-error').textContent = message;
+            else status.textContent = message;
+          }
+      }
+      function showLogin() { latestRequest += 1; dashboard.classList.add('hidden'); loginPanel.classList.remove('hidden'); $('password').value = ''; $('password').focus(); }
+      $('login-form').addEventListener('submit', async event => {
+        event.preventDefault(); $('login-error').textContent = '';
+        try {
+          const response = await fetch('/api/stats/login', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ password:$('password').value }) });
+          if (response.ok) { $('password').value = ''; await load($('days').value, true); return; }
+          if (response.status === 401) { $('login-error').textContent = 'Неверный пароль.'; return; }
+          if (response.status === 429) { const retryAfter = response.headers && response.headers.get('Retry-After'); $('login-error').textContent = retryAfter ? `Слишком много попыток. Повторите через ${retryAfter} секунд.` : 'Слишком много попыток. Повторите позже.'; return; }
+          $('login-error').textContent = 'Сервис статистики временно недоступен.';
+        } catch (error) { $('login-error').textContent = 'Сервис статистики временно недоступен.'; }
+      });
+      $('days').addEventListener('change', event => load(event.target.value));
+      $('logout').addEventListener('click', async () => {
+        status.textContent = '';
+        try {
+          const response = await fetch('/api/stats/logout', { method:'POST', credentials:'same-origin' });
+          if (!response.ok) throw new Error('logout');
+          showLogin();
+        } catch (error) {
+          status.textContent = 'Не удалось выйти. Попробуйте ещё раз.';
+        }
+      });
+      load($('days').value, true);
+    })();
+  </script>
+</body>
+</html>

@@ -233,6 +233,7 @@ function checkoutHarness({
   ];
   let prepared = false;
   let builtTextPayload = null;
+  let uuidCounter = 0;
   const orderPayload = { snapshot: true };
 
   const context = vm.createContext({
@@ -272,9 +273,28 @@ function checkoutHarness({
     dialogOpeners: new WeakMap(),
     pendingOrderText: '',
     pendingOrderPayload: null,
+    pendingOrderId: null,
+    crypto: {
+      randomUUID() {
+        uuidCounter += 1;
+        return `00000000-0000-4000-8000-${String(uuidCounter).padStart(12, '0')}`;
+      },
+    },
+    getItem() {
+      return { id: 1, n: 'Бургер', c: 'f', p: 100 };
+    },
+    trackAddToCart() {},
+    updatePill() {},
+    syncCardState() {},
+    renderCart() {},
+    resetAnalyticsCartLifecycle() {},
+    trackCheckoutStarted() {},
   });
 
-  for (const name of ['validPhone', 'syncPickupTimeControl', 'updateOrderState', 'setDel', 'placeOrder']) {
+  for (const name of [
+    'validPhone', 'syncPickupTimeControl', 'updateOrderState', 'setDel', 'placeOrder',
+    'addCart', 'chQ', 'clearCart',
+  ]) {
     vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
   }
 
@@ -328,7 +348,11 @@ function orderPayloadHarness({ mode = 'd', paymentMethod = 'kaspi_invoice' } = {
   return { context, elements, item };
 }
 
-function sharingHarness({ clipboardRejects = false } = {}) {
+function sharingHarness({
+  clipboardRejects = false,
+  whatsappOpens = true,
+  completionSucceeds = true,
+} = {}) {
   const elements = {
     shareOv: { classList: makeClassList() },
     shareTitle: makeElement(),
@@ -341,12 +365,25 @@ function sharingHarness({ clipboardRejects = false } = {}) {
   elements.pickupTimeTrigger.textContent = '13:20';
   const copied = [];
   const toasts = [];
-  const location = { href: 'https://example.test/menu?category=rolls#popular' };
+  const completed = [];
+  const opened = [];
+  const operations = [];
+  let href = 'https://example.test/menu?category=rolls#popular';
+  const location = {
+    get href() {
+      return href;
+    },
+    set href(value) {
+      operations.push(['navigate', value]);
+      href = value;
+    },
+  };
   const context = vm.createContext({
     SHOP_PHONE: '+998711234567',
     SHOP_PHONE_TEXT: '+998 71 123 45 67',
     pendingOrderText: '',
     pendingOrderPayload: null,
+    pendingOrderId: null,
     pickupTime: '13:20',
     cart: { 1: 2 },
     document: {
@@ -355,7 +392,13 @@ function sharingHarness({ clipboardRejects = false } = {}) {
       },
     },
     location,
-    window: { location },
+    window: {
+      location,
+      open(...args) {
+        opened.push(args);
+        return whatsappOpens ? {} : null;
+      },
+    },
     navigator: {
       clipboard: {
         writeText(text) {
@@ -380,19 +423,38 @@ function sharingHarness({ clipboardRejects = false } = {}) {
     showToast(message) {
       toasts.push(message);
     },
+    trackOrderCompleted(keepalive, forceFetch) {
+      completed.push([keepalive, forceFetch]);
+      operations.push(['complete', keepalive, forceFetch]);
+      return completionSucceeds;
+    },
+    resetAnalyticsCartLifecycle() {},
   });
 
-  for (const name of ['syncPickupTimeControl', 'prepareServiceSheet', 'finishOrder', 'copyOrder']) {
+  for (const name of ['syncPickupTimeControl', 'prepareServiceSheet', 'finishOrder', 'shareVia', 'copyOrder']) {
     vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
   }
 
-  return { context, copied, elements, toasts };
+  return { completed, context, copied, elements, opened, operations, toasts };
 }
 
-function runCookieScript(storedValue) {
+function runCookieScript(storedValue, {
+  storage,
+  failSet,
+  failWriteNumber,
+  beaconResult,
+  fetchOk = true,
+  fetchRejects = false,
+  userAgent = 'Mozilla/5.0 Chrome/125 Safari/537.36',
+  width = 390,
+} = {}) {
   const cookieBar = { classList: makeClassList() };
-  const storage = new Map();
-  if (storedValue !== undefined) storage.set('cookieOk', storedValue);
+  const values = storage || new Map();
+  if (storedValue !== undefined) values.set('cookieOk', storedValue);
+  const requests = [];
+  const beacons = [];
+  let uuidCounter = 0;
+  let writeCount = 0;
   const context = vm.createContext({
     document: {
       getElementById(id) {
@@ -401,21 +463,99 @@ function runCookieScript(storedValue) {
     },
     localStorage: {
       getItem(key) {
-        return storage.get(key) ?? null;
+        return values.get(key) ?? null;
       },
       setItem(key, value) {
-        storage.set(key, String(value));
+        writeCount += 1;
+        if (failSet === true || failSet === key || writeCount === failWriteNumber) {
+          throw new Error('storage unavailable');
+        }
+        values.set(key, String(value));
+      },
+      removeItem(key) {
+        values.delete(key);
       },
     },
+    navigator: {
+      userAgent,
+      ...(beaconResult === undefined ? {} : {
+        sendBeacon(url, body) {
+          beacons.push({ url, body });
+          return beaconResult;
+        },
+      }),
+    },
+    Blob: class Blob {
+      constructor(parts, options) {
+        this.parts = parts;
+        this.type = options.type;
+      }
+    },
+    window: {
+      innerWidth: width,
+      matchMedia(query) {
+        return { matches: query === '(pointer:coarse)' };
+      },
+    },
+    crypto: {
+      randomUUID() {
+        uuidCounter += 1;
+        return `00000000-0000-4000-8000-${String(uuidCounter).padStart(12, '0')}`;
+      },
+    },
+    fetch(url, options) {
+      requests.push({ url, options });
+      return fetchRejects
+        ? Promise.reject(new Error('offline'))
+        : Promise.resolve({ ok: fetchOk });
+    },
+    Date,
   });
-  const marker = '/* ── COOKIE BAR ── */';
+  const marker = '/* ── ANALYTICS ── */';
   const start = indexSource.indexOf(marker);
   const end = indexSource.indexOf('/* ── CATEGORY SCROLL-SPY', start);
   assert.notEqual(start, -1);
   assert.notEqual(end, -1);
-  vm.runInContext(indexSource.slice(start + marker.length, end), context);
+  vm.runInContext(
+    'let analyticsCheckoutStarted=false,analyticsOrderCompleted=false;'
+      + indexSource.slice(start + marker.length, end),
+    context,
+  );
+  vm.runInContext(
+    'this.analytics={initAnalytics,sendAnalyticsEvent,trackProductView,trackAddToCart,trackCheckoutStarted,trackOrderCompleted,resetAnalyticsCartLifecycle};',
+    context,
+  );
 
-  return { context, cookieBar, storage };
+  return { beacons, context, cookieBar, requests, storage: values };
+}
+
+function cartMutationHarness(initialQuantity = 0) {
+  const events = [];
+  const context = vm.createContext({
+    cart: initialQuantity ? { 1: initialQuantity } : {},
+    pendingOrderId: '00000000-0000-4000-8000-000000000099',
+    document: {
+      getElementById() {
+        return { classList: makeClassList() };
+      },
+    },
+    getItem() {
+      return { id: 1, n: 'Бургер', c: 'f', p: 100 };
+    },
+    trackAddToCart(item, quantityAdded, cartQuantity) {
+      events.push({ item, quantityAdded, cartQuantity });
+    },
+    resetAnalyticsCartLifecycle() {
+      context.pendingOrderId = null;
+    },
+    updatePill() {},
+    syncCardState() {},
+    renderCart() {},
+  });
+  for (const name of ['addCart', 'chQ', 'clearCart']) {
+    vm.runInContext(`${extractFunction(indexSource, name)};this.${name}=${name};`, context);
+  }
+  return { context, events };
 }
 
 function dialogHarness({
@@ -535,6 +675,7 @@ function dialogHarness({
     },
     pendingOrderText: '',
     pendingOrderPayload: null,
+    pendingOrderId: null,
     document,
     window: {
       scrollY: 0,
@@ -568,6 +709,13 @@ function dialogHarness({
     getAvailablePickupSlots() {
       return [];
     },
+    crypto: {
+      randomUUID() {
+        return '00000000-0000-4000-8000-000000000001';
+      },
+    },
+    trackProductView() {},
+    trackCheckoutStarted() {},
   });
   const declarations = [
     "let lockedScrollY=0",
@@ -1280,6 +1428,450 @@ test('cookie consent is visible until cookieOk is persisted', () => {
   assert.equal(acceptedReload.cookieBar.classList.contains('on'), false);
 });
 
+test('analytics creates no visitor storage or request before consent', () => {
+  const firstVisit = runCookieScript();
+
+  assert.equal(firstVisit.storage.has('analyticsVisitorId'), false);
+  assert.equal(firstVisit.requests.length, 0);
+  firstVisit.context.analytics.trackProductView({ id: 1, n: 'Бургер', c: 'f' });
+  assert.equal(firstVisit.requests.length, 0);
+});
+
+test('accepting consent persists it before creating a visitor and sending the first visit', () => {
+  const firstVisit = runCookieScript();
+
+  firstVisit.context.acceptCookies();
+
+  assert.equal(firstVisit.storage.get('cookieOk'), '1');
+  assert.match(firstVisit.storage.get('analyticsVisitorId'), /^[0-9a-f-]{36}$/);
+  assert.equal(firstVisit.requests.length, 1);
+  const visit = JSON.parse(firstVisit.requests[0].options.body);
+  assert.deepEqual(visit, {
+    eventType: 'visit',
+    visitorId: firstVisit.storage.get('analyticsVisitorId'),
+    deviceClass: 'mobile',
+    browserFamily: 'chrome',
+  });
+});
+
+test('analytics keeps a stable visitor and deduplicates visits on the UTC+5 restaurant day', async () => {
+  const storage = new Map();
+  const first = runCookieScript(undefined, { storage });
+  first.context.acceptCookies();
+  await new Promise(setImmediate);
+  const visitorId = storage.get('analyticsVisitorId');
+  const visitKey = storage.get('analyticsVisitDate');
+
+  const reload = runCookieScript('1', { storage });
+
+  assert.equal(storage.get('analyticsVisitorId'), visitorId);
+  assert.equal(storage.get('analyticsVisitDate'), visitKey);
+  assert.equal(reload.requests.length, 0);
+});
+
+test('failed visit delivery is not marked sent and retries successfully on reload', async () => {
+  const storage = new Map([['cookieOk', '1']]);
+  const offline = runCookieScript(undefined, { storage, fetchRejects: true });
+  await new Promise(setImmediate);
+
+  assert.equal(offline.requests.length, 1);
+  assert.equal(storage.has('analyticsVisitDate'), false);
+
+  const reload = runCookieScript(undefined, { storage });
+  await new Promise(setImmediate);
+
+  assert.equal(reload.requests.length, 1);
+  assert.equal(storage.has('analyticsVisitDate'), true);
+});
+
+test('analytics remains disabled when cookie consent persistence fails', () => {
+  const failed = runCookieScript(undefined, { failSet: 'cookieOk' });
+
+  failed.context.acceptCookies();
+
+  assert.equal(failed.storage.has('cookieOk'), false);
+  assert.equal(failed.storage.has('analyticsVisitorId'), false);
+  assert.equal(failed.requests.length, 0);
+  assert.equal(failed.cookieBar.classList.contains('on'), true);
+
+  const visitorStorageFailed = runCookieScript(undefined, { failSet: 'analyticsVisitorId' });
+  visitorStorageFailed.context.acceptCookies();
+  assert.equal(visitorStorageFailed.storage.get('cookieOk'), '1');
+  assert.equal(visitorStorageFailed.storage.has('analyticsVisitorId'), false);
+  assert.equal(visitorStorageFailed.requests.length, 0);
+});
+
+test('analytics removes partial identifiers when the visit-date storage write fails', async () => {
+  const failed = runCookieScript('1', { failWriteNumber: 2 });
+  await new Promise(setImmediate);
+
+  assert.equal(failed.storage.has('analyticsVisitorId'), false);
+  assert.equal(failed.storage.has('analyticsVisitDate'), false);
+  assert.equal(failed.requests.length, 1);
+});
+
+test('analytics replaces malformed stored visitor IDs with a canonical UUID', () => {
+  const storage = new Map([
+    ['cookieOk', '1'],
+    ['analyticsVisitorId', 'not-a-uuid'],
+    ['analyticsVisitDate', '2020-01-01'],
+  ]);
+
+  const analytics = runCookieScript(undefined, { storage });
+
+  assert.equal(storage.get('analyticsVisitorId'), '00000000-0000-4000-8000-000000000001');
+  assert.equal(analytics.requests.length, 1);
+  assert.equal(
+    JSON.parse(analytics.requests[0].options.body).visitorId,
+    '00000000-0000-4000-8000-000000000001',
+  );
+});
+
+test('analytics uses the exact browser precedence and detects tablet and desktop devices', () => {
+  const edge = runCookieScript('1', {
+    userAgent: 'Mozilla/5.0 Edge/125.0 Chrome/125 Safari/537.36',
+    width: 1024,
+  });
+  const edgeVisit = JSON.parse(edge.requests[0].options.body);
+  assert.equal(edgeVisit.browserFamily, 'edge');
+  assert.equal(edgeVisit.deviceClass, 'tablet');
+
+  const safari = runCookieScript('1', {
+    userAgent: 'Mozilla/5.0 Macintosh Version/17.5 Safari/605.1.15',
+    width: 1440,
+  });
+  const safariVisit = JSON.parse(safari.requests[0].options.body);
+  assert.equal(safariVisit.browserFamily, 'safari');
+  assert.equal(safariVisit.deviceClass, 'desktop');
+  assert.equal('userAgent' in safariVisit, false);
+
+  const browserCases = [
+    ['Mozilla/5.0 EdgiOS/125 CriOS/125 Safari/605', 'edge'],
+    ['Mozilla/5.0 Edge/125 Chrome/125 Safari/605', 'edge'],
+    ['Mozilla/5.0 CriOS/125 Safari/605', 'chrome'],
+    ['Mozilla/5.0 Chrome/125 Safari/605', 'chrome'],
+    ['Mozilla/5.0 FxiOS/126 Safari/605', 'firefox'],
+    ['Mozilla/5.0 Firefox/126', 'firefox'],
+    ['Mozilla/5.0 Safari/605', 'safari'],
+    ['Mozilla/5.0 EdgA/125 Chrome/125 Safari/605', 'edge'],
+    ['Mozilla/5.0 Edg/125 Chrome/125 Safari/605', 'edge'],
+    ['Mozilla/5.0 Chromium/125 Safari/605', 'safari'],
+    ['CustomBrowser/1.0', 'other'],
+  ];
+  for (const [userAgent, expected] of browserCases) {
+    const browser = runCookieScript('1', { userAgent });
+    assert.equal(JSON.parse(browser.requests[0].options.body).browserFamily, expected);
+  }
+});
+
+test('analytics transport allowlists event types and uses beacon success or fetch fallback', () => {
+  assert.match(
+    indexSource,
+    /const ANALYTICS_EVENT_TYPES=new Set\(\['visit','product_view','add_to_cart','checkout_started','order_completed'\]\)/,
+  );
+  assert.match(
+    extractFunction(indexSource, 'sendAnalyticsEvent'),
+    /ANALYTICS_EVENT_TYPES\.has\(event\?\.eventType\)/,
+  );
+
+  const beacon = runCookieScript('1', { beaconResult: true });
+  beacon.context.analytics.sendAnalyticsEvent({ eventType: 'product_view' }, true);
+  assert.equal(beacon.beacons.length, 1);
+  assert.equal(beacon.requests.length, 1);
+  assert.equal(JSON.parse(beacon.beacons[0].body.parts[0]).eventType, 'product_view');
+
+  const fallback = runCookieScript('1', { beaconResult: false });
+  fallback.context.analytics.sendAnalyticsEvent({ eventType: 'add_to_cart' }, true);
+  assert.equal(fallback.beacons.length, 1);
+  assert.equal(fallback.requests.length, 2);
+  assert.equal(fallback.requests[1].options.keepalive, true);
+
+  fallback.context.analytics.sendAnalyticsEvent({ eventType: 'not_allowed' }, true);
+  assert.equal(fallback.beacons.length, 1);
+  assert.equal(fallback.requests.length, 2);
+});
+
+test('pending order completion stores only safe payload and replays after reload', async () => {
+  const storage = new Map([['cookieOk', '1']]);
+  const offline = runCookieScript(undefined, { storage, fetchRejects: true });
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:'Филадельфия',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000099';
+     this.pendingOrderPayload={items:[{id:10,name:'Филадельфия',quantity:1,unitPrice:35000}],total:35000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    offline.context,
+  );
+
+  const queued = offline.context.analytics.trackOrderCompleted(true, true);
+  assert.equal(queued, true);
+  const stored = storage.get('analyticsPendingOrders');
+  assert.ok(stored);
+  assert.deepEqual(JSON.parse(stored), [{
+    eventType: 'order_completed',
+    orderId: '00000000-0000-4000-8000-000000000099',
+    items: [{
+      id: 10,
+      name: 'Филадельфия',
+      category: 'Роллы',
+      quantity: 1,
+      unitPrice: 35000,
+    }],
+    total: 35000,
+    deliveryMethod: 'pickup',
+    paymentMethod: 'cash',
+  }]);
+  assert.doesNotMatch(stored, /phone|address|comment|pickupTime|contact|nameInp/i);
+  await new Promise(setImmediate);
+  assert.equal(storage.has('analyticsPendingOrders'), true);
+
+  const replay = runCookieScript(undefined, { storage });
+  await new Promise(setImmediate);
+  const replayed = replay.requests
+    .map(({ options }) => JSON.parse(options.body))
+    .find((event) => event.eventType === 'order_completed');
+  assert.ok(replayed);
+  assert.equal(replayed.orderId, '00000000-0000-4000-8000-000000000099');
+  assert.equal(storage.has('analyticsPendingOrders'), false);
+});
+
+test('retry storage quota failure does not block the current order handoff', () => {
+  const analytics = runCookieScript('1', { failSet: 'analyticsPendingOrders' });
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:'Филадельфия',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000098';
+     this.pendingOrderPayload={items:[{id:10,name:'Филадельфия',quantity:1,unitPrice:35000}],total:35000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    analytics.context,
+  );
+
+  assert.equal(analytics.context.analytics.trackOrderCompleted(true, true), true);
+  assert.equal(analytics.requests.length, 2);
+});
+
+test('unsuccessful order response keeps its retry record for a later reload', async () => {
+  const analytics = runCookieScript('1', { fetchOk: false });
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:'Филадельфия',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000097';
+     this.pendingOrderPayload={items:[{id:10,name:'Филадельфия',quantity:1,unitPrice:35000}],total:35000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    analytics.context,
+  );
+
+  assert.equal(analytics.context.analytics.trackOrderCompleted(true, true), true);
+  await new Promise(setImmediate);
+  assert.equal(analytics.storage.has('analyticsPendingOrders'), true);
+});
+
+test('a new completion appends without overwriting a different pending retry', () => {
+  const existing = {
+    eventType: 'order_completed',
+    orderId: '00000000-0000-4000-8000-000000000096',
+    items: [{ id: 9, name: 'Ролл', category: 'Роллы', quantity: 1, unitPrice: 30000 }],
+    total: 30000,
+    deliveryMethod: 'pickup',
+    paymentMethod: 'cash',
+  };
+  const storage = new Map([
+    ['cookieOk', '1'],
+    ['analyticsPendingOrders', JSON.stringify([existing])],
+  ]);
+  const analytics = runCookieScript(undefined, { storage, fetchRejects: true });
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:'Филадельфия',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000095';
+     this.pendingOrderPayload={items:[{id:10,name:'Филадельфия',quantity:1,unitPrice:35000}],total:35000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    analytics.context,
+  );
+
+  assert.equal(analytics.context.analytics.trackOrderCompleted(true, true), true);
+  assert.deepEqual(
+    JSON.parse(storage.get('analyticsPendingOrders')).map((event) => event.orderId),
+    [
+      '00000000-0000-4000-8000-000000000096',
+      '00000000-0000-4000-8000-000000000095',
+    ],
+  );
+});
+
+test('a later order can complete while an older order remains offline', async () => {
+  const storage = new Map([['cookieOk', '1']]);
+  const first = runCookieScript(undefined, { storage, fetchRejects: true });
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:'Первый ролл',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000091';
+     this.pendingOrderPayload={items:[{id:10,name:'Первый ролл',quantity:1,unitPrice:30000}],total:30000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    first.context,
+  );
+  assert.equal(first.context.analytics.trackOrderCompleted(true, true), true);
+  await new Promise(setImmediate);
+  assert.ok(storage.has('analyticsPendingOrders'));
+
+  first.context.analytics.resetAnalyticsCartLifecycle();
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:11,n:'Второй ролл',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000092';
+     this.pendingOrderPayload={items:[{id:11,name:'Второй ролл',quantity:1,unitPrice:32000}],total:32000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    first.context,
+  );
+
+  assert.equal(first.context.analytics.trackOrderCompleted(true, true), true);
+  assert.equal(JSON.parse(storage.get('analyticsPendingOrders')).length, 2);
+
+  const replay = runCookieScript(undefined, { storage });
+  await new Promise(setImmediate);
+  assert.equal(storage.has('analyticsPendingOrders'), false);
+  const completed = replay.requests
+    .map(({ options }) => JSON.parse(options.body))
+    .filter((event) => event.eventType === 'order_completed')
+    .map((event) => event.orderId);
+  assert.deepEqual(completed, [
+    '00000000-0000-4000-8000-000000000091',
+    '00000000-0000-4000-8000-000000000092',
+  ]);
+});
+
+test('pending order queue evicts the oldest item at twenty entries', () => {
+  const storage = new Map([['cookieOk', '1']]);
+  const analytics = runCookieScript(undefined, { storage, fetchRejects: true });
+  const queue = Array.from({ length: 20 }, (_, index) => ({
+    eventType: 'order_completed',
+    orderId: `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+    items: [{ id: 1, name: 'Ролл', category: 'Роллы', quantity: 1, unitPrice: 100 }],
+    total: 100,
+    deliveryMethod: 'pickup',
+    paymentMethod: 'cash',
+  }));
+  storage.set('analyticsPendingOrders', JSON.stringify(queue));
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:'Новый ролл',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000099';
+     this.pendingOrderPayload={items:[{id:10,name:'Новый ролл',quantity:1,unitPrice:200}],total:200,orderMethod:'pickup',paymentMethod:'cash'};`,
+    analytics.context,
+  );
+
+  assert.equal(analytics.context.analytics.trackOrderCompleted(true, true), true);
+  const stored = JSON.parse(storage.get('analyticsPendingOrders'));
+  assert.equal(stored.length, 20);
+  assert.equal(stored[0].orderId, queue[1].orderId);
+  assert.equal(stored.at(-1).orderId, '00000000-0000-4000-8000-000000000099');
+});
+
+test('oversized pending order payload is rejected without blocking handoff', () => {
+  const storage = new Map([['cookieOk', '1']]);
+  const analytics = runCookieScript(undefined, { storage, fetchRejects: true });
+  const oversizedName = 'x'.repeat(20000);
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:${JSON.stringify(oversizedName)},c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000094';
+     this.pendingOrderPayload={items:[{id:10,name:'ignored',quantity:1,unitPrice:200}],total:200,orderMethod:'pickup',paymentMethod:'cash'};`,
+    analytics.context,
+  );
+
+  assert.equal(analytics.context.analytics.trackOrderCompleted(true, true), true);
+  assert.equal(storage.has('analyticsPendingOrders'), false);
+});
+
+test('analytics event helpers emit only the server product, cart, checkout, and order shapes', () => {
+  const analytics = runCookieScript('1');
+  const item = { id: 10, n: 'Филадельфия', c: 'r', p: 35000 };
+  const getItem = () => item;
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.PAYMENT_METHOD_LABELS={kaspi_invoice:'Kaspi',card:'Card',cash:'Cash'};
+     this.document.getElementById=()=>({value:''});this.getItem=()=>(${JSON.stringify(item)});
+     this.cart={10:2};this.delMode='p';this.pendingOrderId='00000000-0000-4000-8000-000000000099';
+     this.pendingOrderPayload={items:[{id:10,name:'Филадельфия',quantity:2,unitPrice:35000}],total:70000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    analytics.context,
+  );
+
+  analytics.context.analytics.trackProductView(getItem());
+  analytics.context.analytics.trackAddToCart(getItem(), 1, 2);
+  analytics.context.analytics.trackCheckoutStarted();
+  analytics.context.analytics.trackOrderCompleted(true);
+
+  const events = analytics.requests.slice(1).map((request) => JSON.parse(request.options.body));
+  const visitorId = analytics.storage.get('analyticsVisitorId');
+  assert.deepEqual(events, [
+    {
+      eventType: 'product_view',
+      visitorId,
+      product: { id: 10, name: 'Филадельфия', category: 'Роллы' },
+    },
+    {
+      eventType: 'add_to_cart',
+      visitorId,
+      product: { id: 10, name: 'Филадельфия', category: 'Роллы' },
+      quantityAdded: 1,
+      cartQuantity: 2,
+    },
+    {
+      eventType: 'checkout_started',
+      visitorId,
+      deliveryMethod: 'pickup',
+    },
+    {
+      eventType: 'order_completed',
+      visitorId,
+      orderId: '00000000-0000-4000-8000-000000000099',
+      items: [{
+        id: 10,
+        name: 'Филадельфия',
+        category: 'Роллы',
+        quantity: 2,
+        unitPrice: 35000,
+      }],
+      total: 70000,
+      deliveryMethod: 'pickup',
+      paymentMethod: 'cash',
+    },
+  ]);
+  assert.equal(analytics.requests.at(-1).options.keepalive, true);
+});
+
+test('cart additions cap quantity at 99 and do not emit invalid increments', () => {
+  const add = cartMutationHarness(98);
+  add.context.addCart(1);
+  add.context.addCart(1);
+  assert.equal(add.context.cart[1], 99);
+  assert.deepEqual(add.events.map(({ quantityAdded, cartQuantity }) => (
+    { quantityAdded, cartQuantity }
+  )), [{ quantityAdded: 1, cartQuantity: 99 }]);
+
+  const increment = cartMutationHarness(98);
+  increment.context.chQ('1', 5);
+  assert.equal(increment.context.cart[1], 99);
+  assert.deepEqual(increment.events.map(({ quantityAdded, cartQuantity }) => (
+    { quantityAdded, cartQuantity }
+  )), [{ quantityAdded: 1, cartQuantity: 99 }]);
+});
+
+test('emptying or clearing a cart removes its pending order ID', () => {
+  const lifecycle = vm.createContext({
+    pendingOrderId: '00000000-0000-4000-8000-000000000099',
+    analyticsCheckoutStarted: true,
+    analyticsOrderCompleted: true,
+  });
+  vm.runInContext(
+    `${extractFunction(indexSource, 'resetAnalyticsCartLifecycle')};resetAnalyticsCartLifecycle();`,
+    lifecycle,
+  );
+  assert.equal(lifecycle.pendingOrderId, null);
+
+  const emptied = cartMutationHarness(1);
+  emptied.context.chQ('1', -1);
+  assert.equal(emptied.context.pendingOrderId, null);
+
+  const cleared = cartMutationHarness(2);
+  cleared.context.clearCart();
+  assert.equal(cleared.context.pendingOrderId, null);
+});
+
+test('analytics instrumentation is wired to product, cart, checkout, and valid order boundaries', () => {
+  assert.match(extractFunction(indexSource, 'openProd'), /trackProductView\(item\)/);
+  assert.match(extractFunction(indexSource, 'addCart'), /trackAddToCart\(item,cart\[id\]-previous,cart\[id\]\)/);
+  assert.match(extractFunction(indexSource, 'chQ'), /d>0[\s\S]*trackAddToCart\(item,cart\[id\]-previous,cart\[id\]\)/);
+  assert.match(extractFunction(indexSource, 'openCart'), /trackCheckoutStarted\(\)/);
+  assert.match(extractFunction(indexSource, 'placeOrder'), /pendingOrderId=crypto\.randomUUID\(\)/);
+  assert.match(extractFunction(indexSource, 'placeOrder'), /trackCheckoutStarted\(true\)/);
+});
+
 test('contact and product copy actions copy the current page link without clearing the cart', async () => {
   for (const mode of ['contact', 'product']) {
     const sharing = sharingHarness();
@@ -1315,12 +1907,111 @@ test('order copy action copies pending order text and preserves its cart-clearin
 
 test('failed copy reports failure without a success toast', async () => {
   const sharing = sharingHarness({ clipboardRejects: true });
-  sharing.context.prepareServiceSheet('contact');
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { order: 42 };
+  sharing.context.pendingOrderId = '00000000-0000-4000-8000-000000000042';
+  sharing.context.prepareServiceSheet('order');
   sharing.context.copyOrder();
   await new Promise(setImmediate);
 
   assert.deepEqual(sharing.toasts, ['Скопируйте текст вручную']);
   assert.deepEqual(sharing.context.cart, { 1: 2 });
+  assert.deepEqual(sharing.context.pendingOrderPayload, { order: 42 });
+  assert.equal(sharing.context.pendingOrderId, '00000000-0000-4000-8000-000000000042');
+  assert.deepEqual(sharing.completed, []);
+});
+
+test('order completion is recorded once only after a successful handoff', async () => {
+  const sharing = sharingHarness();
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { order: 42 };
+  sharing.context.pendingOrderId = '00000000-0000-4000-8000-000000000042';
+  sharing.context.prepareServiceSheet('order');
+
+  sharing.context.copyOrder();
+  await new Promise(setImmediate);
+  sharing.context.finishOrder();
+
+  assert.deepEqual(sharing.completed, [[false, false]]);
+  assert.equal(sharing.context.pendingOrderId, null);
+});
+
+test('failed completion retry persistence preserves cart and pending order', () => {
+  const sharing = sharingHarness({ completionSucceeds: false });
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { order: 42 };
+  sharing.context.pendingOrderId = '00000000-0000-4000-8000-000000000042';
+
+  sharing.context.finishOrder(true, true);
+
+  assert.deepEqual(sharing.context.cart, { 1: 2 });
+  assert.deepEqual(sharing.context.pendingOrderPayload, { order: 42 });
+  assert.equal(sharing.context.pendingOrderId, '00000000-0000-4000-8000-000000000042');
+});
+
+test('SMS does not navigate when completion retry persistence fails', () => {
+  const sharing = sharingHarness({ completionSucceeds: false });
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { order: 42 };
+  sharing.context.pendingOrderId = '00000000-0000-4000-8000-000000000042';
+  const initialHref = sharing.context.location.href;
+
+  sharing.context.shareVia('sms');
+
+  assert.equal(sharing.context.location.href, initialHref);
+  assert.deepEqual(sharing.context.cart, { 1: 2 });
+});
+
+test('blocked WhatsApp handoff preserves the pending order', () => {
+  const sharing = sharingHarness({ whatsappOpens: false });
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { order: 42 };
+  sharing.context.pendingOrderId = '00000000-0000-4000-8000-000000000042';
+
+  sharing.context.shareVia('wa');
+
+  assert.deepEqual(sharing.context.cart, { 1: 2 });
+  assert.deepEqual(sharing.context.pendingOrderPayload, { order: 42 });
+  assert.equal(sharing.context.pendingOrderId, '00000000-0000-4000-8000-000000000042');
+  assert.deepEqual(sharing.completed, []);
+});
+
+test('successful WhatsApp and SMS handoffs complete with unload-safe analytics', () => {
+  const whatsapp = sharingHarness();
+  whatsapp.context.pendingOrderText = 'Новый заказ № 42';
+  whatsapp.context.pendingOrderPayload = { order: 42 };
+  whatsapp.context.pendingOrderId = '00000000-0000-4000-8000-000000000042';
+  whatsapp.context.shareVia('wa');
+  assert.deepEqual(whatsapp.completed, [[true, false]]);
+
+  const sms = sharingHarness();
+  sms.context.pendingOrderText = 'Новый заказ № 43';
+  sms.context.pendingOrderPayload = { order: 43 };
+  sms.context.pendingOrderId = '00000000-0000-4000-8000-000000000043';
+  sms.context.shareVia('sms');
+  assert.deepEqual(sms.completed, [[true, true]]);
+  assert.deepEqual(sms.operations.slice(0, 2), [
+    ['complete', true, true],
+    ['navigate', sms.context.location.href],
+  ]);
+  assert.match(sms.context.location.href, /^sms:/);
+});
+
+test('SMS order completion forces fetch keepalive instead of sendBeacon', () => {
+  const analytics = runCookieScript('1', { beaconResult: true });
+  vm.runInContext(
+    `this.CATS=[{id:'r',l:'Роллы'}];this.getItem=()=>({id:10,n:'Филадельфия',c:'r'});
+     this.pendingOrderId='00000000-0000-4000-8000-000000000099';
+     this.pendingOrderPayload={items:[{id:10,name:'Филадельфия',quantity:1,unitPrice:35000}],total:35000,orderMethod:'pickup',paymentMethod:'cash'};`,
+    analytics.context,
+  );
+
+  analytics.context.analytics.trackOrderCompleted(true, true);
+
+  assert.equal(analytics.beacons.length, 0);
+  assert.equal(analytics.requests.length, 2);
+  assert.equal(analytics.requests[1].options.keepalive, true);
+  assert.equal(JSON.parse(analytics.requests[1].options.body).eventType, 'order_completed');
 });
 
 test('phone and address fields have static error descriptions and hidden errors', () => {
@@ -1490,6 +2181,44 @@ test('placeOrder proceeds with valid checkout contacts', () => {
   assert.equal(checkout.elements.addrErr.hidden, true);
   assert.equal(checkout.context.pendingOrderPayload, checkout.orderPayload);
   assert.equal(checkout.builtTextPayload(), checkout.orderPayload);
+});
+
+test('effective cart mutation invalidates the snapshot ID and next placeOrder generates a fresh UUID', () => {
+  const checkout = checkoutHarness({
+    phone: '+7 (999) 123-45-67',
+    address: 'Main 1',
+    mode: 'd',
+  });
+  checkout.context.placeOrder();
+  const firstOrderId = checkout.context.pendingOrderId;
+
+  checkout.context.addCart(1);
+  assert.equal(checkout.context.cart[1], 2);
+  assert.equal(checkout.context.pendingOrderId, null);
+
+  checkout.context.placeOrder();
+  assert.notEqual(checkout.context.pendingOrderId, firstOrderId);
+  assert.equal(checkout.context.pendingOrderId, '00000000-0000-4000-8000-000000000002');
+});
+
+test('positive and negative quantity changes plus clear invalidate pending order IDs', () => {
+  const checkout = checkoutHarness({
+    phone: '1234567890',
+    address: 'Main 1',
+  });
+
+  checkout.context.pendingOrderId = '00000000-0000-4000-8000-000000000010';
+  checkout.context.chQ('1', 1);
+  assert.equal(checkout.context.pendingOrderId, null);
+
+  checkout.context.pendingOrderId = '00000000-0000-4000-8000-000000000011';
+  checkout.context.chQ('1', -1);
+  assert.equal(checkout.context.cart[1], 1);
+  assert.equal(checkout.context.pendingOrderId, null);
+
+  checkout.context.pendingOrderId = '00000000-0000-4000-8000-000000000012';
+  checkout.context.clearCart();
+  assert.equal(checkout.context.pendingOrderId, null);
 });
 
 test('correcting invalid inputs clears stale errors and aria-invalid', () => {
