@@ -1131,11 +1131,23 @@ test('logout 401 returns to login without duplicate error noise', async () => {
   assert.equal(document.querySelector('#toast-region').children.length, 0);
 });
 
-test('small-screen dish actions stack without clipping', () => {
-  assert.match(css(), /@media\(max-width:375px\)/);
+test('admin controls use readable dark outlines', () => {
+  assert.match(css(), /--control-outline:#26332c/);
+  assert.match(css(), /\.button-secondary\{border:1px solid var\(--control-outline\)/);
+  assert.match(css(), /\.category-head \.button-ghost,.row-actions \.button-ghost\{border:1px solid var\(--control-outline\)/);
+});
+
+test('dish actions and long Russian labels reflow without clipping', () => {
+  assert.match(css(), /body\{margin:0;min-width:0\}/);
+  assert.match(css(), /grid-template-columns:58px minmax\(180px,1fr\) max-content minmax\(126px,max-content\) max-content/);
+  assert.match(css(), /@media\(max-width:1100px\)/);
+  assert.match(css(), /\.dish-row \.row-actions\{grid-column:3;grid-row:1\/4;flex-direction:column/);
+  assert.match(css(), /@media\(max-width:520px\)/);
   assert.match(css(), /\.category-head\{flex-wrap:wrap/);
-  assert.match(css(), /\.category-head h4\{min-width:0;overflow-wrap:anywhere/);
+  assert.match(css(), /\.category-head h4\{flex:1 1 100%;min-width:0;overflow-wrap:anywhere/);
   assert.match(css(), /\.dish-row\{grid-template-columns:48px minmax\(0,1fr\)/);
   assert.match(css(), /\.dish-row \.row-actions\{grid-column:1\/-1/);
   assert.match(css(), /\.dish-row \.row-actions button\{flex:1/);
+  assert.match(css(), /\.stats-filters form\{grid-template-columns:1fr\}/);
+  assert.match(css(), /\.dialog-actions\{flex-direction:column-reverse/);
 });
