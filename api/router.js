@@ -80,9 +80,24 @@ function matchRoute(url) {
   return null;
 }
 
+function requestUrlForMatch(request) {
+  let pathname;
+  try {
+    pathname = new URL(request.url, 'http://localhost').pathname;
+  } catch {
+    return request.url;
+  }
+  if (pathname !== '/api/router') return request.url;
+
+  const forwardedPath = request.query && request.query.path;
+  if (Array.isArray(forwardedPath)) return `/api/${forwardedPath.join('/')}`;
+  if (typeof forwardedPath === 'string') return `/api/${forwardedPath}`;
+  return request.url;
+}
+
 function createRouter(routeHandlers = handlers) {
   return async function router(request, response) {
-    const match = matchRoute(request.url);
+    const match = matchRoute(requestUrlForMatch(request));
     if (!match || typeof routeHandlers[match.name] !== 'function') {
       return response.status(404).json({ error: 'Not found' });
     }

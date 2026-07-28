@@ -1,6 +1,19 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { matchRoute, createRouter } = require('../api/[...path]');
+const fs = require('node:fs');
+const path = require('node:path');
+const { matchRoute, createRouter } = require('../api/router');
+
+test('Vercel rewrites every nested API path to one fixed function', () => {
+  const config = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '..', 'vercel.json'), 'utf8'),
+  );
+
+  assert.deepEqual(config.rewrites[0], {
+    source: '/api/:path*',
+    destination: '/api/router?path=:path*',
+  });
+});
 
 test('catch-all router selects every public API route without collisions', () => {
   const cases = [
@@ -66,6 +79,9 @@ test('catch-all router delegates with decoded params and existing query values',
     end() {
       return this;
     },
+    json() {
+      return this;
+    },
   };
 
   await router(
@@ -77,6 +93,40 @@ test('catch-all router delegates with decoded params and existing query values',
   );
 
   assert.deepEqual(delegated, { source: 'bot', id: 'order/1' });
+  assert.equal(response.statusCode, 204);
+});
+
+test('catch-all router delegates a path forwarded by the Vercel rewrite', async () => {
+  let delegated = false;
+  const router = createRouter({
+    'admin-session': async (_request, response) => {
+      delegated = true;
+      return response.status(204).end();
+    },
+  });
+  const response = {
+    statusCode: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    end() {
+      return this;
+    },
+    json() {
+      return this;
+    },
+  };
+
+  await router(
+    {
+      url: '/api/router?path=admin%2Fsession',
+      query: { path: 'admin/session' },
+    },
+    response,
+  );
+
+  assert.equal(delegated, true);
   assert.equal(response.statusCode, 204);
 });
 

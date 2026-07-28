@@ -62,6 +62,7 @@ const orderId = '66666666-6666-4666-8666-666666666666';
 test('Vercel rewrites public and admin routes to their client shells', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
   assert.deepEqual(config.rewrites, [
+    { source: '/api/:path*', destination: '/api/router?path=:path*' },
     { source: '/t/:token', destination: '/index.html' },
     { source: '/order/:id', destination: '/index.html' },
     { source: '/admin', destination: '/admin.html' },
