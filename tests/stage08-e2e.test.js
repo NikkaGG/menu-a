@@ -288,31 +288,31 @@ function nodeResponse(response) {
 }
 
 async function startBotBridge(query) {
-  const { createBotAuthorizer } = require('../api/_lib/bot-auth');
+  const { createBotAuthorizer } = require('../server/api/_lib/bot-auth');
   const botAuthorize = createBotAuthorizer({
     env: { BOT_INTERNAL_API_SECRET: botInternalSecret },
   });
   const factories = {
-    order: require('../api/orders/[id]').createOrderDetailsHandler({ query }),
-    status: require('../api/orders/[id]/status').createOrderStatusHandler({
+    order: require('../server/api/orders/[id]').createOrderDetailsHandler({ query }),
+    status: require('../server/api/orders/[id]/status').createOrderStatusHandler({
       query,
       authorize: botAuthorize,
     }),
-    telegram: require('../api/orders/[id]/telegram-message').createTelegramMessageHandler({
+    telegram: require('../server/api/orders/[id]/telegram-message').createTelegramMessageHandler({
       query,
       authorize: botAuthorize,
     }),
-    claim: require('../api/orders/[id]/waiter-notification-claim')
+    claim: require('../server/api/orders/[id]/waiter-notification-claim')
       .createWaiterNotificationClaimHandler({ query, authorize: botAuthorize }),
-    waiter: require('../api/orders/[id]/waiter-message').createWaiterMessageHandler({
+    waiter: require('../server/api/orders/[id]/waiter-message').createWaiterMessageHandler({
       query,
       authorize: botAuthorize,
     }),
-    bill: require('../api/sessions/[id]/bill').createBillHandler({
+    bill: require('../server/api/sessions/[id]/bill').createBillHandler({
       query,
       authorize: botAuthorize,
     }),
-    close: require('../api/sessions/[id]/close').createCloseSessionHandler({
+    close: require('../server/api/sessions/[id]/close').createCloseSessionHandler({
       query,
       authorize: botAuthorize,
     }),
@@ -389,15 +389,15 @@ test('Stage08 stateful restaurant flow crosses production handler boundaries', a
     return handlerDatabaseValue(result.rows);
   };
 
-  const { createTablesHandler } = require('../api/admin/tables/index');
-  const { createTableQrHandler } = require('../api/admin/tables/[id]/qr');
-  const { createTableHandler } = require('../api/tables/[token]');
-  const { createMenuHandler } = require('../api/menu');
-  const { createOrderHandler } = require('../api/orders');
-  const { createOrderDetailsHandler } = require('../api/orders/[id]');
-  const { createBillHandler } = require('../api/sessions/[id]/bill');
-  const { createDishHandler } = require('../api/admin/dishes/[id]');
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createTablesHandler } = require('../server/api/admin/tables/index');
+  const { createTableQrHandler } = require('../server/api/admin/tables/[id]/qr');
+  const { createTableHandler } = require('../server/api/tables/[token]');
+  const { createMenuHandler } = require('../server/api/menu');
+  const { createOrderHandler } = require('../server/api/orders');
+  const { createOrderDetailsHandler } = require('../server/api/orders/[id]');
+  const { createBillHandler } = require('../server/api/sessions/[id]/bill');
+  const { createDishHandler } = require('../server/api/admin/dishes/[id]');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
 
   const tablesHandler = createTablesHandler({
     query,

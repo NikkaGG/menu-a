@@ -14,7 +14,7 @@ const {
   seedDatabase,
   validateEnvironment,
 } = require('../scripts/seed-stage05-stats');
-const { aggregate, parseRange } = require('../api/admin/stats');
+const { aggregate, parseRange } = require('../server/api/admin/stats');
 
 const root = path.join(__dirname, '..');
 const migration = fs.readFileSync(

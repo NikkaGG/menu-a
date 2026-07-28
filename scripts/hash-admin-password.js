@@ -1,4 +1,4 @@
-const { hashPassword } = require('../api/_lib/admin-password');
+const { hashPassword } = require('../server/api/_lib/admin-password');
 
 async function readPassword() {
   if (process.argv.length !== 2) {

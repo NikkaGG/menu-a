@@ -4,7 +4,7 @@ const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 
 function load(relativePath) {
-  return require(`../${relativePath}`);
+  return require(`../server/${relativePath}`);
 }
 
 function sharedLoginAttemptsQuery(state = new Map()) {

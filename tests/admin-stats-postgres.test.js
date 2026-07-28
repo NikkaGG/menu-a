@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { PGlite } = require('@electric-sql/pglite');
 const { pgcrypto } = require('@electric-sql/pglite/contrib/pgcrypto');
-const { aggregate, parseRange } = require('../api/admin/stats');
+const { aggregate, parseRange } = require('../server/api/admin/stats');
 
 const migration = (name) => fs.readFileSync(path.join(__dirname, '..', 'sql', name), 'utf8');
 

@@ -35,9 +35,9 @@ async function invoke(handler, request) {
 
 test('table route modules export direct handlers and injectable factories', () => {
   const routes = [
-    ['../api/admin/tables/index.js', 'createTablesHandler'],
-    ['../api/admin/tables/[id]/index.js', 'createTableHandler'],
-    ['../api/admin/tables/[id]/qr.js', 'createTableQrHandler'],
+    ['../server/api/admin/tables/index.js', 'createTablesHandler'],
+    ['../server/api/admin/tables/[id]/index.js', 'createTableHandler'],
+    ['../server/api/admin/tables/[id]/qr.js', 'createTableQrHandler'],
   ];
   for (const [route, factory] of routes) {
     const exported = require(route);
@@ -47,7 +47,7 @@ test('table route modules export direct handlers and injectable factories', () =
 });
 
 test('table collection fails authorization closed before database access', async () => {
-  const { createTablesHandler } = require('../api/admin/tables/index.js');
+  const { createTablesHandler } = require('../server/api/admin/tables/index.js');
   let queryCalls = 0;
   const query = async () => { queryCalls += 1; return []; };
 
@@ -65,7 +65,7 @@ test('table collection fails authorization closed before database access', async
 });
 
 test('table collection lists mapped tables in human-friendly stable order', async () => {
-  const { createTablesHandler } = require('../api/admin/tables/index.js');
+  const { createTablesHandler } = require('../server/api/admin/tables/index.js');
   const calls = [];
   const handler = createTablesHandler({
     authorize: authorized,
@@ -96,7 +96,7 @@ test('table collection lists mapped tables in human-friendly stable order', asyn
 });
 
 test('table creation accepts exact number body, trims it, and generates token server-side', async () => {
-  const { createTablesHandler } = require('../api/admin/tables/index.js');
+  const { createTablesHandler } = require('../server/api/admin/tables/index.js');
   const calls = [];
   const handler = createTablesHandler({
     authorize: authorized,
@@ -123,7 +123,7 @@ test('table creation accepts exact number body, trims it, and generates token se
 });
 
 test('table collection validates exact body and methods without database access', async () => {
-  const { createTablesHandler } = require('../api/admin/tables/index.js');
+  const { createTablesHandler } = require('../server/api/admin/tables/index.js');
   let calls = 0;
   const handler = createTablesHandler({
     authorize: authorized,
@@ -149,7 +149,7 @@ test('table collection validates exact body and methods without database access'
 });
 
 test('table creation reports duplicate numbers and retries bounded token collisions', async () => {
-  const { createTablesHandler } = require('../api/admin/tables/index.js');
+  const { createTablesHandler } = require('../server/api/admin/tables/index.js');
   let duplicateCalls = 0;
   const duplicate = await invoke(createTablesHandler({
     authorize: authorized,
@@ -192,7 +192,7 @@ test('table creation reports duplicate numbers and retries bounded token collisi
 });
 
 test('table item validates method and UUID before database access', async () => {
-  const { createTableHandler } = require('../api/admin/tables/[id]/index.js');
+  const { createTableHandler } = require('../server/api/admin/tables/[id]/index.js');
   let calls = 0;
   const handler = createTableHandler({
     authorize: authorized,
@@ -207,7 +207,7 @@ test('table item validates method and UUID before database access', async () => 
 });
 
 test('table deletion distinguishes missing, open, and historical sessions', async () => {
-  const { createTableHandler } = require('../api/admin/tables/[id]/index.js');
+  const { createTableHandler } = require('../server/api/admin/tables/[id]/index.js');
   const request = { method: 'DELETE', query: { id: tableId } };
 
   const missing = await invoke(createTableHandler({
@@ -232,7 +232,7 @@ test('table deletion distinguishes missing, open, and historical sessions', asyn
 });
 
 test('table deletion succeeds only without session history and hides failures', async () => {
-  const { createTableHandler } = require('../api/admin/tables/[id]/index.js');
+  const { createTableHandler } = require('../server/api/admin/tables/[id]/index.js');
   const calls = [];
   const success = await invoke(createTableHandler({
     authorize: authorized,
@@ -264,7 +264,7 @@ test('table deletion succeeds only without session history and hides failures', 
 });
 
 test('QR endpoint validates auth, method, UUID, missing table, and APP_URL', async () => {
-  const { createTableQrHandler } = require('../api/admin/tables/[id]/qr.js');
+  const { createTableQrHandler } = require('../server/api/admin/tables/[id]/qr.js');
   let calls = 0;
   const query = async () => {
     calls += 1;
@@ -316,7 +316,7 @@ test('QR endpoint validates auth, method, UUID, missing table, and APP_URL', asy
 });
 
 test('QR endpoint encodes exact normalized URL and returns private PNG attachment', async () => {
-  const { createTableQrHandler } = require('../api/admin/tables/[id]/qr.js');
+  const { createTableQrHandler } = require('../server/api/admin/tables/[id]/qr.js');
   const payloads = [];
   const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1]);
   const response = await invoke(createTableQrHandler({
@@ -350,7 +350,7 @@ test('QR endpoint encodes exact normalized URL and returns private PNG attachmen
 });
 
 test('QR endpoint produces a real PNG with the trusted QR package', async () => {
-  const { createTableQrHandler } = require('../api/admin/tables/[id]/qr.js');
+  const { createTableQrHandler } = require('../server/api/admin/tables/[id]/qr.js');
   const response = await invoke(createTableQrHandler({
     authorize: authorized,
     env: { APP_URL: 'http://localhost:3000', NODE_ENV: 'test' },

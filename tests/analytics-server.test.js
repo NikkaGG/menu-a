@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 function load(relativePath) {
-  return require(`../${relativePath}`);
+  return require(`../server/${relativePath}`);
 }
 
 function responseHarness() {

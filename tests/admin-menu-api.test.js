@@ -5,7 +5,7 @@ const categoryId = '11111111-1111-4111-8111-111111111111';
 const dishId = '22222222-2222-4222-8222-222222222222';
 
 function load(relativePath) {
-  return require(`../${relativePath}`);
+  return require(`../server/${relativePath}`);
 }
 
 function responseHarness() {

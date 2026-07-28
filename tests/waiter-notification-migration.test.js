@@ -6,10 +6,10 @@ const { PGlite } = require('@electric-sql/pglite');
 const { pgcrypto } = require('@electric-sql/pglite/contrib/pgcrypto');
 const {
   CLAIM_WAITER_NOTIFICATION_SQL,
-} = require('../api/orders/[id]/waiter-notification-claim');
+} = require('../server/api/orders/[id]/waiter-notification-claim');
 const {
   SAVE_WAITER_MESSAGE_SQL,
-} = require('../api/orders/[id]/waiter-message');
+} = require('../server/api/orders/[id]/waiter-message');
 
 const migration = (name) =>
   fs.readFileSync(path.join(__dirname, '..', 'sql', name), 'utf8');

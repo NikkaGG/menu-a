@@ -33,13 +33,13 @@ async function invoke(handler, request) {
 const authorized = async () => true;
 
 test('admin stats exports a Vercel handler and injectable factory', () => {
-  const exported = require('../api/admin/stats');
+  const exported = require('../server/api/admin/stats');
   assert.equal(typeof exported, 'function');
   assert.equal(typeof exported.createAdminStatsHandler, 'function');
 });
 
 test('admin stats rejects unsupported methods before authorization and fails closed', async () => {
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
   let authorizedCalls = 0;
   let queryCalls = 0;
   const query = async () => { queryCalls += 1; return []; };
@@ -61,7 +61,7 @@ test('admin stats rejects unsupported methods before authorization and fails clo
 });
 
 test('admin stats validates strict real dates, ordering, range length, and grouping', async () => {
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
   let queryCalls = 0;
   const handler = createAdminStatsHandler({
     authorize: authorized,
@@ -88,7 +88,7 @@ test('admin stats validates strict real dates, ordering, range length, and group
 });
 
 test('admin stats sends inclusive Almaty dates as exact half-open UTC bounds', async () => {
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
   const calls = [];
   const handler = createAdminStatsHandler({
     authorize: authorized,
@@ -126,7 +126,7 @@ test('admin stats sends inclusive Almaty dates as exact half-open UTC bounds', a
 });
 
 test('admin stats defaults grouping only when omitted and accepts a 366-day inclusive range', async () => {
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
   const calls = [];
   const handler = createAdminStatsHandler({
     authorize: authorized,
@@ -145,7 +145,7 @@ test('admin stats defaults grouping only when omitted and accepts a 366-day incl
 });
 
 test('admin stats serializes aggregate rows exactly and preserves shared buckets', async () => {
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
   const calls = [];
   const query = async (sql, values) => {
     calls.push({ sql, values });
@@ -200,7 +200,7 @@ test('admin stats serializes aggregate rows exactly and preserves shared buckets
 });
 
 test('admin stats returns exact empty aggregates and reports database errors safely', async () => {
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
   const empty = await invoke(createAdminStatsHandler({
     authorize: authorized,
     query: async (sql) => (/summary/i.test(sql) ? [] : []),
@@ -234,7 +234,7 @@ test('admin stats returns exact empty aggregates and reports database errors saf
 });
 
 test('admin stats SQL keeps revenue independent while profit handles partial and deleted costs', async () => {
-  const { createAdminStatsHandler } = require('../api/admin/stats');
+  const { createAdminStatsHandler } = require('../server/api/admin/stats');
   const calls = [];
   const handler = createAdminStatsHandler({
     authorize: authorized,

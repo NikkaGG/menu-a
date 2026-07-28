@@ -70,7 +70,7 @@ test('waiter notification migration additively stores nullable positive message 
 });
 
 test('table token generator returns unpredictable URL-safe tokens', () => {
-  const { generateTableToken } = require('../api/_lib/table-token');
+  const { generateTableToken } = require('../server/api/_lib/table-token');
   const tokens = new Set(Array.from({ length: 100 }, () => generateTableToken()));
 
   assert.equal(tokens.size, 100);

@@ -9,7 +9,7 @@ const unavailableId = '55555555-5555-4555-8555-555555555555';
 const authorize = async () => true;
 
 function load(relativePath) {
-  return require(`../${relativePath}`);
+  return require(`../server/${relativePath}`);
 }
 
 function responseHarness() {
