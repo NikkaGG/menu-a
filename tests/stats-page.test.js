@@ -57,7 +57,7 @@ test('stats is the third admin destination and canonical rewrite with pinned Cha
   assert.match(source, /href="\/stats" data-route="stats"/);
   assert.match(source, /https:\/\/cdn\.jsdelivr\.net\/npm\/chart\.js@4\.4\.9\/dist\/chart\.umd\.min\.js/);
   assert.doesNotMatch(source, /stats_session|\/api\/stats/);
-  assert.match(source, /Revenue and profit from placed orders/);
+  assert.match(source, /Выручка и прибыль по оформленным заказам/);
   const document = new JSDOM(source).window.document;
   const chartScript = document.querySelector('script[src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"]');
   assert.equal(chartScript.getAttribute('integrity'), 'sha384-b0GXujLkk9eYYSmcSfoyZbfyElGAQnDyY0skCHSG6w3JgTMFnz11ggrTAr7seu9f');
@@ -183,7 +183,7 @@ test('a pending stats load clears the prior range and destroys its chart immedia
   assert.equal(document.querySelector('#stats-profit-hint').hidden, true);
   assert.equal(document.querySelector('#stats-points-body').children.length, 0);
   assert.equal(document.querySelector('#stats-top-dishes').children.length, 0);
-  assert.match(document.querySelector('#stats-loading').textContent, /Loading statistics/);
+  assert.match(document.querySelector('#stats-loading').textContent, /Загружаем статистику/);
   pending.resolve(response(200, fixture({ totalRevenue: '25.00' })));
   await tick();
   assert.match(document.querySelector('#stats-total-revenue').textContent, /25,00/);
@@ -217,7 +217,7 @@ test('retryable stats errors keep authentication, destroy chart, and retry inlin
   await tick();
   assert.equal(document.querySelector('#admin-view').hidden, false);
   assert.equal(charts[0].destroyed, true);
-  assert.match(document.querySelector('#stats-error').textContent, /Unable to load statistics/i);
+  assert.match(document.querySelector('#stats-error').textContent, /Не удалось загрузить статистику/i);
   assert.equal(document.querySelector('#stats-chart').hidden, true);
   document.querySelector('#stats-retry').click();
   await tick();
@@ -270,8 +270,8 @@ test('missing profit and Chart.js retain useful hint and accessible table fallba
   assert.equal(document.querySelector('#stats-profit-card').hidden, true);
   assert.equal(document.querySelector('#stats-profit-hint').hidden, false);
   assert.equal(document.querySelector('#stats-profit-hint a').getAttribute('href'), '/admin/menu');
-  assert.match(document.querySelector('#stats-empty').textContent, /No statistics/i);
-  assert.match(document.querySelector('#stats-chart-message').textContent, /Chart unavailable/i);
+  assert.match(document.querySelector('#stats-empty').textContent, /статистики нет/i);
+  assert.match(document.querySelector('#stats-chart-message').textContent, /График недоступен/i);
 });
 
 test('null total profit omits the Chart.js profit dataset entirely', async () => {
@@ -279,7 +279,7 @@ test('null total profit omits the Chart.js profit dataset entirely', async () =>
     if (url === '/api/admin/session') return response(200);
     return response(200, fixture({ totalProfit: null }));
   });
-  assert.deepEqual(Array.from(charts[0].config.data.datasets, ({ label }) => label), ['Revenue']);
+  assert.deepEqual(Array.from(charts[0].config.data.datasets, ({ label }) => label), ['Выручка']);
 });
 
 test('Chart.js rendering failures preserve KPI and accessible table fallback', async () => {
@@ -289,7 +289,7 @@ test('Chart.js rendering failures preserve KPI and accessible table fallback', a
   });
   assert.match(document.querySelector('#stats-total-revenue').textContent, /12[\s ]?500,50/);
   assert.match(document.querySelector('#stats-points-body').textContent, /2026-07-28/);
-  assert.match(document.querySelector('#stats-chart-message').textContent, /Chart unavailable/i);
+  assert.match(document.querySelector('#stats-chart-message').textContent, /График недоступен/i);
   assert.equal(document.querySelector('#stats-chart').hidden, true);
   assert.equal(document.querySelector('#stats-error-panel').hidden, true);
 });

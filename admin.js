@@ -47,7 +47,48 @@
     return { from: dateString(from), to: dateString(to) };
   }
 
-  if (typeof module !== 'undefined') module.exports = { normalizePhotoUrl, groupCatalog, routeForPath, statsPresetRange };
+  const API_ERRORS_RU = {
+    Unauthorized: 'Сессия истекла. Войдите снова.',
+    'Unable to sign in': 'Не удалось войти. Проверьте логин и пароль.',
+    'Method not allowed': 'Это действие недоступно.',
+    'Invalid category': 'Проверьте данные категории.',
+    'Category not found': 'Категория не найдена.',
+    'Category is in use': 'Категория используется и не может быть удалена.',
+    'Unable to create category': 'Не удалось создать категорию.',
+    'Unable to update category': 'Не удалось обновить категорию.',
+    'Unable to delete category': 'Не удалось удалить категорию.',
+    'Unable to load categories': 'Не удалось загрузить категории.',
+    'Invalid dish': 'Проверьте данные блюда.',
+    'Dish not found': 'Блюдо не найдено.',
+    'Unable to create dish': 'Не удалось создать блюдо.',
+    'Unable to update dish': 'Не удалось обновить блюдо.',
+    'Unable to delete dish': 'Не удалось удалить блюдо.',
+    'Unable to load dishes': 'Не удалось загрузить блюда.',
+    'Invalid table': 'Проверьте номер или название стола.',
+    'Table not found': 'Стол не найден.',
+    'Table number already exists': 'Стол с таким номером уже существует.',
+    'Table already exists': 'Такой стол уже существует.',
+    'Table has an open session': 'У стола есть активная сессия.',
+    'Table has session history and cannot be deleted': 'Стол с историей заказов удалить нельзя.',
+    'Unable to create table': 'Не удалось создать стол.',
+    'Unable to delete table': 'Не удалось удалить стол.',
+    'Unable to load tables': 'Не удалось загрузить столы.',
+    'Unable to generate QR code': 'Не удалось создать QR-код.',
+    'Invalid statistics range': 'Проверьте выбранный период.',
+    'Unable to load statistics': 'Не удалось загрузить статистику.',
+  };
+
+  function translateApiError(message) {
+    return API_ERRORS_RU[message] || 'Не удалось выполнить действие. Попробуйте ещё раз.';
+  }
+
+  if (typeof module !== 'undefined') module.exports = {
+    normalizePhotoUrl,
+    groupCatalog,
+    routeForPath,
+    statsPresetRange,
+    translateApiError,
+  };
   if (!root || !root.document) return;
 
   const doc = root.document;
@@ -84,7 +125,7 @@
     let body = null;
     try { body = await response.json(); } catch (_) {}
     if (!response.ok) {
-      const error = new Error(body && body.error ? body.error : 'Something went wrong');
+      const error = new Error(translateApiError(body && body.error));
       error.status = response.status;
       if (response.status === 401) {
         error.authHandled = true;
@@ -124,8 +165,9 @@
   const currentPage = () => routeForPath(root.location.pathname);
   const reportError = (error, inlineId) => {
     if (error.authHandled) return;
-    if (inlineId) showError(inlineId, error.message);
-    else showToast(error.message, true);
+    const message = error.status ? error.message : 'Не удалось выполнить действие. Попробуйте ещё раз.';
+    if (inlineId) showError(inlineId, message);
+    else showToast(message, true);
   };
   async function submitForm(form, errorId, work, isCurrent = () => true) {
     if (submittingForms.has(form)) return;
@@ -138,7 +180,7 @@
   }
 
   function setNavigation(page) {
-    const titles = { menu: 'Menu', tables: 'Tables', stats: 'Stats' };
+    const titles = { menu: 'Управление меню', tables: 'Столы и QR-коды', stats: 'Статистика' };
     $('page-title').textContent = titles[page];
     for (const link of doc.querySelectorAll('[data-route]')) {
       if (link.dataset.route === page) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
@@ -149,7 +191,7 @@
 
   async function loadMenu() {
     const request = ++menuRequest;
-    $('menu-content').replaceChildren(text('div', 'Loading your menu…', 'empty'));
+    $('menu-content').replaceChildren(text('div', 'Загружаем меню…', 'empty'));
     try {
       const [categories, dishes] = await Promise.all([api('/api/admin/categories'), api('/api/admin/dishes')]);
       if (request !== menuRequest || currentPage() !== 'menu' || authTransitioned) return;
@@ -158,7 +200,7 @@
       renderMenu();
     } catch (error) {
       if (request !== menuRequest || currentPage() !== 'menu' || authTransitioned) return;
-      reportError(error); $('menu-content').replaceChildren(text('div', 'Unable to load menu. Try again.', 'empty'));
+      reportError(error); $('menu-content').replaceChildren(text('div', 'Не удалось загрузить меню. Попробуйте ещё раз.', 'empty'));
     }
   }
 
@@ -166,12 +208,15 @@
     $('category-count').textContent = state.categories.length; $('dish-count').textContent = state.dishes.length;
     $('available-count').textContent = state.dishes.filter((dish) => dish.isAvailable).length;
     const target = $('menu-content'); clear(target);
-    if (!state.categories.length) { target.append(text('div', 'No categories yet. Add one to start building your menu.', 'empty')); return; }
+    if (!state.categories.length) { target.append(text('div', 'Категорий пока нет. Добавьте первую категорию.', 'empty')); return; }
     for (const group of groupCatalog(state.categories, state.dishes)) {
       const card = doc.createElement('article'); card.className = 'category-card';
-      const head = doc.createElement('div'); head.className = 'category-head'; head.append(text('h4', group.category.name), text('span', `${group.dishes.length} item${group.dishes.length === 1 ? '' : 's'}`, 'badge'));
-      head.append(button('Edit', '', () => editCategory(group.category)), button('Delete', 'danger', () => deleteCategory(group.category))); card.append(head);
-      if (!group.dishes.length) card.append(text('div', 'No dishes in this category yet.', 'empty'));
+      const count = group.dishes.length;
+      const ending = count % 10 === 1 && count % 100 !== 11 ? 'блюдо'
+        : (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'блюда' : 'блюд');
+      const head = doc.createElement('div'); head.className = 'category-head'; head.append(text('h4', group.category.name), text('span', `${count} ${ending}`, 'badge'));
+      head.append(button('Изменить', '', () => editCategory(group.category)), button('Удалить', 'danger', () => deleteCategory(group.category))); card.append(head);
+      if (!group.dishes.length) card.append(text('div', 'В этой категории пока нет блюд.', 'empty'));
       for (const dish of group.dishes) card.append(dishRow(dish));
       target.append(card);
     }
@@ -181,21 +226,21 @@
     const row = doc.createElement('div'); row.className = 'dish-row';
     if (normalizePhotoUrl(dish.photoUrl)) { const image = doc.createElement('img'); image.className = 'dish-photo'; image.src = normalizePhotoUrl(dish.photoUrl); image.alt = ''; image.addEventListener('error', () => { image.replaceWith(text('span', '◌', 'photo-placeholder')); }); row.append(image); }
     else row.append(text('span', '◌', 'photo-placeholder'));
-    const info = doc.createElement('div'); info.className = 'dish-info'; info.append(text('strong', dish.name), text('span', dish.description || 'No description')); row.append(info);
+    const info = doc.createElement('div'); info.className = 'dish-info'; info.append(text('strong', dish.name), text('span', dish.description || 'Описание не указано')); row.append(info);
     row.append(text('span', money(dish.price), 'money'));
-    const availability = doc.createElement('label'); availability.className = 'switch-row'; const input = doc.createElement('input'); input.type = 'checkbox'; input.checked = Boolean(dish.isAvailable); input.setAttribute('aria-label', `Make ${dish.name} ${input.checked ? 'unavailable' : 'available'}`); const slider = text('span', '', 'switch'); input.addEventListener('change', () => toggleAvailability(dish, input)); availability.append(input, slider, text('span', input.checked ? 'Live' : 'Hidden', 'badge')); row.append(availability);
-    const actions = doc.createElement('div'); actions.className = 'row-actions'; actions.append(button('Edit', '', () => editDish(dish)), button('Delete', 'danger', () => deleteDish(dish))); row.append(actions); return row;
+    const availability = doc.createElement('label'); availability.className = 'switch-row'; const input = doc.createElement('input'); input.type = 'checkbox'; input.checked = Boolean(dish.isAvailable); input.setAttribute('aria-label', `${input.checked ? 'Скрыть' : 'Показать'} блюдо «${dish.name}»`); const slider = text('span', '', 'switch'); input.addEventListener('change', () => toggleAvailability(dish, input)); availability.append(input, slider, text('span', input.checked ? 'Доступно' : 'Скрыто', 'badge')); row.append(availability);
+    const actions = doc.createElement('div'); actions.className = 'row-actions'; actions.append(button('Изменить', '', () => editDish(dish)), button('Удалить', 'danger', () => deleteDish(dish))); row.append(actions); return row;
   }
 
   async function toggleAvailability(dish, input) {
     const mutation = startMutation('dish', dish.id);
-    const previous = dish.isAvailable; const next = input.checked; input.disabled = true; input.parentElement.lastElementChild.textContent = 'Saving…'; dish.isAvailable = next;
-    try { const result = await api(`/api/admin/dishes/${encodeURIComponent(dish.id)}`, { method: 'PATCH', body: JSON.stringify({ is_available: next }) }); menuRequest += 1; if (!isLatestMutation('dish', dish.id, mutation)) return; const current = updateById(state.dishes, dish.id, result.dish || { isAvailable: next }); renderMenu(); showToast(next ? `${current ? current.name : dish.name} is now live.` : `${current ? current.name : dish.name} is hidden.`); }
+    const previous = dish.isAvailable; const next = input.checked; input.disabled = true; input.parentElement.lastElementChild.textContent = 'Сохраняем…'; dish.isAvailable = next;
+    try { const result = await api(`/api/admin/dishes/${encodeURIComponent(dish.id)}`, { method: 'PATCH', body: JSON.stringify({ is_available: next }) }); menuRequest += 1; if (!isLatestMutation('dish', dish.id, mutation)) return; const current = updateById(state.dishes, dish.id, result.dish || { isAvailable: next }); renderMenu(); showToast(next ? `Блюдо «${current ? current.name : dish.name}» доступно.` : `Блюдо «${current ? current.name : dish.name}» скрыто.`); }
     catch (error) { if (!isLatestMutation('dish', dish.id, mutation)) return; const current = state.dishes.find((item) => item.id === dish.id); if (current) current.isAvailable = previous; renderMenu(); reportError(error); }
   }
 
-  function editCategory(category) { state.editingCategory = category; showError('category-form-error', ''); $('category-name').value = category.name; $('category-sort-order').value = category.sortOrder; $('dialog-title').textContent = 'Edit category'; openDialog($('category-form'), 'dialog-title'); }
-  function newCategory() { state.editingCategory = null; $('category-form').reset(); showError('category-form-error', ''); $('category-sort-order').value = 0; $('dialog-title').textContent = 'New category'; openDialog($('category-form'), 'dialog-title'); }
+  function editCategory(category) { state.editingCategory = category; showError('category-form-error', ''); $('category-name').value = category.name; $('category-sort-order').value = category.sortOrder; $('dialog-title').textContent = 'Изменить категорию'; openDialog($('category-form'), 'dialog-title'); }
+  function newCategory() { state.editingCategory = null; $('category-form').reset(); showError('category-form-error', ''); $('category-sort-order').value = 0; $('dialog-title').textContent = 'Новая категория'; openDialog($('category-form'), 'dialog-title'); }
   async function saveCategory(event) {
     event.preventDefault();
     const form = $('category-form');
@@ -213,19 +258,19 @@
         ? updateById(state.categories, editingCategory.id, result.category)
         : upsertById('category', state.categories, result.category);
       if (revision === dialogRevision) closeDialog();
-      renderMenu(); if (editingCategory || saved) showToast('Category saved.');
+      renderMenu(); if (editingCategory || saved) showToast('Категория сохранена.');
     }, () => revision === dialogRevision && (!editingCategory || isLatestMutation('category', editingCategory.id, mutation)));
   }
   function fillCategories() { const select = $('dish-category'); clear(select); for (const category of state.categories) select.append(new Option(category.name, category.id)); }
-  function editDish(dish) { state.editingDish = dish; showError('dish-form-error', ''); fillCategories(); $('dish-name').value = dish.name; $('dish-description').value = dish.description || ''; $('dish-price').value = dish.price; $('dish-cost-price').value = dish.costPrice == null ? '' : dish.costPrice; $('dish-photo-url').value = dish.photoUrl || ''; $('dish-category').value = dish.categoryId; $('dish-sort-order').value = dish.sortOrder; $('dish-available').checked = dish.isAvailable; $('dish-dialog-title').textContent = 'Edit dish'; updatePhotoPreview(); openDialog($('dish-form'), 'dish-dialog-title'); }
-  function newDish() { state.editingDish = null; $('dish-form').reset(); showError('dish-form-error', ''); fillCategories(); $('dish-dialog-title').textContent = 'New dish'; $('photo-preview').hidden = true; openDialog($('dish-form'), 'dish-dialog-title'); }
+  function editDish(dish) { state.editingDish = dish; showError('dish-form-error', ''); fillCategories(); $('dish-name').value = dish.name; $('dish-description').value = dish.description || ''; $('dish-price').value = dish.price; $('dish-cost-price').value = dish.costPrice == null ? '' : dish.costPrice; $('dish-photo-url').value = dish.photoUrl || ''; $('dish-category').value = dish.categoryId; $('dish-sort-order').value = dish.sortOrder; $('dish-available').checked = dish.isAvailable; $('dish-dialog-title').textContent = 'Изменить блюдо'; updatePhotoPreview(); openDialog($('dish-form'), 'dish-dialog-title'); }
+  function newDish() { state.editingDish = null; $('dish-form').reset(); showError('dish-form-error', ''); fillCategories(); $('dish-dialog-title').textContent = 'Новое блюдо'; $('photo-preview').hidden = true; openDialog($('dish-form'), 'dish-dialog-title'); }
   async function saveDish(event) {
     event.preventDefault();
     const form = $('dish-form');
     if (submittingForms.has(form)) return;
     showError('dish-form-error', '');
     const photo = normalizePhotoUrl($('dish-photo-url').value);
-    if ($('dish-photo-url').value.trim() && !photo) { showError('dish-form-error', 'Use an http(s) or root-relative photo URL.'); return; }
+    if ($('dish-photo-url').value.trim() && !photo) { showError('dish-form-error', 'Укажите ссылку http(s) или путь, начинающийся с /.'); return; }
     const editingDish = state.editingDish;
     const revision = dialogRevision;
     const mutation = editingDish ? startMutation('dish', editingDish.id) : null;
@@ -238,26 +283,26 @@
         ? updateById(state.dishes, editingDish.id, result.dish)
         : upsertById('dish', state.dishes, result.dish);
       if (revision === dialogRevision) closeDialog();
-      renderMenu(); if (editingDish || saved) showToast('Dish saved.');
+      renderMenu(); if (editingDish || saved) showToast('Блюдо сохранено.');
     }, () => revision === dialogRevision && (!editingDish || isLatestMutation('dish', editingDish.id, mutation)));
   }
-  async function deleteCategory(category) { if (!root.confirm(`Delete “${category.name}”? Categories with dishes cannot be deleted.`)) return; const mutation = startMutation('category', category.id); try { await api(`/api/admin/categories/${category.id}`, { method: 'DELETE' }); confirmedDeletion.category.set(category.id, mutation); menuRequest += 1; state.categories = state.categories.filter((item) => item.id !== category.id); renderMenu(); showToast('Category deleted.'); } catch (error) { if (isLatestMutation('category', category.id, mutation)) reportError(error); } }
-  async function deleteDish(dish) { if (!root.confirm(`Delete “${dish.name}”? This cannot be undone.`)) return; const mutation = startMutation('dish', dish.id); try { await api(`/api/admin/dishes/${dish.id}`, { method: 'DELETE' }); confirmedDeletion.dish.set(dish.id, mutation); menuRequest += 1; state.dishes = state.dishes.filter((item) => item.id !== dish.id); renderMenu(); showToast('Dish deleted.'); } catch (error) { if (isLatestMutation('dish', dish.id, mutation)) reportError(error); } }
+  async function deleteCategory(category) { if (!root.confirm(`Удалить категорию «${category.name}»? Категорию с блюдами удалить нельзя.`)) return; const mutation = startMutation('category', category.id); try { await api(`/api/admin/categories/${category.id}`, { method: 'DELETE' }); confirmedDeletion.category.set(category.id, mutation); menuRequest += 1; state.categories = state.categories.filter((item) => item.id !== category.id); renderMenu(); showToast('Категория удалена.'); } catch (error) { if (isLatestMutation('category', category.id, mutation)) reportError(error); } }
+  async function deleteDish(dish) { if (!root.confirm(`Удалить блюдо «${dish.name}»? Это действие нельзя отменить.`)) return; const mutation = startMutation('dish', dish.id); try { await api(`/api/admin/dishes/${dish.id}`, { method: 'DELETE' }); confirmedDeletion.dish.set(dish.id, mutation); menuRequest += 1; state.dishes = state.dishes.filter((item) => item.id !== dish.id); renderMenu(); showToast('Блюдо удалено.'); } catch (error) { if (isLatestMutation('dish', dish.id, mutation)) reportError(error); } }
 
   async function loadTables() {
     const request = ++tablesRequest;
-    $('tables-content').replaceChildren(text('div', 'Loading your tables…', 'empty'));
+    $('tables-content').replaceChildren(text('div', 'Загружаем столы…', 'empty'));
     try {
       const result = await api('/api/admin/tables');
       if (request !== tablesRequest || currentPage() !== 'tables' || authTransitioned) return;
       state.tables = withoutConfirmedDeletions('table', result.tables || []); renderTables();
     } catch (error) {
       if (request !== tablesRequest || currentPage() !== 'tables' || authTransitioned) return;
-      reportError(error); $('tables-content').replaceChildren(text('div', 'Unable to load tables. Try again.', 'empty'));
+      reportError(error); $('tables-content').replaceChildren(text('div', 'Не удалось загрузить столы. Попробуйте ещё раз.', 'empty'));
     }
   }
-  function renderTables() { $('table-count').textContent = `${state.tables.length} table${state.tables.length === 1 ? '' : 's'}`; const target = $('tables-content'); clear(target); if (!state.tables.length) { target.append(text('div', 'No tables yet. Add your first table to create a QR code.', 'empty')); return; } const table = doc.createElement('table'); const head = doc.createElement('thead'); const tr = doc.createElement('tr'); for (const label of ['Table', 'Created', 'Actions']) tr.append(text('th', label)); head.append(tr); table.append(head); const body = doc.createElement('tbody'); for (const item of state.tables) { const row = doc.createElement('tr'); row.append(text('td', item.number)); row.append(text('td', item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—')); const actions = doc.createElement('td'); actions.className = 'row-actions'; actions.append(button('Download QR', '', () => downloadQr(item)), button('Delete', 'danger', () => deleteTable(item))); row.append(actions); body.append(row); } table.append(body); target.append(table); }
-  function newTable() { $('table-form').reset(); showError('table-form-error', ''); $('table-dialog-title').textContent = 'Add table'; openDialog($('table-form'), 'table-dialog-title'); }
+  function renderTables() { const count = state.tables.length; const ending = count % 10 === 1 && count % 100 !== 11 ? 'стол' : (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'стола' : 'столов'); $('table-count').textContent = `${count} ${ending}`; const target = $('tables-content'); clear(target); if (!state.tables.length) { target.append(text('div', 'Столов пока нет. Добавьте первый стол, чтобы создать QR-код.', 'empty')); return; } const table = doc.createElement('table'); const head = doc.createElement('thead'); const tr = doc.createElement('tr'); for (const label of ['Стол', 'Создан', 'Действия']) tr.append(text('th', label)); head.append(tr); table.append(head); const body = doc.createElement('tbody'); for (const item of state.tables) { const row = doc.createElement('tr'); row.append(text('td', item.number)); row.append(text('td', item.createdAt ? new Date(item.createdAt).toLocaleDateString('ru-RU') : '—')); const actions = doc.createElement('td'); actions.className = 'row-actions'; actions.append(button('Скачать QR-код', '', () => downloadQr(item)), button('Удалить', 'danger', () => deleteTable(item))); row.append(actions); body.append(row); } table.append(body); target.append(table); }
+  function newTable() { $('table-form').reset(); showError('table-form-error', ''); $('table-dialog-title').textContent = 'Добавить стол'; openDialog($('table-form'), 'table-dialog-title'); }
   async function saveTable(event) {
     event.preventDefault();
     const form = $('table-form');
@@ -269,17 +314,18 @@
       tablesRequest += 1;
       const saved = upsertById('table', state.tables, result.table);
       if (revision === dialogRevision) closeDialog();
-      renderTables(); if (saved) showToast('Table created.');
+      renderTables(); if (saved) showToast('Стол создан.');
     }, () => revision === dialogRevision);
   }
-  async function deleteTable(item) { if (!root.confirm(`Delete table ${item.number}? Tables with session history cannot be deleted.`)) return; const mutation = startMutation('table', item.id); try { await api(`/api/admin/tables/${item.id}`, { method: 'DELETE' }); confirmedDeletion.table.set(item.id, mutation); tablesRequest += 1; state.tables = state.tables.filter((table) => table.id !== item.id); renderTables(); showToast('Table deleted.'); } catch (error) { if (isLatestMutation('table', item.id, mutation)) reportError(error); } }
+  async function deleteTable(item) { if (!root.confirm(`Удалить стол ${item.number}? Стол с историей заказов удалить нельзя.`)) return; const mutation = startMutation('table', item.id); try { await api(`/api/admin/tables/${item.id}`, { method: 'DELETE' }); confirmedDeletion.table.set(item.id, mutation); tablesRequest += 1; state.tables = state.tables.filter((table) => table.id !== item.id); renderTables(); showToast('Стол удалён.'); } catch (error) { if (isLatestMutation('table', item.id, mutation)) reportError(error); } }
   async function downloadQr(item) {
     try {
       const response = await root.fetch(`/api/admin/tables/${encodeURIComponent(item.id)}/qr`, { credentials: 'same-origin' });
       if (!response.ok) {
         let body = {};
         try { body = await response.json(); } catch (_) {}
-        const error = new Error(body.error || 'Unable to download QR code');
+        const error = new Error(body.error ? translateApiError(body.error) : 'Не удалось скачать QR-код.');
+        error.status = response.status;
         if (response.status === 401) { error.authHandled = true; showLogin(); }
         throw error;
       }
@@ -291,7 +337,7 @@
       const objectUrl = root.URL.createObjectURL(blob);
       link.href = objectUrl; link.download = filename;
       try { link.click(); } finally { root.setTimeout(() => root.URL.revokeObjectURL(objectUrl), 1000); }
-      showToast('QR code downloaded.');
+      showToast('QR-код скачан.');
     } catch (error) { reportError(error); }
   }
 
@@ -304,7 +350,7 @@
 
   function setStatsLoading(loading) {
     for (const control of doc.querySelectorAll('.stats-control')) control.disabled = loading;
-    $('stats-loading').textContent = loading ? 'Loading statistics…' : '';
+    $('stats-loading').textContent = loading ? 'Загружаем статистику…' : '';
   }
 
   function clearStatsResults() {
@@ -341,7 +387,7 @@
     const canvas = $('stats-chart');
     if (typeof root.Chart !== 'function') {
       canvas.hidden = true;
-      $('stats-chart-message').textContent = 'Chart unavailable. The data table remains available.';
+      $('stats-chart-message').textContent = 'График недоступен. Данные можно посмотреть в таблице.';
       return;
     }
     if (!points.length) {
@@ -352,10 +398,10 @@
     canvas.hidden = false;
     $('stats-chart-message').textContent = '';
     const datasets = [
-      { label: 'Revenue', data: points.map((point) => Number(point.revenue)), borderColor: '#256b4b', backgroundColor: 'rgba(37,107,75,.12)', tension: 0.2 },
+      { label: 'Выручка', data: points.map((point) => Number(point.revenue)), borderColor: '#256b4b', backgroundColor: 'rgba(37,107,75,.12)', tension: 0.2 },
     ];
     if (hasProfit) {
-      datasets.push({ label: 'Profit', data: points.map((point) => point.profit == null ? null : Number(point.profit)), borderColor: '#b07b26', backgroundColor: 'rgba(176,123,38,.12)', tension: 0.2, spanGaps: false });
+      datasets.push({ label: 'Прибыль', data: points.map((point) => point.profit == null ? null : Number(point.profit)), borderColor: '#b07b26', backgroundColor: 'rgba(176,123,38,.12)', tension: 0.2, spanGaps: false });
     }
     try {
       statsChart = new root.Chart(canvas, {
@@ -374,7 +420,7 @@
     } catch (_) {
       statsChart = null;
       canvas.hidden = true;
-      $('stats-chart-message').textContent = 'Chart unavailable. The data table remains available.';
+      $('stats-chart-message').textContent = 'График недоступен. Данные можно посмотреть в таблице.';
     }
   }
 
@@ -394,7 +440,7 @@
       item.append(text('span', dish.dish_name), text('strong', String(dish.quantity)));
       list.append(item);
     }
-    if (!topDishes.length) list.append(text('li', 'No top dishes for this range.', 'muted'));
+    if (!topDishes.length) list.append(text('li', 'За выбранный период популярных блюд нет.', 'muted'));
     $('stats-empty').hidden = points.length !== 0;
     renderStatsChart(points, hasProfit);
   }
@@ -416,7 +462,7 @@
       renderStats(result);
     } catch (error) {
       if (request !== statsRequest || currentPage() !== 'stats' || authTransitioned) return;
-      if (!error.authHandled) setStatsError(error.status ? error.message : 'Unable to load statistics. Try again.');
+      if (!error.authHandled) setStatsError(error.status ? error.message : 'Не удалось загрузить статистику. Попробуйте ещё раз.');
     } finally {
       if (request === statsRequest && currentPage() === 'stats' && !authTransitioned) setStatsLoading(false);
     }
@@ -438,7 +484,7 @@
     return loadStats();
   }
 
-  function updatePhotoPreview() { const target = $('photo-preview'); clear(target); const photo = normalizePhotoUrl($('dish-photo-url').value); if (!photo) { target.hidden = true; return; } const image = doc.createElement('img'); image.alt = 'Dish photo preview'; image.src = photo; image.addEventListener('error', () => { target.hidden = true; }); target.append(image); target.hidden = false; }
+  function updatePhotoPreview() { const target = $('photo-preview'); clear(target); const photo = normalizePhotoUrl($('dish-photo-url').value); if (!photo) { target.hidden = true; return; } const image = doc.createElement('img'); image.alt = 'Предпросмотр фотографии блюда'; image.src = photo; image.addEventListener('error', () => { target.hidden = true; }); target.append(image); target.hidden = false; }
 
   async function init() {
     try {
@@ -457,22 +503,32 @@
     submit.disabled = true;
     try {
       const response = await root.fetch('/api/admin/login', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login: $('login').value, password: $('password').value }) });
-      if (!response.ok) { if (response.status === 429) throw new Error('Too many attempts. Please try again later.'); throw new Error('Unable to sign in. Check your credentials.'); }
+      if (!response.ok) {
+        const error = new Error(response.status === 429
+          ? 'Слишком много попыток. Попробуйте позже.'
+          : response.status === 401
+            ? 'Не удалось войти. Проверьте логин и пароль.'
+            : 'Не удалось выполнить вход. Попробуйте позже.');
+        error.status = response.status;
+        throw error;
+      }
       authTransitioned = false; $('login-view').hidden = true; $('admin-view').hidden = false;
       const page = currentPage(); setNavigation(page);
       if (page === 'tables') await loadTables(); else if (page === 'stats') await prepareStats(); else await loadMenu();
-    } catch (error) { showError('login-error', error.message); }
+    } catch (error) {
+      showError('login-error', error.status ? error.message : 'Не удалось выполнить вход. Проверьте подключение к интернету.');
+    }
     finally { submit.disabled = false; }
   });
   $('logout-button').addEventListener('click', async () => {
     const control = $('logout-button');
     if (control.disabled) return;
     const label = control.textContent;
-    control.disabled = true; control.textContent = 'Logging out…';
+    control.disabled = true; control.textContent = 'Выходим…';
     try {
       const response = await root.fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' });
       if (!response.ok) {
-        const error = new Error('Unable to log out. Please try again.');
+        const error = new Error('Не удалось выйти. Попробуйте ещё раз.');
         if (response.status === 401) { error.authHandled = true; showLogin(); }
         throw error;
       }
@@ -492,7 +548,7 @@
     const wasOpen = $('sidebar').classList.contains('open');
     $('sidebar').classList.toggle('open', open);
     $('mobile-nav').setAttribute('aria-expanded', String(open));
-    $('mobile-nav').setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    $('mobile-nav').setAttribute('aria-label', open ? 'Закрыть навигацию' : 'Открыть навигацию');
     const content = doc.querySelector('.content');
     if (open) {
       content.setAttribute('aria-hidden', 'true');

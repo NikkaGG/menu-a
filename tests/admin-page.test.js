@@ -66,9 +66,70 @@ test('admin source contains safe auth gate and all requested form fields', () =>
   for (const field of ['login', 'password', 'category-name', 'dish-name', 'dish-description',
     'dish-price', 'dish-cost-price', 'dish-photo-url', 'dish-category', 'dish-sort-order',
     'table-number']) assert.match(html(), new RegExp(`id="${field}"`));
-  assert.match(html(), /profit analytics/i);
-  assert.match(html(), /session/i);
+  assert.match(html(), /выручка и прибыль/i);
+  assert.match(html(), /сесси/i);
   assert.match(html(), /id="dish-photo-url" type="text"/);
+});
+
+test('admin interface and API errors are localized in Russian', () => {
+  const source = html();
+  assert.match(source, /<html lang="ru">/);
+  for (const phrase of [
+    'Панель ресторана',
+    'Управление меню',
+    'Столы и QR-коды',
+    'Статистика',
+    'Добавить блюдо',
+    'Добавить стол',
+    'Войти',
+  ]) {
+    assert.match(source, new RegExp(phrase));
+  }
+  for (const phrase of [
+    'Welcome back',
+    'Add dish',
+    'Add table',
+    'Total revenue',
+    'Save dish',
+  ]) {
+    assert.doesNotMatch(source, new RegExp(phrase));
+  }
+
+  const admin = require('../admin.js');
+  assert.equal(
+    admin.translateApiError('Category is in use'),
+    'Категория используется и не может быть удалена.',
+  );
+  assert.equal(
+    admin.translateApiError('Unexpected server response'),
+    'Не удалось выполнить действие. Попробуйте ещё раз.',
+  );
+});
+
+test('login network failures remain localized in Russian', async () => {
+  const { document } = await harness((url) => {
+    if (url === '/api/admin/session') return Promise.resolve(response(401, {}));
+    if (url === '/api/admin/login') return Promise.reject(new Error('Failed to fetch'));
+    throw new Error(`Unexpected fetch ${url}`);
+  });
+  document.querySelector('#login').value = 'admin';
+  document.querySelector('#password').value = 'secret';
+  document.querySelector('#login-form').requestSubmit();
+  await tick();
+  assert.match(document.querySelector('#login-error').textContent, /Не удалось выполнить вход/);
+});
+
+test('login service failures are not presented as invalid credentials', async () => {
+  const { document } = await harness((url) => {
+    if (url === '/api/admin/session') return Promise.resolve(response(401, {}));
+    if (url === '/api/admin/login') return Promise.resolve(response(503, { error: 'Unable to sign in' }));
+    throw new Error(`Unexpected fetch ${url}`);
+  });
+  document.querySelector('#login').value = 'admin';
+  document.querySelector('#password').value = 'secret';
+  document.querySelector('#login-form').requestSubmit();
+  await tick();
+  assert.equal(document.querySelector('#login-error').textContent, 'Не удалось выполнить вход. Попробуйте позже.');
 });
 
 test('admin UI uses DOM APIs rather than unsafe HTML sinks and supports accessible responsive states', () => {
@@ -120,7 +181,7 @@ test('category save ignores double submit and preserves its dialog with an inlin
   save.resolve(response(500, { error: 'Save failed' }));
   await tick();
   assert.equal(document.querySelector('#editor-dialog').open, true);
-  assert.equal(document.querySelector('#category-form-error').textContent, 'Save failed');
+  assert.equal(document.querySelector('#category-form-error').textContent, 'Не удалось выполнить действие. Попробуйте ещё раз.');
   assert.equal(submit.disabled, false);
 });
 
@@ -250,7 +311,7 @@ test('availability toggle rolls back its rendered state when the request fails',
   patch.resolve(response(500, { error: 'No save' }));
   await tick();
   assert.equal(document.querySelector('.switch-row input').checked, true);
-  assert.match(document.querySelector('.switch-row').textContent, /Live/);
+  assert.match(document.querySelector('.switch-row').textContent, /Доступно/);
 });
 
 test('older availability success cannot overwrite a newer same-dish success', async () => {
@@ -278,7 +339,7 @@ test('older availability success cannot overwrite a newer same-dish success', as
   firstPatch.resolve(response(200, { dish: { ...dish, isAvailable: false } }));
   await tick();
   assert.equal(document.querySelector('.switch-row input').checked, true);
-  assert.match(document.querySelector('.switch-row').textContent, /Live/);
+  assert.match(document.querySelector('.switch-row').textContent, /Доступно/);
 });
 
 test('older availability failure cannot roll back a newer same-dish success', async () => {
@@ -306,7 +367,7 @@ test('older availability failure cannot roll back a newer same-dish success', as
   firstPatch.resolve(response(500, { error: 'Older failure' }));
   await tick();
   assert.equal(document.querySelector('.switch-row input').checked, false);
-  assert.match(document.querySelector('.switch-row').textContent, /Hidden/);
+  assert.match(document.querySelector('.switch-row').textContent, /Скрыто/);
   assert.doesNotMatch(document.querySelector('#toast-region').textContent, /Older failure/);
 });
 
@@ -347,7 +408,7 @@ test('availability success is not overwritten by an older pending menu reload', 
   reloadedDishes.resolve(response(200, { dishes: [{ ...dish }] }));
   await tick();
   assert.equal(document.querySelector('.switch-row input').checked, false);
-  assert.match(document.querySelector('.switch-row').textContent, /Hidden/);
+  assert.match(document.querySelector('.switch-row').textContent, /Скрыто/);
 });
 
 test('category edit success is not overwritten by an older pending menu reload', async () => {
@@ -735,7 +796,7 @@ test('a delayed availability completion updates the reloaded dish instance with 
   patch.resolve(response(200, { dish: { ...dish, isAvailable: false } }));
   await tick();
   assert.equal(document.querySelector('.switch-row input').checked, false);
-  assert.match(document.querySelector('.switch-row').textContent, /Hidden/);
+  assert.match(document.querySelector('.switch-row').textContent, /Скрыто/);
 });
 
 test('a delayed dish edit updates the reloaded instance with the same ID', async () => {
@@ -853,7 +914,7 @@ test('an older table delete success removes the table despite a newer same-table
   firstDelete.resolve(response(200, { deleted: true }));
   await tick();
   assert.doesNotMatch(document.querySelector('#tables-content').textContent, /7/);
-  assert.equal(document.querySelector('#table-count').textContent, '0 tables');
+  assert.equal(document.querySelector('#table-count').textContent, '0 столов');
 });
 
 test('a table deleted before a pending table reload resolves is not restored', async () => {
@@ -884,10 +945,10 @@ test('a table deleted before a pending table reload resolves is not restored', a
   assert.equal(tableLoads, 2);
   deletion.resolve(response(200, { deleted: true }));
   await tick();
-  assert.equal(document.querySelector('#table-count').textContent, '0 tables');
+  assert.equal(document.querySelector('#table-count').textContent, '0 столов');
   reloadedTables.resolve(response(200, { tables: [{ ...table }] }));
   await tick();
-  assert.equal(document.querySelector('#table-count').textContent, '0 tables');
+  assert.equal(document.querySelector('#table-count').textContent, '0 столов');
   assert.doesNotMatch(document.querySelector('#tables-content').textContent, /7/);
 });
 
@@ -923,7 +984,7 @@ test('table creation is not overwritten by an older pending table reload', async
   reloadedTables.resolve(response(200, { tables: [] }));
   await tick();
   assert.match(document.querySelector('#tables-content').textContent, /7/);
-  assert.equal(document.querySelector('#table-count').textContent, '1 table');
+  assert.equal(document.querySelector('#table-count').textContent, '1 стол');
 });
 
 test('a delayed table creation does not resurrect the table after a reloaded instance is deleted', async () => {
@@ -955,10 +1016,10 @@ test('a delayed table creation does not resurrect the table after a reloaded ins
   await tick();
   document.querySelector('#tables-content .row-actions button:last-child').click();
   await tick();
-  assert.equal(document.querySelector('#table-count').textContent, '0 tables');
+  assert.equal(document.querySelector('#table-count').textContent, '0 столов');
   save.resolve(response(201, { table }));
   await tick();
-  assert.equal(document.querySelector('#table-count').textContent, '0 tables');
+  assert.equal(document.querySelector('#table-count').textContent, '0 столов');
   assert.doesNotMatch(document.querySelector('#tables-content').textContent, /7/);
 });
 
@@ -1046,13 +1107,13 @@ test('logout rejects safely, prevents duplicates, and restores its control', asy
   button.click();
   assert.equal(calls, 1);
   assert.equal(button.disabled, true);
-  assert.equal(button.textContent, 'Logging out…');
+  assert.equal(button.textContent, 'Выходим…');
   logout.reject(new Error('Offline'));
   await tick();
   assert.equal(document.querySelector('#admin-view').hidden, false);
   assert.equal(button.disabled, false);
-  assert.equal(button.textContent, 'Log out');
-  assert.match(document.querySelector('#toast-region').textContent, /Offline/);
+  assert.equal(button.textContent, 'Выйти');
+  assert.match(document.querySelector('#toast-region').textContent, /Не удалось выполнить действие/);
 });
 
 test('logout 401 returns to login without duplicate error noise', async () => {

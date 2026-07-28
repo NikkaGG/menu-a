@@ -1,88 +1,88 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menu Atelier · Admin</title>
+  <title>Панель ресторана · Администратор</title>
   <link rel="stylesheet" href="/admin.css">
 </head>
 <body>
   <main id="app" class="app-shell">
     <section id="loading-state" class="center-state" aria-live="polite">
-      <span class="loader" aria-hidden="true"></span><p>Checking your session…</p>
+      <span class="loader" aria-hidden="true"></span><p>Проверяем сессию…</p>
     </section>
     <section id="login-view" class="login-view" hidden>
       <div class="login-card">
-        <div class="brand-mark">MA</div>
-        <p class="eyebrow">Menu Atelier</p><h1>Welcome back</h1>
-        <p class="muted">Sign in to manage your restaurant menu and tables.</p>
+        <div class="brand-mark">ПР</div>
+        <p class="eyebrow">Панель ресторана</p><h1>Добро пожаловать</h1>
+        <p class="muted">Войдите, чтобы управлять меню, столами и статистикой ресторана.</p>
         <form id="login-form" novalidate>
-          <label for="login">Login</label><input id="login" name="login" autocomplete="username" required>
-          <label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+          <label for="login">Логин</label><input id="login" name="login" autocomplete="username" required>
+          <label for="password">Пароль</label><input id="password" name="password" type="password" autocomplete="current-password" required>
           <p id="login-error" class="form-error" role="alert"></p>
-          <button class="button button-primary button-wide" type="submit">Sign in</button>
+          <button class="button button-primary button-wide" type="submit">Войти</button>
         </form>
       </div>
     </section>
     <section id="admin-view" hidden>
       <aside id="sidebar" class="sidebar">
-        <div class="brand"><span class="brand-mark">MA</span><span>Menu Atelier</span></div>
-        <p class="sidebar-label">Workspace</p>
-        <nav aria-label="Admin navigation">
-          <a href="/admin/menu" data-route="menu">Menu <span>⌘</span></a>
-          <a href="/admin/tables" data-route="tables">Tables <span>⌘</span></a>
-          <a href="/stats" data-route="stats">Stats <span>⌘</span></a>
+        <div class="brand"><span class="brand-mark">ПР</span><span>Панель ресторана</span></div>
+        <p class="sidebar-label">Рабочая область</p>
+        <nav aria-label="Навигация администратора">
+          <a href="/admin/menu" data-route="menu">Управление меню <span>⌘</span></a>
+          <a href="/admin/tables" data-route="tables">Столы и QR-коды <span>⌘</span></a>
+          <a href="/stats" data-route="stats">Статистика <span>⌘</span></a>
         </nav>
-        <div class="sidebar-footer"><button id="logout-button" class="button button-ghost">Log out</button></div>
+        <div class="sidebar-footer"><button id="logout-button" class="button button-ghost">Выйти</button></div>
       </aside>
       <div class="content">
-      <header class="topbar"><button id="mobile-nav" class="icon-button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button><div><p class="eyebrow">Restaurant operations</p><h2 id="page-title">Menu</h2></div><div class="topbar-avatar" aria-hidden="true">A</div></header>
+      <header class="topbar"><button id="mobile-nav" class="icon-button" aria-label="Открыть навигацию" aria-controls="sidebar" aria-expanded="false">☰</button><div><p class="eyebrow">Управление рестораном</p><h2 id="page-title">Управление меню</h2></div><div class="topbar-avatar" aria-hidden="true">А</div></header>
         <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
         <section id="menu-page" data-page="menu" hidden>
-          <div class="page-intro"><div><p class="muted">Build a menu your guests remember.</p></div><button id="new-dish-button" class="button button-primary">＋ Add dish</button></div>
-          <div class="stats-row"><div class="stat-card"><span>Categories</span><strong id="category-count">—</strong></div><div class="stat-card"><span>Menu items</span><strong id="dish-count">—</strong></div><div class="stat-card"><span>Available now</span><strong id="available-count">—</strong></div></div>
-          <div class="toolbar"><h3>Categories &amp; dishes</h3><button id="new-category-button" class="button button-secondary">＋ Category</button></div>
+          <div class="page-intro"><div><p class="muted">Добавляйте категории и блюда, которые увидят ваши гости.</p></div><button id="new-dish-button" class="button button-primary">＋ Добавить блюдо</button></div>
+          <div class="stats-row"><div class="stat-card"><span>Категории</span><strong id="category-count">—</strong></div><div class="stat-card"><span>Всего блюд</span><strong id="dish-count">—</strong></div><div class="stat-card"><span>Доступно сейчас</span><strong id="available-count">—</strong></div></div>
+          <div class="toolbar"><h3>Категории и блюда</h3><button id="new-category-button" class="button button-secondary">＋ Добавить категорию</button></div>
           <div id="menu-content" class="category-list" aria-live="polite"></div>
         </section>
         <section id="tables-page" data-page="tables" hidden>
-          <div class="page-intro"><div><p class="muted">Create QR codes for every table in your space.</p></div><button id="new-table-button" class="button button-primary">＋ Add table</button></div>
-          <div class="notice"><strong>Before deleting a table</strong><span>Tables with an active session or session history cannot be deleted.</span></div>
-          <div class="toolbar"><h3>Tables</h3><span id="table-count" class="muted"></span></div>
+          <div class="page-intro"><div><p class="muted">Создавайте и скачивайте QR-коды для каждого стола.</p></div><button id="new-table-button" class="button button-primary">＋ Добавить стол</button></div>
+          <div class="notice"><strong>Перед удалением стола</strong><span>Стол с активной сессией или историей заказов удалить нельзя.</span></div>
+          <div class="toolbar"><h3>Столы</h3><span id="table-count" class="muted"></span></div>
           <div id="tables-content" class="table-wrap" aria-live="polite"></div>
         </section>
         <section id="stats-page" data-page="stats" hidden>
-          <div class="page-intro"><div><p class="muted">Revenue and profit from placed orders. Dates use Asia/Almaty.</p></div><button id="stats-reload" class="button button-secondary stats-control" type="button">Refresh</button></div>
-          <div class="stats-filters" aria-label="Statistics filters">
-            <div class="preset-group" aria-label="Date presets">
-              <button class="button button-secondary stats-control" type="button" data-stats-preset="7">Last 7 days</button>
-              <button class="button button-secondary stats-control" type="button" data-stats-preset="30">Last 30 days</button>
-              <button class="button button-secondary stats-control" type="button" data-stats-preset="month">This month</button>
+          <div class="page-intro"><div><p class="muted">Выручка и прибыль по оформленным заказам. Часовой пояс: Алматы.</p></div><button id="stats-reload" class="button button-secondary stats-control" type="button">Обновить</button></div>
+          <div class="stats-filters" aria-label="Фильтры статистики">
+            <div class="preset-group" aria-label="Готовые периоды">
+              <button class="button button-secondary stats-control" type="button" data-stats-preset="7">Последние 7 дней</button>
+              <button class="button button-secondary stats-control" type="button" data-stats-preset="30">Последние 30 дней</button>
+              <button class="button button-secondary stats-control" type="button" data-stats-preset="month">Этот месяц</button>
             </div>
             <form id="stats-filter-form">
-              <div><label for="stats-from">From</label><input id="stats-from" class="stats-control" type="date" required></div>
-              <div><label for="stats-to">To</label><input id="stats-to" class="stats-control" type="date" required></div>
-              <div><label for="stats-group-by">Group by</label><select id="stats-group-by" class="stats-control"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option></select></div>
-              <button class="button button-primary stats-control" type="submit">Apply</button>
+              <div><label for="stats-from">С</label><input id="stats-from" class="stats-control" type="date" required></div>
+              <div><label for="stats-to">По</label><input id="stats-to" class="stats-control" type="date" required></div>
+              <div><label for="stats-group-by">Группировка</label><select id="stats-group-by" class="stats-control"><option value="day">По дням</option><option value="week">По неделям</option><option value="month">По месяцам</option></select></div>
+              <button class="button button-primary stats-control" type="submit">Применить</button>
             </form>
           </div>
-          <div id="stats-error-panel" class="inline-error" role="alert" hidden><span id="stats-error"></span><button id="stats-retry" class="button button-secondary" type="button">Try again</button></div>
+          <div id="stats-error-panel" class="inline-error" role="alert" hidden><span id="stats-error"></span><button id="stats-retry" class="button button-secondary" type="button">Повторить</button></div>
           <p id="stats-loading" class="stats-status" role="status" aria-live="polite"></p>
           <div class="stats-row stats-kpis">
-            <div class="stat-card"><span>Total revenue</span><strong id="stats-total-revenue">—</strong></div>
-            <div id="stats-profit-card" class="stat-card"><span>Total profit</span><strong id="stats-total-profit">—</strong></div>
-            <div id="stats-profit-hint" class="stat-card stats-hint" hidden><span>Profit unavailable</span><p>Add cost prices to dishes to calculate profit.</p><a href="/admin/menu" data-route-link="menu">Update menu costs</a></div>
+            <div class="stat-card"><span>Общая выручка</span><strong id="stats-total-revenue">—</strong></div>
+            <div id="stats-profit-card" class="stat-card"><span>Общая прибыль</span><strong id="stats-total-profit">—</strong></div>
+            <div id="stats-profit-hint" class="stat-card stats-hint" hidden><span>Прибыль недоступна</span><p>Добавьте себестоимость блюд, чтобы рассчитывать прибыль.</p><a href="/admin/menu" data-route-link="menu">Указать себестоимость</a></div>
           </div>
-          <div id="stats-empty" class="empty" hidden>No statistics for this date range.</div>
+          <div id="stats-empty" class="empty" hidden>За выбранный период статистики нет.</div>
           <div class="stats-grid">
             <article class="stats-panel">
-              <div class="toolbar"><h3>Revenue and profit</h3><span id="stats-chart-message" class="muted" role="status"></span></div>
-              <div class="chart-wrap"><canvas id="stats-chart" role="img" aria-label="Revenue and profit over the selected period"></canvas></div>
+              <div class="toolbar"><h3>Выручка и прибыль</h3><span id="stats-chart-message" class="muted" role="status"></span></div>
+              <div class="chart-wrap"><canvas id="stats-chart" role="img" aria-label="Выручка и прибыль за выбранный период"></canvas></div>
               <div class="table-wrap stats-table">
-                <table><caption class="sr-only">Revenue and profit data table</caption><thead><tr><th>Date</th><th>Revenue</th><th>Profit</th></tr></thead><tbody id="stats-points-body"></tbody></table>
+                <table><caption class="sr-only">Таблица выручки и прибыли</caption><thead><tr><th>Дата</th><th>Выручка</th><th>Прибыль</th></tr></thead><tbody id="stats-points-body"></tbody></table>
               </div>
             </article>
             <article class="stats-panel">
-              <div class="toolbar"><h3>Top 5 dishes</h3></div>
+              <div class="toolbar"><h3>Топ-5 блюд</h3></div>
               <ol id="stats-top-dishes" class="top-dishes"></ol>
             </article>
           </div>
@@ -91,9 +91,9 @@
     </section>
   </main>
   <dialog id="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-    <form id="category-form" method="dialog" hidden><div class="dialog-head"><div><p class="eyebrow">Menu structure</p><h2 id="dialog-title">New category</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><label for="category-name">Category name</label><input id="category-name" required maxlength="200"><label for="category-sort-order">Display order</label><input id="category-sort-order" type="number" min="0" value="0"><p id="category-form-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" class="button button-secondary close-dialog">Cancel</button><button type="submit" class="button button-primary">Save category</button></div></form>
-    <form id="dish-form" method="dialog" hidden><div class="dialog-head"><div><p class="eyebrow">Menu item</p><h2 id="dish-dialog-title">New dish</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><label for="dish-name">Title</label><input id="dish-name" required maxlength="200"><label for="dish-description">Description</label><textarea id="dish-description" rows="3" maxlength="5000"></textarea><div class="form-grid"><div><label for="dish-price">Price</label><input id="dish-price" type="number" min="0" step="0.01" required></div><div><label for="dish-cost-price">Cost price <span class="optional">optional</span></label><input id="dish-cost-price" type="number" min="0" step="0.01"><small>Used only for profit analytics.</small></div></div><label for="dish-photo-url">Photo URL <span class="optional">optional</span></label><input id="dish-photo-url" type="text" inputmode="url" placeholder="https://… or /images/dish.jpg"><div id="photo-preview" class="photo-preview" hidden></div><label for="dish-category">Category</label><select id="dish-category" required></select><label for="dish-sort-order">Display order</label><input id="dish-sort-order" type="number" min="0" value="0"><label class="switch-row"><input id="dish-available" type="checkbox" checked><span class="switch" aria-hidden="true"></span><span>Available on menu</span></label><p id="dish-form-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" class="button button-secondary close-dialog">Cancel</button><button type="submit" class="button button-primary">Save dish</button></div></form>
-    <form id="table-form" method="dialog" hidden><div class="dialog-head"><div><p class="eyebrow">Table setup</p><h2 id="table-dialog-title">Add table</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><label for="table-number">Table number</label><input id="table-number" required maxlength="32" placeholder="e.g. 12"><p id="table-form-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" class="button button-secondary close-dialog">Cancel</button><button type="submit" class="button button-primary">Create table</button></div></form>
+    <form id="category-form" method="dialog" hidden><div class="dialog-head"><div><p class="eyebrow">Структура меню</p><h2 id="dialog-title">Новая категория</h2></div><button type="button" class="icon-button close-dialog" aria-label="Закрыть">×</button></div><label for="category-name">Название категории</label><input id="category-name" required maxlength="200"><label for="category-sort-order">Порядок отображения</label><input id="category-sort-order" type="number" min="0" value="0"><p id="category-form-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" class="button button-secondary close-dialog">Отмена</button><button type="submit" class="button button-primary">Сохранить категорию</button></div></form>
+    <form id="dish-form" method="dialog" hidden><div class="dialog-head"><div><p class="eyebrow">Блюдо</p><h2 id="dish-dialog-title">Новое блюдо</h2></div><button type="button" class="icon-button close-dialog" aria-label="Закрыть">×</button></div><label for="dish-name">Название</label><input id="dish-name" required maxlength="200"><label for="dish-description">Описание</label><textarea id="dish-description" rows="3" maxlength="5000"></textarea><div class="form-grid"><div><label for="dish-price">Цена</label><input id="dish-price" type="number" min="0" step="0.01" required></div><div><label for="dish-cost-price">Себестоимость <span class="optional">необязательно</span></label><input id="dish-cost-price" type="number" min="0" step="0.01"><small>Используется только для расчёта прибыли.</small></div></div><label for="dish-photo-url">Ссылка на фото <span class="optional">необязательно</span></label><input id="dish-photo-url" type="text" inputmode="url" placeholder="https://… или /images/dish.jpg"><div id="photo-preview" class="photo-preview" hidden></div><label for="dish-category">Категория</label><select id="dish-category" required></select><label for="dish-sort-order">Порядок отображения</label><input id="dish-sort-order" type="number" min="0" value="0"><label class="switch-row"><input id="dish-available" type="checkbox" checked><span class="switch" aria-hidden="true"></span><span>Доступно в меню</span></label><p id="dish-form-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" class="button button-secondary close-dialog">Отмена</button><button type="submit" class="button button-primary">Сохранить блюдо</button></div></form>
+    <form id="table-form" method="dialog" hidden><div class="dialog-head"><div><p class="eyebrow">Настройка стола</p><h2 id="table-dialog-title">Добавить стол</h2></div><button type="button" class="icon-button close-dialog" aria-label="Закрыть">×</button></div><label for="table-number">Номер или название стола</label><input id="table-number" required maxlength="32" placeholder="Например, 12"><p id="table-form-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" class="button button-secondary close-dialog">Отмена</button><button type="submit" class="button button-primary">Создать стол</button></div></form>
   </dialog>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js" integrity="sha384-b0GXujLkk9eYYSmcSfoyZbfyElGAQnDyY0skCHSG6w3JgTMFnz11ggrTAr7seu9f" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
   <script src="/admin.js" defer></script>
