@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ru">
 <head>
+<base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sushi Crazy</title>
@@ -1609,6 +1610,22 @@ body.modal-lock .cart-pill-shell{
   #pickupTimeOv .pickup-time-panel{transition:none!important}
 }
 
+/* QR table ordering states */
+.page{display:none}
+body.client-catalog-ready .page{display:block}
+.client-state{min-height:100dvh;padding:calc(32px + env(safe-area-inset-top,0px)) calc(20px + env(safe-area-inset-right,0px)) calc(32px + env(safe-area-inset-bottom,0px)) calc(20px + env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:center;background:#fff}
+.client-state[hidden]{display:none}
+.client-state-card{width:min(440px,100%);padding:28px 22px;border:1px solid #e5e5ea;border-radius:18px;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.08)}
+.client-state-title{font-size:25px;font-weight:800;margin-bottom:10px}
+.client-state-message{font-size:16px;line-height:1.5;color:#555}
+.client-state-meta{margin-top:16px;font-size:15px;font-weight:700}
+.client-state-action{min-height:44px;margin-top:22px;padding:10px 24px;border:0;border-radius:999px;background:#222;color:#fff;font:700 16px inherit;cursor:pointer}
+.cart-warning{margin:10px 12px 0;padding:12px 14px;border-radius:12px;background:#fff3cd;color:#664d03;font-size:14px;line-height:1.4}
+.cart-warning[hidden]{display:none}
+.unavailable-list{margin:14px 0 0;padding-left:22px;text-align:left}
+#unavailableOv .sheet{padding:0 20px calc(20px + env(safe-area-inset-bottom,0px))}
+#unavailableOv .client-state-action{width:100%}
+
 </style>
 </head>
 <body>
@@ -1672,6 +1689,15 @@ body.modal-lock .cart-pill-shell{
 </footer>
 
 </div><!-- /page -->
+
+<main class="client-state" id="clientState" role="status" aria-live="polite">
+  <div class="client-state-card">
+    <div class="client-state-title" id="clientStateTitle">Требуется QR-код</div>
+    <div class="client-state-message" id="clientStateMessage">Для заказа отсканируйте QR-код на столе.</div>
+    <div class="client-state-meta" id="clientStateMeta"></div>
+    <button class="client-state-action" id="reorderBtn" type="button" onclick="reorderFromStatus()" hidden>Заказать ещё</button>
+  </div>
+</main>
 
 <!-- COOKIE BAR -->
 <div class="cookie-bar" id="cookieBar">
@@ -1750,49 +1776,8 @@ body.modal-lock .cart-pill-shell{
         <button class="cs-close" onclick="closeOv('cartOv')" aria-label="Закрыть корзину" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="x"></span></button>
       </div>
       <div class="cs-body-scroll">
+        <div class="cart-warning" id="cartWarning" role="alert" hidden></div>
         <div id="cartItems"></div>
-        <div class="del-block">
-        <div class="del-label">Способ заказа</div>
-        <div class="del-row">
-          <button class="dopt on" onclick="setDel('d',this)">Доставка</button>
-          <button class="dopt" onclick="setDel('p',this)">Самовывоз</button>
-        </div>
-        <div class="cart-form-section">
-          <div class="cmnt-title">Контакты</div>
-          <div class="order-grid two">
-            <input class="addr-inp" type="text" id="nameInp" placeholder="Имя" oninput="updateOrderState()">
-            <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+7 999 123 45 67" aria-describedby="phoneErr" oninput="updateOrderState()">
-          </div>
-          <div class="addr-err" id="phoneErr" hidden>Укажите корректный номер для связи.</div>
-        </div>
-        <div id="addrBlock" class="cart-form-section">
-          <div class="cmnt-title">Укажите адрес доставки</div>
-          <input class="addr-inp" type="text" id="addrInp" placeholder="Улица, дом" aria-describedby="addrErr" oninput="updateOrderState()">
-          <div class="order-grid four">
-            <input class="addr-inp" type="text" id="entranceInp" placeholder="Подъезд">
-            <input class="addr-inp" type="text" id="floorInp" placeholder="Этаж">
-            <input class="addr-inp" type="text" id="flatInp" placeholder="Кв./офис">
-            <input class="addr-inp" type="text" id="intercomInp" placeholder="Домофон">
-          </div>
-          <div class="addr-err" id="addrErr" hidden>Укажите адрес доставки.</div>
-        </div>
-        <div class="cart-form-section">
-          <label class="cmnt-title" for="paymentMethodInp">Способ оплаты</label>
-          <select class="addr-inp" id="paymentMethodInp" required aria-describedby="paymentMethodErr" onchange="updateOrderState()">
-            <option value="" disabled selected>Способ оплаты</option>
-            <option value="kaspi_invoice">Выставить счёт на оплату Kaspi</option>
-            <option value="card">Оплата картой</option>
-            <option value="cash">Оплата наличными</option>
-          </select>
-          <div class="addr-err" id="paymentMethodErr" hidden>Выберите способ оплаты.</div>
-          <div class="cmnt-title">Уточнения</div>
-          <textarea class="cmnt-ta" id="commentTa" placeholder="Комментарий: без лука, соус отдельно, приборы на 2 персоны, доставка к 19:00."></textarea>
-          <div class="pickup-time-field" id="pickupTimeBlock" hidden>
-            <label class="cmnt-title pickup-time-label" for="pickupTimeTrigger">Время самовывоза</label>
-            <button class="pickup-time-trigger" type="button" id="pickupTimeTrigger" aria-haspopup="dialog" aria-controls="pickupTimeOv" aria-expanded="false" aria-describedby="pickupTimeErr" onclick="openPickupTimePicker(this)">Выберите время</button>
-            <div class="addr-err" id="pickupTimeErr" hidden>Выберите доступное время самовывоза.</div>
-          </div>
-        </div>
       </div>
       <div class="cs-foot">
         <div>
@@ -1804,30 +1789,20 @@ body.modal-lock .cart-pill-shell{
     </div>
   </div>
 </div>
-</div>
 
 <div class="toast" id="toastEl"></div>
 
-<!-- PICKUP TIME OVERLAY -->
-<div class="ov pickup-time-ov" id="pickupTimeOv" role="dialog" aria-modal="true" aria-labelledby="pickupTimeTitle" aria-describedby="pickupTimeDescription" onclick="bgClose(event,'pickupTimeOv')">
-  <div class="pickup-time-panel" id="pickupTimePanel" onclick="event.stopPropagation()">
-    <div class="pickup-time-drag-zone" id="pickupTimeDragZone" onpointerdown="startPickupDrag(event)">
-      <div class="pickup-time-handle" aria-hidden="true"></div>
-      <div class="pickup-time-header">
-        <div>
-          <div class="pickup-time-title" id="pickupTimeTitle">Время самовывоза</div>
-          <div class="pickup-time-description" id="pickupTimeDescription">Выберите ближайшее удобное время.</div>
-        </div>
-        <button class="pickup-time-close" type="button" id="pickupTimeClose" onclick="closeOv('pickupTimeOv')" aria-label="Закрыть выбор времени" data-dialog-initial-focus>×</button>
-      </div>
-    </div>
-    <div class="pickup-time-content">
-      <div class="pickup-time-slots" id="pickupTimeSlots"></div>
-      <div class="pickup-time-unavailable" id="pickupTimeUnavailable" role="status" hidden>Сегодня доступного времени не осталось.</div>
-    </div>
+<div class="ov" id="unavailableOv" role="dialog" aria-modal="true" aria-labelledby="unavailableTitle" onclick="bgClose(event,'unavailableOv')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="handle"></div>
+    <div class="client-state-title" id="unavailableTitle">Некоторые блюда недоступны</div>
+    <div class="client-state-message">Заказ уже создан без этих блюд. Подтвердите, чтобы перейти к статусу.</div>
+    <ul class="unavailable-list" id="unavailableList"></ul>
+    <button class="client-state-action" type="button" onclick="acknowledgeUnavailable()" data-dialog-initial-focus>Понятно</button>
   </div>
 </div>
 
+<script src="qr-ordering.js"></script>
 <script>
 
 function svgIcon(name,cls='svg-icon'){
@@ -1934,11 +1909,6 @@ const ICON_PATHS={
   phone:'icons/phone-ios.png',
   map:'icons/maps-ios.png'
 };
-const PAYMENT_METHOD_LABELS=Object.freeze({
-  kaspi_invoice:'Выставить счёт на оплату Kaspi',
-  card:'Оплата картой',
-  cash:'Оплата наличными'
-});
 function iosIconImg(service,alt,mini=false){
   const cls=mini?'ios-mini-img':'ios-app-img';
   const src=ICON_PATHS[service]||'';
@@ -1947,6 +1917,13 @@ function iosIconImg(service,alt,mini=false){
 let pendingOrderText='';
 let pendingOrderPayload=null;
 let pendingOrderId=null;
+let currentQrContext=null;
+let catalogOrderable=false;
+let orderSubmitting=false;
+let pendingSuccessfulOrder=null;
+let activeOrderPoller=null;
+let qrStorage=null;
+try{qrStorage=window.localStorage;}catch(e){}
 let analyticsCheckoutStarted=false;
 let analyticsOrderCompleted=false;
 
@@ -2022,12 +1999,16 @@ const CATS=[{id:'f',l:'Фаст-фуд'},{id:'r',l:'Роллы'},{id:'s',l:'Се
 const CN={f:'Фаст-фуд',r:'Роллы',s:'Сеты',z:'Пицца',a:'Соусы',d:'Напитки'};
 let isGrid=true,activeCat='all',search='',cart={},delMode='d',pickupTime='',popIndex=0;
 const POPULAR_IDS=[15,1,2,3,10,18];
-const REF_CAT_IDS={'Фаст-фуд':'f','Роллы':'r','Сеты':'s','Пицца':'z','Соусы':'a','Напитки':'d'};
-const REF_DESC={'Торт из 7 порций':'2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура','Бизнес Ланч':'Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105','Чизбургер (говяжий)':'Состав: булочка, говяжья котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б24 / Ж30 / У46','Гиро на тарелке':'Состав: курица (гиро), картофель фри, пита, помидор, огурец, лук, соус (чесночный/дзадзики) Пищевая ценность на порцию: Б38 / Ж45 / У105','Пепперони':'Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118','Бешенный лосось':'Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62'};
 function rebuildCats(){const el=document.getElementById('catsEl');if(!el)return;el.innerHTML='';CATS.forEach((c,idx)=>{const b=document.createElement('button');b.className='cat'+(idx===0?' on':'');b.textContent=c.l;b.onclick=()=>{document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(window.muteSpy)window.muteSpy(600);const sec=document.getElementById('sec-'+c.id);if(sec)window.scrollTo(0,Math.max(0,sec.offsetTop-92));};el.appendChild(b);});}
-fetch('ref-products-dom.json').then(r=>r.ok?r.json():null).then(data=>{if(!Array.isArray(data))return;M.splice(0,M.length,...data.map((x,i)=>({id:i+1,c:REF_CAT_IDS[x.cat]||'f',n:x.name,w:x.weight,d:x.desc||REF_DESC[x.name]||'',p:x.price,img:x.img,i:(REF_CAT_IDS[x.cat]||'f')})));CATS.splice(0,CATS.length,...['Фаст-фуд','Роллы','Сеты','Пицца','Соусы','Напитки'].map(x=>({id:REF_CAT_IDS[x],l:x})));POPULAR_IDS.splice(0,POPULAR_IDS.length,...['Торт из 7 порций','Бизнес Ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешенный лосось'].map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean));rebuildCats();renderPopular();render();}).catch(()=>{});
 function fmt(n){return n.toLocaleString('ru-RU')+' ₸'}
-function getItem(id){return M.find(i=>i.id===parseInt(id));}
+function getItem(id){return M.find(i=>String(i.id)===String(id));}
+function htmlText(value){return QrOrdering.escapeHtmlText(value);}
+function htmlAttr(value){return QrOrdering.escapeHtmlAttribute(value);}
+function renderDishImage(item){
+  return item.img
+    ?`<img class="product-img" src="${htmlAttr(item.img)}" alt="${htmlAttr(item.n)}" loading="lazy" decoding="async" fetchpriority="auto">`
+    :foodIcon(item.i);
+}
 function priceText(n){return fmt(n).replace(' ₸','');}
 function shownQty(id){return cart[id]||0;}
 function shownTotal(item){return item.p*Math.max(1,shownQty(item.id));}
@@ -2035,7 +2016,7 @@ function addBtnHtml(id){const q=shownQty(id);return q>0?`<p>${q}</p>`:svgIcon('p
 function addBtnAria(id){const q=shownQty(id);return q>0?`Добавить ещё. Сейчас в корзине: ${q}`:'Добавить в корзину';}
 function cartAddButton(id,cls){
   const q=shownQty(id);
-  const action=` onclick="event.preventDefault();event.stopPropagation();addCart(${id})"`;
+  const action=' onclick="event.preventDefault();event.stopPropagation();addCart(this.dataset.addId)"';
   return `<button type="button" class="${cls} cart-add-btn${q>0?' in-cart':''}" data-add-id="${id}" onpointerdown="event.stopPropagation()"${action} aria-label="${addBtnAria(id)}">${addBtnHtml(id)}</button>`;
 }
 function priceMarkup(item,cls){
@@ -2057,22 +2038,22 @@ function bumpNode(node,cls){
 }
 function syncAddButtons(idFilter=null,animate=false){
   document.querySelectorAll('[data-add-id]').forEach(btn=>{
-    const id=parseInt(btn.dataset.addId);
-    if(idFilter!==null && id!==parseInt(idFilter))return;
+    const id=btn.dataset.addId;
+    if(idFilter!==null && id!==String(idFilter))return;
     const q=shownQty(id);
     btn.innerHTML=addBtnHtml(id);
     btn.setAttribute('aria-label',addBtnAria(id));
     btn.classList.toggle('in-cart',q>0);
     btn.setAttribute('onpointerdown','event.stopPropagation()');
-    btn.setAttribute('onclick',`event.preventDefault();event.stopPropagation();addCart(${id})`);
+    btn.setAttribute('onclick','event.preventDefault();event.stopPropagation();addCart(this.dataset.addId)');
     if(animate)bumpNode(btn,'qty-pop');
   });
   updateOrderState();
 }
 function updatePriceNodes(idFilter=null,animate=false){
   document.querySelectorAll('[data-price-id]').forEach(node=>{
-    const id=parseInt(node.dataset.priceId);
-    if(idFilter!==null && id!==parseInt(idFilter))return;
+    const id=node.dataset.priceId;
+    if(idFilter!==null && id!==String(idFilter))return;
     const item=getItem(id);
     if(!item)return;
     setPriceNodeText(node,item);
@@ -2184,37 +2165,8 @@ function updateOrderState(){
   const btn=document.getElementById('orderBtn');
   if(!btn)return;
   const hasItems=Object.keys(cart).some(k=>cart[k]>0);
-  const addrInp=document.getElementById('addrInp');
-  const phoneInp=document.getElementById('phoneInp');
-  const paymentMethodInp=document.getElementById('paymentMethodInp');
-  const addr=(addrInp?.value||'').trim();
-  const phone=(phoneInp?.value||'').trim();
-  const paymentMethod=paymentMethodInp?.value||'';
-  const phoneValid=validPhone(phone);
-  const addressValid=delMode!=='d'||!!addr;
-  const paymentMethodValid=!!PAYMENT_METHOD_LABELS[paymentMethod];
-  const pickupTimeValid=delMode!=='p'||getAvailablePickupSlots(new Date()).includes(pickupTime);
-  if(phoneValid){
-    const phoneErr=document.getElementById('phoneErr');
-    if(phoneErr)phoneErr.hidden=true;
-    phoneInp?.removeAttribute('aria-invalid');
-  }
-  if(addressValid){
-    const addrErr=document.getElementById('addrErr');
-    if(addrErr)addrErr.hidden=true;
-    addrInp?.removeAttribute('aria-invalid');
-  }
-  if(paymentMethodValid){
-    const paymentMethodErr=document.getElementById('paymentMethodErr');
-    if(paymentMethodErr)paymentMethodErr.hidden=true;
-    paymentMethodInp?.removeAttribute('aria-invalid');
-  }
-  if(pickupTimeValid){
-    const pickupTimeErr=document.getElementById('pickupTimeErr');
-    if(pickupTimeErr)pickupTimeErr.hidden=true;
-    document.getElementById('pickupTimeTrigger')?.removeAttribute('aria-invalid');
-  }
-  btn.disabled=!hasItems||!phoneValid||!addressValid||!paymentMethodValid||!pickupTimeValid;
+  btn.disabled=!hasItems||!catalogOrderable||!currentQrContext||orderSubmitting;
+  btn.textContent=orderSubmitting?'Отправляем…':'Оформить заказ';
 }
 
 rebuildCats();
@@ -2225,14 +2177,14 @@ function renderPopular(){
     if(!item)return '';
     return `<div class="popular-slide">
       <div class="pop-card">
-        <button type="button" class="product-details-btn" onclick="openPopularItem(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-        <div class="pop-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
+        <button type="button" class="product-details-btn" data-dish-id="${htmlAttr(item.id)}" onclick="openPopularItem(this.dataset.dishId,this)" aria-label="Подробнее о ${htmlAttr(item.n)}"></button>
+        <div class="pop-img">${renderDishImage(item)}</div>
         ${cartAddButton(item.id,'add-sq pop-add-top')}
         <div class="pop-body">
           <div class="pop-main">
-            <div class="pop-name">${item.n}</div>
-            <div class="pop-weight">${item.w}</div>
-            <div class="pop-desc">${item.d}</div>
+            <div class="pop-name">${htmlText(item.n)}</div>
+            <div class="pop-weight">${htmlText(item.w)}</div>
+            <div class="pop-desc">${htmlText(item.d)}</div>
           </div>
           <div class="pop-footer">
             ${qtyPriceHtml(item,'pop-price')}
@@ -2277,18 +2229,18 @@ function render(){
   items.forEach(i=>{if(!byCat[i.c])byCat[i.c]=[];byCat[i.c].push(i)});
   let html='';
   for(const cat in byCat){
-    html+=`<div class="menu-sec-title" id="sec-${cat}">${CN[cat]||cat}</div>`;
+    html+=`<div class="menu-sec-title" id="sec-${htmlAttr(cat)}">${htmlText(CN[cat]||cat)}</div>`;
     if(isGrid){
       html+=`<div class="g4">`;
       byCat[cat].forEach(item=>{
         html+=`<div class="gc">
-          <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-          <div class="gc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}
+          <button type="button" class="product-details-btn" data-dish-id="${htmlAttr(item.id)}" onclick="openProd(this.dataset.dishId,this)" aria-label="Подробнее о ${htmlAttr(item.n)}"></button>
+          <div class="gc-img">${renderDishImage(item)}
             ${cartAddButton(item.id,'gc-plus')}
           </div>
           <div class="gc-foot">
-            <div class="gc-name">${item.n}</div>
-            <div class="gc-weight">${item.w}</div>
+            <div class="gc-name">${htmlText(item.n)}</div>
+            <div class="gc-weight">${htmlText(item.w)}</div>
           </div>
           ${qtyPriceHtml(item,'gc-price')}
         </div>`;
@@ -2298,12 +2250,12 @@ function render(){
       html+=`<div class="lv">`;
       byCat[cat].forEach(item=>{
         html+=`<div class="lc">
-          <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-          <div class="lc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
+          <button type="button" class="product-details-btn" data-dish-id="${htmlAttr(item.id)}" onclick="openProd(this.dataset.dishId,this)" aria-label="Подробнее о ${htmlAttr(item.n)}"></button>
+          <div class="lc-img">${renderDishImage(item)}</div>
           <div class="lc-info">
-            <div class="lc-name">${item.n}</div>
-            <div class="lc-weight">${item.w}</div>
-            <div class="lc-desc">${item.d}</div>
+            <div class="lc-name">${htmlText(item.n)}</div>
+            <div class="lc-weight">${htmlText(item.w)}</div>
+            <div class="lc-desc">${htmlText(item.d)}</div>
           </div>
           <div class="lc-right">
             ${cartAddButton(item.id,'add-sq')}
@@ -2340,12 +2292,12 @@ function openProd(id,opener){
   if(!item)return;
   trackProductView(item);
   document.getElementById('prodContent').innerHTML=`
-    <div class="ps-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
+    <div class="ps-img">${renderDishImage(item)}</div>
     <div class="ps-dot" aria-hidden="true"></div>
     <div class="ps-body">
-      <div class="ps-name" id="prodTitle">${item.n}</div>
-      <div class="ps-weight">${item.w}</div>
-      <div class="ps-desc">${item.d}</div>
+      <div class="ps-name" id="prodTitle">${htmlText(item.n)}</div>
+      <div class="ps-weight">${htmlText(item.w)}</div>
+      <div class="ps-desc">${htmlText(item.d)}</div>
     </div>
     <div class="ps-footer" style="margin:0 20px 20px">
       ${qtyPriceHtml(item,'ps-price')}
@@ -2354,6 +2306,7 @@ function openProd(id,opener){
   openOv('prodOv',opener);
 }
 function addCart(id){
+  if(!catalogOrderable){showToast('Меню недоступно. Отсканируйте QR-код ещё раз.');return;}
   const previous=cart[id]||0;
   cart[id]=Math.min(99,previous+1);
   if(cart[id]!==previous)pendingOrderId=null;
@@ -2362,6 +2315,7 @@ function addCart(id){
   updatePill();
   syncCardState(id,true);
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
+  else persistQrContext();
 }
 function updatePill(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
@@ -2379,7 +2333,7 @@ function updatePill(){
     pill.classList.remove('on');
   }
 }
-function openCart(){renderCart();trackCheckoutStarted();openOv('cartOv');}
+function openCart(){renderCart();openOv('cartOv');}
 function renderCart(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
   let html='';
@@ -2389,21 +2343,21 @@ function renderCart(){
     if(!item)return;
     const qty=cart[id];
     html+=`<div class="ci ci-card">
-      <div class="ci-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
+      <div class="ci-img">${renderDishImage(item)}</div>
       <div class="ci-info">
         <div class="ci-head-row">
           <div>
-            <div class="ci-name">${item.n}</div>
-            <div class="ci-weight">${item.w}</div>
+            <div class="ci-name">${htmlText(item.n)}</div>
+            <div class="ci-weight">${htmlText(item.w)}</div>
           </div>
           <div class="ci-price">${fmt(item.p*qty)}<span>${fmt(item.p)} за шт.</span></div>
         </div>
         <div class="ci-bottom-row">
           <div class="ci-mini-note">Количество</div>
           <div class="qty-row">
-            <button class="qb" onclick="chQ('${id}',-1)">${svgIcon('minus','svg-icon plus-icon')}</button>
+            <button class="qb" data-dish-id="${id}" onclick="chQ(this.dataset.dishId,-1)" aria-label="Уменьшить количество">${svgIcon('minus','svg-icon plus-icon')}</button>
             <div class="qn">${qty}</div>
-            <button class="qb" onclick="chQ('${id}',1)">${svgIcon('plus','svg-icon plus-icon')}</button>
+            <button class="qb" data-dish-id="${id}" onclick="chQ(this.dataset.dishId,1)" aria-label="Увеличить количество">${svgIcon('plus','svg-icon plus-icon')}</button>
           </div>
         </div>
       </div>
@@ -2415,6 +2369,7 @@ function renderCart(){
     return s+(item&&cart[id]?item.p*cart[id]:0);
   },0);
   document.getElementById('csTotal').textContent=fmt(total);
+  persistQrContext();
   updateOrderState();
 }
 function chQ(id,d){
@@ -2428,8 +2383,9 @@ function chQ(id,d){
   updatePill();
   syncCardState(id,true);
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
+  else persistQrContext();
 }
-function clearCart(){cart={};pendingOrderId=null;resetAnalyticsCartLifecycle();updatePill();syncCardState(null,true);renderCart();}
+function clearCart(){cart={};pendingOrderId=null;resetAnalyticsCartLifecycle();persistQrContext();updatePill();syncCardState(null,true);renderCart();}
 function setDel(m,btn){
   delMode=m;
   document.querySelectorAll('.dopt').forEach(b=>b.classList.remove('on'));
@@ -2532,13 +2488,6 @@ function prepareServiceSheet(mode){
     copyBtn.textContent='Скопировать ссылку';
     setSecondService('Напишите нам в сообщения');
   }
-  if(mode==='order'){
-    title.textContent='Куда отправить заказ?';
-    sub.textContent='Выберите сервис. Текст заказа уже собран: позиции, адрес и комментарий.';
-    waLabel.textContent='Отправить в WhatsApp';
-    copyBtn.textContent='Скопировать текст заказа';
-    setSecondService('Отправить сообщение');
-  }
   if(mode==='product'){
     pendingOrderText='Sushi Crazy — суши, фастфуд и пицца. Телефон: '+SHOP_PHONE_TEXT;
     title.textContent='Поделиться';
@@ -2549,89 +2498,113 @@ function prepareServiceSheet(mode){
   }
 }
 function placeOrder(){
-  if(!Object.keys(cart).filter(k=>cart[k]>0).length){showToast('Корзина пуста');return;}
-  const phone=(document.getElementById('phoneInp')?.value||'').trim();
-  const address=(document.getElementById('addrInp')?.value||'').trim();
-  const paymentMethod=document.getElementById('paymentMethodInp')?.value||'';
-  const phoneInp=document.getElementById('phoneInp');
-  const addrInp=document.getElementById('addrInp');
-  const paymentMethodInp=document.getElementById('paymentMethodInp');
-  const phoneErr=document.getElementById('phoneErr');
-  const addrErr=document.getElementById('addrErr');
-  const paymentMethodErr=document.getElementById('paymentMethodErr');
-  const pickupTimeTrigger=document.getElementById('pickupTimeTrigger');
-  const pickupTimeErr=document.getElementById('pickupTimeErr');
-  const phoneInvalid=!validPhone(phone);
-  const addressInvalid=delMode==='d'&&!address;
-  const paymentMethodInvalid=!PAYMENT_METHOD_LABELS[paymentMethod];
-  const pickupTimeInvalid=delMode==='p'&&!getAvailablePickupSlots(new Date()).includes(pickupTime);
-  if(phoneErr)phoneErr.hidden=!phoneInvalid;
-  if(addrErr)addrErr.hidden=!addressInvalid;
-  if(paymentMethodErr)paymentMethodErr.hidden=!paymentMethodInvalid;
-  if(pickupTimeErr)pickupTimeErr.hidden=!pickupTimeInvalid;
-  if(phoneInvalid)phoneInp?.setAttribute('aria-invalid','true');
-  else phoneInp?.removeAttribute('aria-invalid');
-  if(addressInvalid)addrInp?.setAttribute('aria-invalid','true');
-  else addrInp?.removeAttribute('aria-invalid');
-  if(paymentMethodInvalid)paymentMethodInp?.setAttribute('aria-invalid','true');
-  else paymentMethodInp?.removeAttribute('aria-invalid');
-  if(pickupTimeInvalid){
-    pickupTime='';
-    syncPickupTimeControl();
-    pickupTimeTrigger?.setAttribute('aria-invalid','true');
-    if(pickupTimeErr)pickupTimeErr.hidden=false;
-  }else pickupTimeTrigger?.removeAttribute('aria-invalid');
-  if(phoneInvalid||addressInvalid||paymentMethodInvalid||pickupTimeInvalid){
+  void submitQrOrder();
+}
+async function submitQrOrder(){
+  if(orderSubmitting)return;
+  if(!catalogOrderable||!currentQrContext){showToast('Для заказа отсканируйте QR-код на столе');return;}
+  if(!Object.keys(cart).some(k=>cart[k]>0)){showToast('Корзина пуста');return;}
+  orderSubmitting=true;
+  updateOrderState();
+  const warning=document.getElementById('cartWarning');
+  if(warning)warning.hidden=true;
+  try{
+    const preflight=await QrOrdering.submitOrderWithMenuPreflight({
+      cart,
+      dishes:M,
+      loadMenu:fetchApiMenuPayload,
+      submit:({cart:confirmedCart,dishes:confirmedDishes})=>QrOrdering.submitOrder({
+        fetchImpl:fetch,
+        token:currentQrContext.token,
+        context:currentQrContext,
+        cart:confirmedCart,
+        dishes:confirmedDishes,
+        resolveTable:async token=>{
+          const response=await fetch('/api/tables/'+encodeURIComponent(token));
+          const data=await response.json().catch(()=>({}));
+          if(!response.ok)throw new Error(data.error||'Не удалось обновить сессию стола');
+          currentQrContext=QrOrdering.updateTableContext(qrStorage,token,data);
+          return data;
+        }
+      })
+    });
+    applyApiCatalog(preflight.menu);
+    rebuildCats();
+    popIndex=0;
+    renderPopular();
+    render();
+    if(preflight.kind==='review-required'){
+      cart=preflight.cart;
+      persistQrContext();
+      updatePill();
+      syncCardState();
+      renderCart();
+      if(warning){
+        const names=preflight.unavailableNames.join(', ');
+        warning.textContent=preflight.allUnavailable
+          ?'Сейчас недоступны: '+names+'. Все блюда удалены из корзины. Выберите другие блюда.'
+          :'Сейчас недоступны: '+names+'. Блюда удалены из корзины. Проверьте заказ и нажмите «Оформить заказ» ещё раз.';
+        warning.hidden=false;
+      }
+      return;
+    }
+    const result=preflight.result;
+    const excluded=result.excludedDishIds||[];
+    const excludedNames=QrOrdering.getUnavailableNames(excluded,M);
+    excluded.forEach(id=>delete cart[id]);
+    if(result.kind==='all-unavailable'){
+      persistQrContext();
+      renderCart();
+      if(warning){
+        warning.textContent='Сейчас недоступны: '+excludedNames.join(', ')+'. Выберите другие блюда.';
+        warning.hidden=false;
+      }
+      return;
+    }
+    currentQrContext.sessionId=result.sessionId;
+    currentQrContext.cart={};
+    currentQrContext.activeOrderId=result.order.id;
+    cart={};
+    QrOrdering.writeContext(qrStorage,currentQrContext);
+    updatePill();
+    syncCardState(null,true);
+    renderCart();
+    closeOv('cartOv',false);
+    pendingSuccessfulOrder={order:result.order,names:excludedNames};
+    if(excludedNames.length){
+      const list=document.getElementById('unavailableList');
+      list.replaceChildren(...excludedNames.map(name=>{
+        const item=document.createElement('li');
+        item.textContent=name;
+        return item;
+      }));
+      openOv('unavailableOv');
+    }else{
+      navigateToOrder(result.order.id);
+    }
+  }catch(error){
+    if(warning){
+      warning.textContent=error?.message||'Не удалось отправить заказ. Попробуйте ещё раз.';
+      warning.hidden=false;
+    }
+    showToast('Не удалось отправить заказ');
+  }finally{
+    orderSubmitting=false;
     updateOrderState();
-    (phoneInvalid?phoneInp:addressInvalid?addrInp:pickupTimeInvalid?pickupTimeTrigger:paymentMethodInp)?.focus();
-    return;
   }
-  pendingOrderPayload=buildOrderPayload();
-  if(typeof pendingOrderId==='undefined'||!pendingOrderId)pendingOrderId=crypto.randomUUID();
-  trackCheckoutStarted(true);
-  pendingOrderText=buildOrderText(pendingOrderPayload);
-  prepareServiceSheet('order');
-  const transitionOpener=dialogOpeners.get(document.getElementById('cartOv'));
-  closeOv('cartOv',false);
-  openOv('shareOv',transitionOpener);
 }
 function openShare(mode='contact'){
   prepareServiceSheet(mode);
   openOv('shareOv');
 }
-function finishOrder(keepalive=false,forceFetch=false){
-  if(pendingOrderText.startsWith('Новый заказ')){
-    if(!trackOrderCompleted(keepalive,forceFetch))return false;
-    cart={};
-    pickupTime='';
-    syncPickupTimeControl();
-    const pickupTimeErr=document.getElementById('pickupTimeErr');
-    if(pickupTimeErr)pickupTimeErr.hidden=true;
-    document.getElementById('pickupTimeTrigger')?.removeAttribute('aria-invalid');
-    updatePill();
-    syncCardState(null,true);renderCart();
-    pendingOrderText='';
-    pendingOrderPayload=null;
-    pendingOrderId=null;
-    resetAnalyticsCartLifecycle();
-    showToast('Заказ подготовлен к отправке');
-    return true;
-  }
-  return false;
-}
 function shareVia(v){
   const text=pendingOrderText||'Sushi Crazy: '+SHOP_PHONE_TEXT;
   if(v==='wa'){
-    const opened=window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
-    if(opened){
-      finishOrder(true);
-    }
+    window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
   }
   if(v==='sms'){
-    if(finishOrder(true,true)){
-      window.location.href='sms:'+SHOP_PHONE+'?body='+encodeURIComponent(text);
-      showToast('Открываем сообщения');
-    }
+    window.location.href='sms:'+SHOP_PHONE+'?body='+encodeURIComponent(text);
+    showToast('Открываем сообщения');
   }
   if(v==='call'){
     window.location.href='tel:'+SHOP_PHONE;
@@ -2644,12 +2617,10 @@ function shareVia(v){
   runAfterMotion(()=>closeOv('shareOv'),400);
 }
 function copyOrder(){
-  const isOrder=document.getElementById('shareOv')?.classList.contains('order-mode');
-  const text=isOrder?pendingOrderText:location.href;
+  const text=location.href;
   if(navigator.clipboard){
     navigator.clipboard.writeText(text).then(()=>{
-      showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована');
-      finishOrder();
+      showToast('Ссылка скопирована');
     }).catch(()=>showToast('Скопируйте текст вручную'));
   }else{
     showToast('Скопируйте текст вручную');
@@ -3062,12 +3033,7 @@ function trackAddToCart(item,quantityAdded,cartQuantity){
   });
 }
 function trackCheckoutStarted(){
-  if(analyticsCheckoutStarted||!Object.keys(cart).some(id=>cart[id]>0))return;
-  const paymentMethod=document.getElementById('paymentMethodInp')?.value;
-  const event={eventType:'checkout_started',deliveryMethod:delMode==='d'?'delivery':'pickup'};
-  if(PAYMENT_METHOD_LABELS[paymentMethod])event.paymentMethod=paymentMethod;
-  sendAnalyticsEvent(event);
-  if(analyticsVisitorId)analyticsCheckoutStarted=true;
+  return false;
 }
 function trackOrderCompleted(keepalive=false,forceFetch=false){
   if(analyticsOrderCompleted)return true;
@@ -3344,6 +3310,150 @@ function acceptCookies(){
   }catch(e){}
   syncShell();
 })();
+
+/* ── QR TABLE ORDERING ── */
+function persistQrContext(){
+  if(!currentQrContext)return;
+  currentQrContext.cart={...cart};
+  QrOrdering.writeContext(qrStorage,currentQrContext);
+}
+function showClientState(title,message,meta=''){
+  activeOrderPoller?.destroy();
+  activeOrderPoller=null;
+  document.body.classList.remove('client-catalog-ready');
+  const state=document.getElementById('clientState');
+  state.hidden=false;
+  document.getElementById('clientStateTitle').textContent=title;
+  document.getElementById('clientStateMessage').textContent=message;
+  document.getElementById('clientStateMeta').textContent=meta;
+  document.getElementById('reorderBtn').hidden=true;
+}
+function showQrRequired(){
+  catalogOrderable=false;
+  currentQrContext=null;
+  cart={};
+  updatePill();
+  showClientState('Требуется QR-код','Для заказа отсканируйте QR-код на столе.');
+}
+async function resolveTable(token){
+  const response=await fetch('/api/tables/'+encodeURIComponent(token));
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'Стол не найден');
+  return data;
+}
+async function loadApiCatalog(){
+  applyApiCatalog(QrOrdering.normalizeMenu(await fetchApiMenuPayload()));
+}
+async function fetchApiMenuPayload(){
+  const response=await fetch('/api/menu');
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'Не удалось загрузить меню');
+  return data;
+}
+function applyApiCatalog(menu){
+  M.splice(0,M.length,...menu.dishes.map(dish=>({
+    id:dish.id,
+    c:dish.categoryId,
+    n:dish.name,
+    w:'',
+    d:dish.description,
+    p:dish.price,
+    img:dish.photoUrl,
+    i:'utensils'
+  })));
+  CATS.splice(0,CATS.length,...menu.categories.map(category=>({id:category.id,l:category.name})));
+  Object.keys(CN).forEach(key=>delete CN[key]);
+  menu.categories.forEach(category=>{CN[category.id]=category.name;});
+  POPULAR_IDS.splice(0,POPULAR_IDS.length,...M.slice(0,Math.min(6,M.length)).map(item=>item.id));
+}
+async function initializeTable(token){
+  showClientState('Загружаем меню','Проверяем стол и текущую сессию…');
+  catalogOrderable=false;
+  try{
+    const tableData=await resolveTable(token);
+    currentQrContext=QrOrdering.updateTableContext(qrStorage,token,tableData);
+    cart={...currentQrContext.cart};
+    await loadApiCatalog();
+    cart=QrOrdering.sanitizeCart(cart,M);
+    persistQrContext();
+    catalogOrderable=true;
+    document.getElementById('clientState').hidden=true;
+    document.body.classList.add('client-catalog-ready');
+    rebuildCats();
+    popIndex=0;
+    renderPopular();
+    render();
+    updatePill();
+    syncCardState();
+  }catch(error){
+    catalogOrderable=false;
+    cart={};
+    updatePill();
+    showClientState('Меню недоступно',error?.message||'Не удалось загрузить меню. Отсканируйте QR-код ещё раз.');
+  }
+}
+async function fetchOrderDetails(orderId){
+  const response=await fetch('/api/orders/'+encodeURIComponent(orderId));
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'Не удалось загрузить заказ');
+  return data.order;
+}
+function renderOrderStatus(order){
+  const label=QrOrdering.STATUS_LABELS[order.status]||order.status;
+  document.getElementById('clientStateTitle').textContent='Заказ: '+label;
+  document.getElementById('clientStateMessage').textContent=order.status==='ready'
+    ? 'Заказ готов. Приятного аппетита!'
+    : 'Статус обновляется автоматически.';
+  document.getElementById('clientStateMeta').textContent='Стол '+currentQrContext.tableNumber+' · '+fmt(Number(order.total||0));
+  document.getElementById('reorderBtn').hidden=false;
+}
+async function showOrderStatus(orderId){
+  const recovered=QrOrdering.recoverOrderContext(qrStorage,orderId);
+  if(!recovered){
+    showClientState('Требуется QR-код','Данные стола не найдены. Отсканируйте QR-код на столе ещё раз.');
+    return;
+  }
+  currentQrContext=recovered;
+  catalogOrderable=false;
+  showClientState('Загружаем заказ','Проверяем текущий статус…');
+  activeOrderPoller=QrOrdering.createOrderPoller({
+    orderId,
+    documentRef:document,
+    fetchOrder:fetchOrderDetails,
+    onOrder:renderOrderStatus,
+    onError:error=>{
+      document.getElementById('clientStateMessage').textContent=error?.message||'Не удалось обновить статус заказа.';
+    }
+  });
+  await activeOrderPoller.start();
+}
+function navigateToOrder(orderId){
+  history.pushState({},'',`/order/${orderId}`);
+  pendingSuccessfulOrder=null;
+  showOrderStatus(orderId);
+}
+function acknowledgeUnavailable(){
+  if(!pendingSuccessfulOrder)return;
+  const orderId=pendingSuccessfulOrder.order.id;
+  closeOv('unavailableOv',false);
+  navigateToOrder(orderId);
+}
+function reorderFromStatus(){
+  const path=QrOrdering.reorderPath(currentQrContext);
+  if(!path){showQrRequired();return;}
+  activeOrderPoller?.destroy();
+  activeOrderPoller=null;
+  history.pushState({},'',path);
+  initializeTable(currentQrContext.token);
+}
+function initializeClientRoute(){
+  const route=QrOrdering.parseRoute(location.pathname);
+  if(route.type==='table')initializeTable(route.token);
+  else if(route.type==='order')showOrderStatus(route.orderId);
+  else showQrRequired();
+}
+window.addEventListener('popstate',initializeClientRoute);
+initializeClientRoute();
 
 </script>
 </body>

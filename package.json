@@ -1,7 +1,17 @@
 {
   "name": "sushi-crazy-analytics",
   "private": true,
+  "scripts": {
+    "seed:stats": "node scripts/seed-stage05-stats.js"
+  },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.1"
+    "@neondatabase/serverless": "^1.0.1",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
+    "jsdom": "^26.1.0",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0"
   }
 }

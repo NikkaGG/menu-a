@@ -1,1 +1,10 @@
-{"rewrites":[{"source":"/stats","destination":"/stats.html"}]}
+{
+  "rewrites": [
+    { "source": "/t/:token", "destination": "/index.html" },
+    { "source": "/order/:id", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/admin/menu", "destination": "/admin.html" },
+    { "source": "/admin/tables", "destination": "/admin.html" },
+    { "source": "/stats", "destination": "/admin.html" }
+  ]
+}

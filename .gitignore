@@ -1,1 +1,15 @@
 .worktrees/
+.env
+bot/.venv/
+.venv/
+node_modules/
+.playwright-mcp/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*.log
+log.txt
+audit-*.png
+stage*-*.png
+payment-method-*.png
+pickup-time-*.png
