@@ -3,6 +3,7 @@
 bot/.venv/
 .venv/
 node_modules/
+admin-dist/
 .playwright-mcp/
 .pytest_cache/
 __pycache__/

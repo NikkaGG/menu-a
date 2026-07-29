@@ -2,7 +2,17 @@
   "name": "sushi-crazy-analytics",
   "private": true,
   "scripts": {
-    "seed:stats": "node scripts/seed-stage05-stats.js"
+    "seed:stats": "node scripts/seed-stage05-stats.js",
+    "test:legacy": "node scripts/run-node-tests.js",
+    "test:unit": "vitest run --config admin-app/vitest.config.ts",
+    "test": "npm run test:legacy && npm run test:unit",
+    "typecheck": "tsc --noEmit -p admin-app/tsconfig.json",
+    "lint": "eslint admin-app",
+    "build": "node scripts/build-admin.js",
+    "test:browser": "playwright test --config admin-app/playwright.config.ts"
+  },
+  "engines": {
+    "node": "20.19.x"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
