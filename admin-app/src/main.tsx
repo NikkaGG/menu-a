@@ -10,6 +10,8 @@ if (!rootElement) {
   throw new Error("Не найден корневой элемент приложения.");
 }
 
+rootElement.setAttribute("data-admin-root", "true");
+
 createRoot(rootElement).render(
   <StrictMode>
     <App />

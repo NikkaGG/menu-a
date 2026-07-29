@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <script>
-      // Theme is intentionally resolved before paint in the theme task.
-      document.documentElement.dataset.themeBootstrap = "pending";
+      (() => {
+        const key = "admin-theme";
+        const saved = localStorage.getItem(key);
+        const theme = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+        const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
     </script>
     <title>Панель управления</title>
   </head>
