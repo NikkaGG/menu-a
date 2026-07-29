@@ -1,4 +1,5 @@
 export type GuardToken = { revision: number; generation: number };
+export type GuardSettlement = "success" | "failure" | "cancel" | "cancelled";
 
 type ResourceKey = string;
 
@@ -28,6 +29,24 @@ export function createConcurrencyGuard() {
     deleteTokens.set(token, key(resource, id));
     return token;
   };
+  const settle = (
+    resource: string,
+    id: string,
+    token: GuardToken,
+    outcome: GuardSettlement,
+  ): boolean => {
+    const entityKey = key(resource, id);
+    if (
+      token.generation !== generation
+      || deleteTokens.get(token) !== entityKey
+    ) return false;
+    deleteTokens.delete(token);
+    if (outcome !== "success" || tombstones.has(entityKey)) return true;
+    tombstones.add(entityKey);
+    mutations.set(entityKey, (mutations.get(entityKey) ?? token.revision) + 1);
+    loads.set(resource, (loads.get(resource) ?? 0) + 1);
+    return true;
+  };
   return {
     beginLoad,
     isCurrentLoad: (resource: string, token: GuardToken) =>
@@ -37,16 +56,9 @@ export function createConcurrencyGuard() {
     isCurrentMutation: (resource: string, id: string, token: GuardToken) =>
       token.generation === generation && mutations.get(key(resource, id)) === token.revision
         && !tombstones.has(key(resource, id)),
+    settle,
     delete: (resource: string, id: string, token: GuardToken) => {
-      const entityKey = key(resource, id);
-      if (
-        token.generation !== generation
-        || deleteTokens.get(token) !== entityKey
-        || tombstones.has(entityKey)
-      ) return;
-      tombstones.add(entityKey);
-      mutations.set(entityKey, (mutations.get(entityKey) ?? token.revision) + 1);
-      loads.set(resource, (loads.get(resource) ?? 0) + 1);
+      settle(resource, id, token, "success");
     },
     isTombstoned: (resource: string, id: string) => tombstones.has(key(resource, id)),
     acceptEntity: (resource: string, id: string, exists = true) => exists && !tombstones.has(key(resource, id)),

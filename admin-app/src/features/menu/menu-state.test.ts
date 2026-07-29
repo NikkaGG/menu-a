@@ -14,6 +14,7 @@ import {
   failLoad,
   failMutation,
   invalidateMenuState,
+  settleDelete,
 } from "./menu-state";
 
 function deferred<T>() {
@@ -256,6 +257,34 @@ describe("guarded menu state", () => {
     const fabricated = { ...deletion.token };
 
     expect(completeDelete(deletion.state, fabricated)).toBe(deletion.state);
+  });
+
+  it.each(["failure", "cancelled"] as const)("immutably retires a delete token after %s", (outcome) => {
+    const initial = createMenuState({ categories: [category("cat-1")] });
+    const deletion = beginDelete(initial, "categories", "cat-1");
+    const pendingTokens = deletion.state.deleteTokens;
+
+    const settled = settleDelete(deletion.state, deletion.token, outcome);
+
+    expect(settled).not.toBe(deletion.state);
+    expect(settled.deleteTokens).not.toBe(pendingTokens);
+    expect(settled.deleteTokens.has(deletion.token)).toBe(false);
+    expect(deletion.state.deleteTokens.has(deletion.token)).toBe(true);
+    expect(settled.categories).toEqual([category("cat-1")]);
+    expect(completeDelete(settled, deletion.token)).toBe(settled);
+  });
+
+  it("retires successful delete tokens and permits a fresh retry after failure", () => {
+    let state = createMenuState({ categories: [category("cat-1")] });
+    const failed = beginDelete(state, "categories", "cat-1");
+    state = settleDelete(failed.state, failed.token, "failure");
+    const retry = beginDelete(state, "categories", "cat-1");
+    state = completeDelete(retry.state, retry.token);
+
+    expect(state.deleteTokens.has(failed.token)).toBe(false);
+    expect(state.deleteTokens.has(retry.token)).toBe(false);
+    expect(state.categories).toEqual([]);
+    expect(completeDelete(state, retry.token)).toBe(state);
   });
 
   it("clears loading when a mutation supersedes a pending reload", () => {

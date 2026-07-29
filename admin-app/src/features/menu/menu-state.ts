@@ -1,5 +1,5 @@
 import type { Category, Dish } from "../../lib/types";
-import type { GuardToken } from "../../lib/concurrency";
+import type { GuardSettlement, GuardToken } from "../../lib/concurrency";
 
 export type MenuResource = "categories" | "dishes";
 export type MenuState = {
@@ -128,24 +128,37 @@ export function failMutation(state: MenuState, token: MenuMutationToken, error: 
   return current(state, token.resource, token.id, token) ? { ...state, error: message } : state;
 }
 
-export function completeDelete(state: MenuState, token: MenuMutationToken): MenuState {
+export function settleDelete(
+  state: MenuState,
+  token: MenuMutationToken,
+  outcome: GuardSettlement,
+): MenuState {
   const { resource, id } = token;
   const key = entityKey(resource, id);
   if (
     token.generation !== state.generation
     || !state.deleteTokens.has(token)
-    || state.tombstones.has(key)
   ) return state;
+  const deleteTokens = new Set(state.deleteTokens);
+  deleteTokens.delete(token);
+  if (outcome !== "success" || state.tombstones.has(key)) {
+    return { ...state, deleteTokens };
+  }
   const tombstones = new Set(state.tombstones);
   tombstones.add(key);
   return {
     ...state,
     [resource]: (state[resource] as Entity[]).filter((entity) => entity.id !== id),
+    deleteTokens,
     tombstones,
     mutations: { ...state.mutations, [key]: (state.mutations[key] ?? token.revision) + 1 },
     loads: { ...state.loads, [resource]: state.loads[resource] + 1 },
     loading: { ...state.loading, [resource]: 0 },
   } as MenuState;
+}
+
+export function completeDelete(state: MenuState, token: MenuMutationToken): MenuState {
+  return settleDelete(state, token, "success");
 }
 
 export function beginDialog(state: MenuState, dialog: string) {

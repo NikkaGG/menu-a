@@ -140,6 +140,25 @@ describe("menu concurrency guards", () => {
     expect(guard.isTombstoned("dishes", "dish-1")).toBe(false);
   });
 
+  it.each(["failure", "cancelled"] as const)("retires a delete token after %s", (outcome) => {
+    const guard = createConcurrencyGuard();
+    const deletion = guard.beginDelete("dishes", "dish-1");
+
+    expect(guard.settle("dishes", "dish-1", deletion, outcome)).toBe(true);
+    expect(guard.settle("dishes", "dish-1", deletion, "success")).toBe(false);
+    expect(guard.isTombstoned("dishes", "dish-1")).toBe(false);
+  });
+
+  it("allows a fresh delete retry after a failed delete", () => {
+    const guard = createConcurrencyGuard();
+    const failed = guard.beginDelete("dishes", "dish-1");
+    guard.settle("dishes", "dish-1", failed, "failure");
+    const retry = guard.beginDelete("dishes", "dish-1");
+
+    expect(guard.settle("dishes", "dish-1", retry, "success")).toBe(true);
+    expect(guard.isTombstoned("dishes", "dish-1")).toBe(true);
+  });
+
   it("invalidates pending loads on route changes and sign-out", () => {
     const guard = createConcurrencyGuard();
     const load = guard.beginLoad("dishes");
