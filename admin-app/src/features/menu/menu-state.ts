@@ -8,6 +8,7 @@ export type MenuState = {
   loading: Record<MenuResource, number>;
   loads: Record<MenuResource, number>;
   mutations: Record<string, number>;
+  deleteTokens: Set<MenuMutationToken>;
   tombstones: Set<string>;
   dialogs: Record<string, number>;
   generation: number;
@@ -27,6 +28,7 @@ export function createMenuState(initial: Partial<Pick<MenuState, "categories" | 
     loading: { categories: 0, dishes: 0 },
     loads: { categories: 0, dishes: 0 },
     mutations: {},
+    deleteTokens: new Set(),
     tombstones: new Set(),
     dialogs: {},
     generation: 0,
@@ -54,6 +56,13 @@ export function beginMutation(state: MenuState, resource: MenuResource, id: stri
       mutations: { ...state.mutations, [key]: revision },
     },
   };
+}
+
+export function beginDelete(state: MenuState, resource: MenuResource, id: string) {
+  const result = beginMutation(state, resource, id);
+  const deleteTokens = new Set(result.state.deleteTokens);
+  deleteTokens.add(result.token);
+  return { ...result, state: { ...result.state, deleteTokens } };
 }
 
 function current(state: MenuState, resource: MenuResource, id: string, token: GuardToken): boolean {
@@ -124,7 +133,7 @@ export function completeDelete(state: MenuState, token: MenuMutationToken): Menu
   const key = entityKey(resource, id);
   if (
     token.generation !== state.generation
-    || state.mutations[key] !== token.revision
+    || !state.deleteTokens.has(token)
     || state.tombstones.has(key)
   ) return state;
   const tombstones = new Set(state.tombstones);
@@ -133,7 +142,7 @@ export function completeDelete(state: MenuState, token: MenuMutationToken): Menu
     ...state,
     [resource]: (state[resource] as Entity[]).filter((entity) => entity.id !== id),
     tombstones,
-    mutations: { ...state.mutations, [key]: token.revision + 1 },
+    mutations: { ...state.mutations, [key]: (state.mutations[key] ?? token.revision) + 1 },
     loads: { ...state.loads, [resource]: state.loads[resource] + 1 },
     loading: { ...state.loading, [resource]: 0 },
   } as MenuState;
@@ -152,6 +161,7 @@ export function invalidateMenuState(state: MenuState): MenuState {
     ...state,
     loading: { categories: 0, dishes: 0 },
     tombstones: new Set(),
+    deleteTokens: new Set(),
     generation: state.generation + 1,
     error: null,
   };

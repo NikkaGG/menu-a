@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Category, Dish } from "../../lib/types";
 import {
   beginDialog,
+  beginDelete,
   beginLoad,
   beginMutation,
   completeCreate,
@@ -84,10 +85,10 @@ describe("guarded menu state", () => {
     state = categoryLoad.state;
     const dishCreate = beginMutation(state, "dishes", "dish-1");
     state = dishCreate.state;
-    const categoryDelete = beginMutation(state, "categories", "cat-1");
+    const categoryDelete = beginDelete(state, "categories", "cat-1");
     state = categoryDelete.state;
     state = completeDelete(state, categoryDelete.token);
-    const dishDelete = beginMutation(state, "dishes", "dish-1");
+    const dishDelete = beginDelete(state, "dishes", "dish-1");
     state = dishDelete.state;
     state = completeDelete(state, dishDelete.token);
 
@@ -139,7 +140,7 @@ describe("guarded menu state", () => {
     state = firstDialog.state;
     const secondDialog = beginDialog(state, "dish");
     state = secondDialog.state;
-    const deletion = beginMutation(state, "dishes", "dish-1");
+    const deletion = beginDelete(state, "dishes", "dish-1");
     state = completeDelete(deletion.state, deletion.token);
     state = completeMutation(state, edit.token, { ...dish("dish-1"), name: "Поздно" }, firstDialog.token);
     state = completeMutation(state, availability.token, dish("dish-1", false), firstDialog.token);
@@ -151,7 +152,7 @@ describe("guarded menu state", () => {
     let state = createMenuState({ dishes: [dish("dish-1")] });
     const edit = beginMutation(state, "dishes", "dish-1");
     const availability = beginMutation(edit.state, "dishes", "dish-1");
-    const deletion = beginMutation(availability.state, "dishes", "dish-1");
+    const deletion = beginDelete(availability.state, "dishes", "dish-1");
     const editResponse = deferred<Dish>();
     const availabilityResponse = deferred<Dish>();
     state = completeDelete(deletion.state, deletion.token);
@@ -204,7 +205,7 @@ describe("guarded menu state", () => {
 
   it("resets deletion tombstones after generation invalidation", () => {
     let state = createMenuState({ categories: [category("cat-1")] });
-    const deletion = beginMutation(state, "categories", "cat-1");
+    const deletion = beginDelete(state, "categories", "cat-1");
     state = completeDelete(deletion.state, deletion.token);
     state = invalidateMenuState(state);
     const load = beginLoad(state, "categories");
@@ -215,7 +216,7 @@ describe("guarded menu state", () => {
   it("ignores a delete completion from an invalidated generation", async () => {
     let state = createMenuState({ dishes: [dish("dish-1")] });
     const response = deferred<void>();
-    const deletion = beginMutation(state, "dishes", "dish-1");
+    const deletion = beginDelete(state, "dishes", "dish-1");
     state = invalidateMenuState(deletion.state);
     const load = beginLoad(state, "dishes");
     state = completeLoad(load.state, load.token, [{ ...dish("dish-1"), name: "Fresh" }]);
@@ -228,6 +229,33 @@ describe("guarded menu state", () => {
     expect(state).toBe(before);
     expect(state.dishes).toEqual([{ ...dish("dish-1"), name: "Fresh" }]);
     expect(state.tombstones.has("dishes:dish-1")).toBe(false);
+  });
+
+  it("lets category and dish deletes win after intervening mutations", () => {
+    let state = createMenuState({
+      categories: [category("cat-1")],
+      dishes: [dish("dish-1")],
+    });
+    const categoryDelete = beginDelete(state, "categories", "cat-1");
+    const categoryEdit = beginMutation(categoryDelete.state, "categories", "cat-1");
+    const dishDelete = beginDelete(categoryEdit.state, "dishes", "dish-1");
+    const dishAvailability = beginMutation(dishDelete.state, "dishes", "dish-1");
+    state = completeDelete(dishAvailability.state, dishDelete.token);
+    state = completeDelete(state, categoryDelete.token);
+    state = completeMutation(state, categoryEdit.token, category("cat-1", "Late"));
+    state = completeMutation(state, dishAvailability.token, dish("dish-1", false));
+
+    expect(state.categories).toEqual([]);
+    expect(state.dishes).toEqual([]);
+    expect(state.tombstones).toEqual(new Set(["categories:cat-1", "dishes:dish-1"]));
+  });
+
+  it("rejects a fabricated delete token", () => {
+    const state = createMenuState({ categories: [category("cat-1")] });
+    const deletion = beginDelete(state, "categories", "cat-1");
+    const fabricated = { ...deletion.token };
+
+    expect(completeDelete(deletion.state, fabricated)).toBe(deletion.state);
   });
 
   it("clears loading when a mutation supersedes a pending reload", () => {

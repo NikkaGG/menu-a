@@ -7,6 +7,7 @@ export function createConcurrencyGuard() {
   const loads = new Map<ResourceKey, number>();
   const mutations = new Map<string, number>();
   const tombstones = new Set<string>();
+  const deleteTokens = new Map<GuardToken, string>();
 
   const key = (resource: string, id: string) => `${resource}:${id}`;
   const beginLoad = (resource: string): GuardToken => {
@@ -22,11 +23,17 @@ export function createConcurrencyGuard() {
     loads.set(resource, loadRevision);
     return { revision, generation };
   };
+  const beginDelete = (resource: string, id: string): GuardToken => {
+    const token = beginMutation(resource, id);
+    deleteTokens.set(token, key(resource, id));
+    return token;
+  };
   return {
     beginLoad,
     isCurrentLoad: (resource: string, token: GuardToken) =>
       token.generation === generation && loads.get(resource) === token.revision,
     beginMutation,
+    beginDelete,
     isCurrentMutation: (resource: string, id: string, token: GuardToken) =>
       token.generation === generation && mutations.get(key(resource, id)) === token.revision
         && !tombstones.has(key(resource, id)),
@@ -34,11 +41,11 @@ export function createConcurrencyGuard() {
       const entityKey = key(resource, id);
       if (
         token.generation !== generation
-        || mutations.get(entityKey) !== token.revision
+        || deleteTokens.get(token) !== entityKey
         || tombstones.has(entityKey)
       ) return;
       tombstones.add(entityKey);
-      mutations.set(entityKey, token.revision + 1);
+      mutations.set(entityKey, (mutations.get(entityKey) ?? token.revision) + 1);
       loads.set(resource, (loads.get(resource) ?? 0) + 1);
     },
     isTombstoned: (resource: string, id: string) => tombstones.has(key(resource, id)),
@@ -47,6 +54,7 @@ export function createConcurrencyGuard() {
       generation += 1;
       loads.clear();
       mutations.clear();
+      deleteTokens.clear();
       tombstones.clear();
     },
   };

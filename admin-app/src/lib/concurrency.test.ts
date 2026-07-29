@@ -35,7 +35,7 @@ describe("menu concurrency guards", () => {
 
   it("keeps deletion tombstones against late reload and create results", () => {
     const guard = createConcurrencyGuard();
-    const deletion = guard.beginMutation("categories", "cat-1");
+    const deletion = guard.beginDelete("categories", "cat-1");
     guard.delete("categories", "cat-1", deletion);
     expect(guard.isTombstoned("categories", "cat-1")).toBe(true);
     expect(guard.acceptEntity("categories", "cat-1")).toBe(false);
@@ -51,7 +51,7 @@ describe("menu concurrency guards", () => {
     expect(guard.acceptEntity("dishes", "dish-1", true)).toBe(true);
     expect(guard.isCurrentMutation("dishes", "dish-1", token)).toBe(true);
     expect(guard.acceptEntity("dishes", "dish-1", true)).toBe(true);
-    const deletion = guard.beginMutation("dishes", "dish-2");
+    const deletion = guard.beginDelete("dishes", "dish-2");
     guard.delete("dishes", "dish-2", deletion);
     expect(guard.acceptEntity("dishes", "dish-2", false)).toBe(false);
   });
@@ -60,7 +60,7 @@ describe("menu concurrency guards", () => {
     const guard = createConcurrencyGuard();
     const edit = guard.beginMutation("dishes", "dish-1");
     const availability = guard.beginMutation("dishes", "dish-1");
-    const deletion = guard.beginMutation("dishes", "dish-1");
+    const deletion = guard.beginDelete("dishes", "dish-1");
     const lateEdit = deferred<typeof edit>();
     const lateAvailability = deferred<typeof availability>();
     guard.delete("dishes", "dish-1", deletion);
@@ -95,7 +95,7 @@ describe("menu concurrency guards", () => {
     const guard = createConcurrencyGuard();
     const first = guard.beginMutation("dishes", "dish-1");
     const second = guard.beginMutation("dishes", "dish-1");
-    const deletionToken = guard.beginMutation("dishes", "dish-1");
+    const deletionToken = guard.beginDelete("dishes", "dish-1");
     const deletion = deferred<void>();
     guard.delete("dishes", "dish-1", deletionToken);
     deletion.resolve();
@@ -109,7 +109,7 @@ describe("menu concurrency guards", () => {
   it("ignores a delete completion from an invalidated generation", async () => {
     const guard = createConcurrencyGuard();
     const response = deferred<void>();
-    const deletion = guard.beginMutation("dishes", "dish-1");
+    const deletion = guard.beginDelete("dishes", "dish-1");
     guard.invalidate();
     expect(guard.acceptEntity("dishes", "dish-1")).toBe(true);
 
@@ -118,6 +118,25 @@ describe("menu concurrency guards", () => {
     guard.delete("dishes", "dish-1", deletion);
 
     expect(guard.acceptEntity("dishes", "dish-1")).toBe(true);
+    expect(guard.isTombstoned("dishes", "dish-1")).toBe(false);
+  });
+
+  it("lets a same-generation delete win over mutations started afterward", () => {
+    const guard = createConcurrencyGuard();
+    const deletion = guard.beginDelete("dishes", "dish-1");
+    const edit = guard.beginMutation("dishes", "dish-1");
+    guard.delete("dishes", "dish-1", deletion);
+
+    expect(guard.isTombstoned("dishes", "dish-1")).toBe(true);
+    expect(guard.isCurrentMutation("dishes", "dish-1", edit)).toBe(false);
+  });
+
+  it("rejects a fabricated delete token", () => {
+    const guard = createConcurrencyGuard();
+    const deletion = guard.beginDelete("dishes", "dish-1");
+    const fabricated = { ...deletion };
+    guard.delete("dishes", "dish-1", fabricated);
+
     expect(guard.isTombstoned("dishes", "dish-1")).toBe(false);
   });
 
@@ -133,7 +152,7 @@ describe("menu concurrency guards", () => {
 
   it("resets deletion tombstones when the generation is invalidated", () => {
     const guard = createConcurrencyGuard();
-    const deletion = guard.beginMutation("categories", "cat-1");
+    const deletion = guard.beginDelete("categories", "cat-1");
     guard.delete("categories", "cat-1", deletion);
     expect(guard.acceptEntity("categories", "cat-1")).toBe(false);
     guard.invalidate();
