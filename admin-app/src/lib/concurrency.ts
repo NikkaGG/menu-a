@@ -48,13 +48,19 @@ export function createConcurrencyGuard() {
 
 export function createDialogGuard() {
   const revisions = new Map<string, number>();
+  let generation = 0;
   return {
     open: (dialog: string): GuardToken => {
       const revision = (revisions.get(dialog) ?? 0) + 1;
       revisions.set(dialog, revision);
-      return { revision, generation: 0 };
+      return { revision, generation };
     },
-    isCurrent: (dialog: string, token: GuardToken) => revisions.get(dialog) === token.revision,
+    isCurrent: (dialog: string, token: GuardToken) =>
+      token.generation === generation && revisions.get(dialog) === token.revision,
+    invalidate: () => {
+      generation += 1;
+    },
+    generation: () => generation,
   };
 }
 

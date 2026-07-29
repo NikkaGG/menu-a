@@ -10,6 +10,7 @@ import {
   completeLoad,
   completeMutation,
   createMenuState,
+  failLoad,
   failMutation,
   invalidateMenuState,
 } from "./menu-state";
@@ -108,6 +109,22 @@ describe("guarded menu state", () => {
     expect(state.dishes.some(({ id }) => id === "missing")).toBe(false);
   });
 
+  it("applies a delayed edit to a reloaded entity without mutating stale state", async () => {
+    let state = createMenuState({ dishes: [dish("dish-1")] });
+    const editResponse = deferred<Dish>();
+    const edit = beginMutation(state, "dishes", "dish-1");
+    const reload = beginLoad(edit.state, "dishes");
+    state = completeLoad(reload.state, reload.token, [dish("dish-1")]);
+    editResponse.resolve({ ...dish("dish-1"), name: "Позднее обновление" });
+    state = completeMutation(state, edit.token, await editResponse.promise);
+    expect(state.dishes[0].name).toBe("Позднее обновление");
+
+    const absent = beginMutation(state, "dishes", "missing");
+    const before = absent.state;
+    state = completeMutation(before, absent.token, dish("missing"));
+    expect(state).toBe(before);
+  });
+
   it("completed delete wins over edits, availability, and late dialog submission", () => {
     let state = createMenuState({ dishes: [dish("dish-1")] });
     const edit = beginMutation(state, "dishes", "dish-1");
@@ -125,6 +142,28 @@ describe("guarded menu state", () => {
     expect(state.dialogs.dish).toBe(secondDialog.token.revision);
   });
 
+  it("keeps a repeated delayed delete ahead of rejected edit and availability responses", async () => {
+    let state = createMenuState({ dishes: [dish("dish-1")] });
+    const edit = beginMutation(state, "dishes", "dish-1");
+    const availability = beginMutation(edit.state, "dishes", "dish-1");
+    const editResponse = deferred<Dish>();
+    const availabilityResponse = deferred<Dish>();
+    state = completeDelete(availability.state, "dishes", "dish-1");
+    const afterDelete = state;
+    state = completeDelete(state, "dishes", "dish-1");
+    expect(state).toBe(afterDelete);
+
+    editResponse.resolve({ ...dish("dish-1"), name: "Поздно" });
+    availabilityResponse.reject(new Error("Старая ошибка"));
+    state = completeMutation(state, edit.token, await editResponse.promise);
+    await availabilityResponse.promise.catch((error) => {
+      state = failMutation(state, availability.token, error);
+    });
+    expect(state).toBe(afterDelete);
+    expect(state.dishes).toEqual([]);
+    expect(state.error).toBeNull();
+  });
+
   it("route changes and sign-out invalidate pending loads quietly", () => {
     let state = createMenuState();
     const categories = beginLoad(state, "categories");
@@ -135,11 +174,15 @@ describe("guarded menu state", () => {
     expect(state.error).toBeNull();
   });
 
-  it("does not apply a create completed after invalidation", () => {
+  it("does not apply a delayed create completed after invalidation", async () => {
     let state = createMenuState();
+    const response = deferred<Category>();
     const create = beginMutation(state, "categories", "cat-new");
     state = invalidateMenuState(create.state);
-    state = completeCreate(state, create.token, category("cat-new"));
+    const invalidated = state;
+    response.resolve(category("cat-new"));
+    state = completeCreate(state, create.token, await response.promise);
+    expect(state).toBe(invalidated);
     expect(state.categories).toEqual([]);
   });
 
@@ -157,5 +200,34 @@ describe("guarded menu state", () => {
     const edit = beginMutation(state, "dishes", "dish-1");
     state = completeMutation(edit.state, edit.token, { ...dish("dish-1"), name: "Поздно" }, dialog.token);
     expect(state.dishes[0].name).toBe("dish-1");
+  });
+
+  it("keeps a newly opened dialog when an older delayed submission resolves", async () => {
+    let state = createMenuState({ dishes: [dish("dish-1")] });
+    const response = deferred<Dish>();
+    const firstDialog = beginDialog(state, "dish");
+    const edit = beginMutation(firstDialog.state, "dishes", "dish-1");
+    const secondDialog = beginDialog(edit.state, "dish");
+    state = secondDialog.state;
+    response.resolve({ ...dish("dish-1"), name: "Старый редактор" });
+    const before = state;
+    state = completeMutation(state, edit.token, await response.promise, firstDialog.token);
+    expect(state).toBe(before);
+    expect(state.dialogs.dish).toBe(secondDialog.token.revision);
+  });
+
+  it("ignores a stale rejected reload without mutating state", async () => {
+    let state = createMenuState({ categories: [category("cat-1")] });
+    const response = deferred<Category[]>();
+    const staleLoad = beginLoad(state, "categories");
+    const currentLoad = beginLoad(staleLoad.state, "categories");
+    state = currentLoad.state;
+    response.reject(new Error("Старая ошибка загрузки"));
+    const before = state;
+    await response.promise.catch((error) => {
+      state = failLoad(state, staleLoad.token, error);
+    });
+    expect(state).toBe(before);
+    expect(state.error).toBeNull();
   });
 });

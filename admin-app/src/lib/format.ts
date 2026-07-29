@@ -27,17 +27,26 @@ export function almatyDatePreset(preset: DatePreset, now = new Date()) {
   return { from: shiftIsoDate(to, 1 - inclusiveDays), to };
 }
 
+/** Formats plain base-10 decimal input, rounds half away from zero, and displays invalid input as zero. */
 export function formatMoney(value: string | number): string {
   const source = String(value).trim();
   const match = source.match(/^(-?)(\d+)(?:\.(\d+))?$/);
   if (!match) return `0,00${NBSP}₸`;
-  const [, sign, integer, rawFraction = ""] = match;
-  const fraction = `${rawFraction}00`.slice(0, 2);
+  const [, sign, rawInteger, rawFraction = ""] = match;
+  let integer = rawInteger.replace(/^0+(?=\d)/, "");
+  let cents = Number(`${rawFraction}00`.slice(0, 2));
+  if ((rawFraction[2] ?? "0") >= "5") cents += 1;
+  if (cents === 100) {
+    integer = (BigInt(integer) + 1n).toString();
+    cents = 0;
+  }
+  const magnitudeIsZero = integer === "0" && cents === 0;
   const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
-  return `${sign}${grouped},${fraction}${NBSP}₸`;
+  return `${sign === "-" && !magnitudeIsZero ? "-" : ""}${grouped},${String(cents).padStart(2, "0")}${NBSP}₸`;
 }
 
 export function normalizePhotoUrl(value: string | null | undefined): string | null {
+  if (!value || /[\u0000-\u001f\u007f\\]/.test(value)) return null;
   const normalized = value?.trim();
   if (!normalized) return null;
   if (normalized.startsWith("/") && !normalized.startsWith("//")) return normalized;

@@ -23,6 +23,11 @@ describe("admin formatting", () => {
   it("formats decimal money strings without binary floating point loss", () => {
     expect(formatMoney("1200.50")).toBe("1 200,50 ₸");
     expect(formatMoney("12")).toBe("12,00 ₸");
+    expect(formatMoney("1.999")).toBe("2,00 ₸");
+    expect(formatMoney("0")).toBe("0,00 ₸");
+    expect(formatMoney("-0")).toBe("0,00 ₸");
+    expect(formatMoney("-1.995")).toBe("-2,00 ₸");
+    expect(formatMoney("1.994")).toBe("1,99 ₸");
   });
 
   it("normalizes only safe photo URLs", () => {
@@ -30,6 +35,13 @@ describe("admin formatting", () => {
     expect(normalizePhotoUrl("https://cdn.example/dish.jpg")).toBe("https://cdn.example/dish.jpg");
     expect(normalizePhotoUrl("javascript:alert(1)")).toBeNull();
     expect(normalizePhotoUrl("data:image/png;base64,abc")).toBeNull();
+    expect(normalizePhotoUrl("/uploads\\dish.jpg")).toBeNull();
+    expect(normalizePhotoUrl("/\\evil.example/image.jpg")).toBeNull();
+    expect(normalizePhotoUrl("/uploads/\u0000dish.jpg")).toBeNull();
+    expect(normalizePhotoUrl("\nhttps://cdn.example/dish.jpg")).toBeNull();
+    expect(normalizePhotoUrl("/uploads/dish.jpg\r")).toBeNull();
+    expect(normalizePhotoUrl("//evil.example/image.jpg")).toBeNull();
+    expect(normalizePhotoUrl("ftp://example.com/dish.jpg")).toBeNull();
   });
 
   it("sorts numeric order with stable Russian name fallback", () => {

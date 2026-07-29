@@ -78,6 +78,15 @@ export function completeLoad<T extends Entity[]>(state: MenuState, token: MenuLo
   } as MenuState;
 }
 
+export function failLoad(state: MenuState, token: MenuLoadToken, error: unknown): MenuState {
+  if (token.generation !== state.generation || state.loads[token.resource] !== token.revision) return state;
+  return {
+    ...state,
+    loading: { ...state.loading, [token.resource]: 0 },
+    error: error instanceof Error ? error.message : String(error),
+  };
+}
+
 export function completeMutation<T extends Entity>(
   state: MenuState,
   token: MenuMutationToken,
@@ -111,6 +120,7 @@ export function failMutation(state: MenuState, token: MenuMutationToken, error: 
 
 export function completeDelete(state: MenuState, resource: MenuResource, id: string): MenuState {
   const key = entityKey(resource, id);
+  if (state.tombstones.has(key)) return state;
   const tombstones = new Set(state.tombstones);
   tombstones.add(key);
   return {
