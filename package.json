@@ -5,6 +5,8 @@
     "seed:stats": "node scripts/seed-stage05-stats.js",
     "test:legacy": "node scripts/run-node-tests.js",
     "test:unit": "vitest run --config admin-app/vitest.config.ts",
+    "pretest": "npm run test:contract",
+    "test:contract": "node --test tests/admin-build.test.js tests/legacy-test-runner.test.js",
     "test": "npm run test:legacy && npm run test:unit",
     "typecheck": "tsc --noEmit -p admin-app/tsconfig.json",
     "lint": "eslint admin-app",

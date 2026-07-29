@@ -39,11 +39,14 @@ function verifyBuildOutput(rootDir) {
   }
 }
 
-function invokeVite(rootDir) {
-  const command = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-  const result = spawnSync(
-    command,
-    ['vite', 'build', '--config', path.join('admin-app', 'vite.config.ts')],
+function invokeVite(rootDir, runProcess = spawnSync) {
+  const vitePath = path.join(rootDir, 'node_modules', 'vite', 'bin', 'vite.js');
+  if (!fs.statSync(vitePath, { throwIfNoEntry: false })?.isFile()) {
+    throw new Error(`Admin build failed: local Vite executable is required at ${vitePath}`);
+  }
+  const result = runProcess(
+    process.execPath,
+    [path.join('node_modules', 'vite', 'bin', 'vite.js'), 'build', '--config', path.join('admin-app', 'vite.config.ts')],
     { cwd: rootDir, stdio: 'inherit' },
   );
   return typeof result.status === 'number' ? result.status : 1;

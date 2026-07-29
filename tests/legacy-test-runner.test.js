@@ -9,6 +9,8 @@ const root = path.resolve(__dirname, '..');
 test('root package defines separate legacy and unit test commands', () => {
   const pkg = require(path.join(root, 'package.json'));
 
+  assert.equal(pkg.scripts.pretest, 'npm run test:contract');
+  assert.equal(pkg.scripts['test:contract'], 'node --test tests/admin-build.test.js tests/legacy-test-runner.test.js');
   assert.equal(pkg.scripts['test:legacy'], 'node scripts/run-node-tests.js');
   assert.equal(pkg.scripts['test:unit'], 'vitest run --config admin-app/vitest.config.ts');
 });
@@ -19,9 +21,10 @@ test('Node version and generated admin output are pinned', () => {
   assert.ok(ignored.includes('admin-dist/'));
 });
 
-test('legacy runner explicitly and deterministically enumerates tests/*.test.js', () => {
+test('legacy runner explicitly and deterministically enumerates tests/*.test.js', (t) => {
   const { enumerateTests } = require(path.join(root, 'scripts', 'run-node-tests.js'));
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'legacy-runner-'));
+  t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
   fs.mkdirSync(path.join(fixture, 'tests'));
   for (const file of ['z.test.js', 'a.test.js', 'helper.js', 'nested.test.ts']) {
     fs.writeFileSync(path.join(fixture, 'tests', file), '');
@@ -40,9 +43,10 @@ test('legacy discovery still enumerates focused contract test files', () => {
   assert.ok(enumerateTests(root).some((file) => file.endsWith('tests\\legacy-test-runner.test.js') || file.endsWith('tests/legacy-test-runner.test.js')));
 });
 
-test('legacy runner preserves the Node test process exit code', () => {
+test('legacy runner preserves the Node test process exit code', (t) => {
   const { runNodeTests } = require(path.join(root, 'scripts', 'run-node-tests.js'));
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'legacy-runner-exit-'));
+  t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
   fs.mkdirSync(path.join(fixture, 'tests'));
   fs.writeFileSync(path.join(fixture, 'tests', 'failure.test.js'), '');
 

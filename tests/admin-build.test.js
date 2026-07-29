@@ -11,6 +11,8 @@ test('root package pins the admin build contract', () => {
 
   assert.equal(pkg.engines.node, '20.19.x');
   assert.equal(pkg.scripts.build, 'node scripts/build-admin.js');
+  assert.equal(pkg.scripts.pretest, 'npm run test:contract');
+  assert.equal(pkg.scripts['test:contract'], 'node --test tests/admin-build.test.js tests/legacy-test-runner.test.js');
   assert.equal(pkg.scripts.test, 'npm run test:legacy && npm run test:unit');
   assert.equal(pkg.scripts.typecheck, 'tsc --noEmit -p admin-app/tsconfig.json');
   assert.equal(pkg.scripts.lint, 'eslint admin-app');
@@ -18,9 +20,10 @@ test('root package pins the admin build contract', () => {
   assert.equal(pkg.scripts['test:browser'], 'playwright test --config admin-app/playwright.config.ts');
 });
 
-test('admin build verification preserves public ordering and API files', () => {
+test('admin build verification preserves public ordering and API files', (t) => {
   const { verifyBuildOutput } = require(path.join(root, 'scripts', 'build-admin.js'));
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'admin-build-'));
+  t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
   fs.mkdirSync(path.join(fixture, 'admin-dist', 'assets'), { recursive: true });
   fs.mkdirSync(path.join(fixture, 'api'));
   fs.writeFileSync(path.join(fixture, 'admin-dist', 'index.html'), '<script src="/admin-dist/assets/index-Ab12cd34.js"></script>');
@@ -33,12 +36,35 @@ test('admin build verification preserves public ordering and API files', () => {
   assert.doesNotThrow(() => verifyBuildOutput(fixture));
 });
 
-test('admin build reports a clear missing app error', () => {
-  const { buildAdmin } = require(path.join(root, 'scripts', 'build-admin.js'));
+test('admin build reports a clear missing app error', (t) => {
+  const { buildAdmin, invokeVite } = require(path.join(root, 'scripts', 'build-admin.js'));
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'admin-build-missing-'));
+  t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
 
   assert.throws(
     () => buildAdmin({ rootDir: fixture, runVite: () => 0 }),
     /admin-app directory is required/i,
   );
+  assert.throws(
+    () => invokeVite(fixture),
+    /local Vite executable is required/i,
+  );
+});
+
+test('admin build invokes the lockfile-installed Vite executable', (t) => {
+  const { invokeVite } = require(path.join(root, 'scripts', 'build-admin.js'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'admin-vite-'));
+  t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
+  const vitePath = path.join(fixture, 'node_modules', 'vite', 'bin', 'vite.js');
+  fs.mkdirSync(path.dirname(vitePath), { recursive: true });
+  fs.writeFileSync(vitePath, '');
+  const calls = [];
+
+  assert.equal(invokeVite(fixture, (...args) => {
+    calls.push(args);
+    return { status: 0 };
+  }), 0);
+  assert.equal(calls[0][0], process.execPath);
+  assert.equal(calls[0][1][0], path.join('node_modules', 'vite', 'bin', 'vite.js'));
+  assert.deepEqual(calls[0][1].slice(1), ['build', '--config', path.join('admin-app', 'vite.config.ts')]);
 });
