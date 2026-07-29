@@ -192,6 +192,7 @@ export function createAdminApi(options: AdminApiOptions = {}) {
   let latestLoginRequest = 0;
 
   async function request(path: string, init: RequestInit = {}, loginRequest = false): Promise<RawRecord> {
+    const requestGeneration = authGeneration;
     const hasBody = init.body !== undefined;
     let response: Response;
     try {
@@ -217,7 +218,9 @@ export function createAdminApi(options: AdminApiOptions = {}) {
             ? "Слишком много попыток. Попробуйте позже."
             : "Не удалось выполнить вход. Попробуйте позже."
         : localizedError(body.error);
-      const authHandled = !loginRequest && response.status === 401;
+      const authHandled = !loginRequest
+        && response.status === 401
+        && requestGeneration === authGeneration;
       const error = new AdminApiError(message, { status: response.status, authHandled });
       if (authHandled && !authTransitioned) {
         authTransitioned = true;
@@ -230,6 +233,7 @@ export function createAdminApi(options: AdminApiOptions = {}) {
   }
 
   async function qr(id: string, number: string): Promise<void> {
+    const requestGeneration = authGeneration;
     let response: Response;
     try {
       response = await fetchImpl(`/api/admin/tables/${encodeURIComponent(id)}/qr`, { credentials: "same-origin" });
@@ -238,7 +242,8 @@ export function createAdminApi(options: AdminApiOptions = {}) {
     }
     if (!response.ok) {
       const body = await responseBody(response);
-      const authHandled = response.status === 401;
+      const authHandled = response.status === 401
+        && requestGeneration === authGeneration;
       const error = new AdminApiError(localizedError(body.error), { status: response.status, authHandled });
       if (authHandled && !authTransitioned) {
         authTransitioned = true;
@@ -269,6 +274,7 @@ export function createAdminApi(options: AdminApiOptions = {}) {
       const loginGeneration = authGeneration;
       const body = await request("/api/admin/login", { method: "POST", body: JSON.stringify(credentials) }, true);
       if (loginRequest === latestLoginRequest && loginGeneration === authGeneration) {
+        authGeneration += 1;
         authTransitioned = false;
       }
       return { ok: Boolean(body.ok) };

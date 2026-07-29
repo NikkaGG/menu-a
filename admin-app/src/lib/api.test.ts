@@ -212,4 +212,22 @@ describe("typed admin API", () => {
 
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
   });
+
+  it("ignores a protected 401 captured before the current login generation", async () => {
+    let resolveProtected: ((response: Response) => void) | undefined;
+    fetchMock
+      .mockImplementationOnce(() => new Promise<Response>((resolve) => { resolveProtected = resolve; }))
+      .mockResolvedValueOnce(createMockResponse({ ok: true }))
+      .mockResolvedValueOnce(createMockResponse({ error: "Unauthorized" }, { status: 401 }));
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+
+    const staleProtectedRequest = api.categories.list();
+    await api.login({ login: "admin", password: "secret" });
+    resolveProtected?.(createMockResponse({ error: "Unauthorized" }, { status: 401 }));
+
+    await expect(staleProtectedRequest).rejects.toMatchObject({ authHandled: false });
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    await expect(api.dishes.list()).rejects.toMatchObject({ authHandled: true });
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
 });
