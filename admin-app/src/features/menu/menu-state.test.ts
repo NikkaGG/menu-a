@@ -84,8 +84,12 @@ describe("guarded menu state", () => {
     state = categoryLoad.state;
     const dishCreate = beginMutation(state, "dishes", "dish-1");
     state = dishCreate.state;
-    state = completeDelete(state, "categories", "cat-1");
-    state = completeDelete(state, "dishes", "dish-1");
+    const categoryDelete = beginMutation(state, "categories", "cat-1");
+    state = categoryDelete.state;
+    state = completeDelete(state, categoryDelete.token);
+    const dishDelete = beginMutation(state, "dishes", "dish-1");
+    state = dishDelete.state;
+    state = completeDelete(state, dishDelete.token);
 
     state = completeLoad(state, categoryLoad.token, [category("cat-1")]);
     state = completeMutation(state, dishCreate.token, dish("dish-1"));
@@ -135,7 +139,8 @@ describe("guarded menu state", () => {
     state = firstDialog.state;
     const secondDialog = beginDialog(state, "dish");
     state = secondDialog.state;
-    state = completeDelete(state, "dishes", "dish-1");
+    const deletion = beginMutation(state, "dishes", "dish-1");
+    state = completeDelete(deletion.state, deletion.token);
     state = completeMutation(state, edit.token, { ...dish("dish-1"), name: "Поздно" }, firstDialog.token);
     state = completeMutation(state, availability.token, dish("dish-1", false), firstDialog.token);
     expect(state.dishes).toEqual([]);
@@ -146,11 +151,12 @@ describe("guarded menu state", () => {
     let state = createMenuState({ dishes: [dish("dish-1")] });
     const edit = beginMutation(state, "dishes", "dish-1");
     const availability = beginMutation(edit.state, "dishes", "dish-1");
+    const deletion = beginMutation(availability.state, "dishes", "dish-1");
     const editResponse = deferred<Dish>();
     const availabilityResponse = deferred<Dish>();
-    state = completeDelete(availability.state, "dishes", "dish-1");
+    state = completeDelete(deletion.state, deletion.token);
     const afterDelete = state;
-    state = completeDelete(state, "dishes", "dish-1");
+    state = completeDelete(state, deletion.token);
     expect(state).toBe(afterDelete);
 
     editResponse.resolve({ ...dish("dish-1"), name: "Поздно" });
@@ -198,11 +204,30 @@ describe("guarded menu state", () => {
 
   it("resets deletion tombstones after generation invalidation", () => {
     let state = createMenuState({ categories: [category("cat-1")] });
-    state = completeDelete(state, "categories", "cat-1");
+    const deletion = beginMutation(state, "categories", "cat-1");
+    state = completeDelete(deletion.state, deletion.token);
     state = invalidateMenuState(state);
     const load = beginLoad(state, "categories");
     state = completeLoad(load.state, load.token, [category("cat-1", "Заново загружено")]);
     expect(state.categories).toEqual([category("cat-1", "Заново загружено")]);
+  });
+
+  it("ignores a delete completion from an invalidated generation", async () => {
+    let state = createMenuState({ dishes: [dish("dish-1")] });
+    const response = deferred<void>();
+    const deletion = beginMutation(state, "dishes", "dish-1");
+    state = invalidateMenuState(deletion.state);
+    const load = beginLoad(state, "dishes");
+    state = completeLoad(load.state, load.token, [{ ...dish("dish-1"), name: "Fresh" }]);
+
+    response.resolve();
+    await response.promise;
+    const before = state;
+    state = completeDelete(state, deletion.token);
+
+    expect(state).toBe(before);
+    expect(state.dishes).toEqual([{ ...dish("dish-1"), name: "Fresh" }]);
+    expect(state.tombstones.has("dishes:dish-1")).toBe(false);
   });
 
   it("clears loading when a mutation supersedes a pending reload", () => {

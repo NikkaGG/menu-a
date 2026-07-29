@@ -30,10 +30,15 @@ export function createConcurrencyGuard() {
     isCurrentMutation: (resource: string, id: string, token: GuardToken) =>
       token.generation === generation && mutations.get(key(resource, id)) === token.revision
         && !tombstones.has(key(resource, id)),
-    delete: (resource: string, id: string) => {
+    delete: (resource: string, id: string, token: GuardToken) => {
       const entityKey = key(resource, id);
+      if (
+        token.generation !== generation
+        || mutations.get(entityKey) !== token.revision
+        || tombstones.has(entityKey)
+      ) return;
       tombstones.add(entityKey);
-      mutations.set(entityKey, (mutations.get(entityKey) ?? 0) + 1);
+      mutations.set(entityKey, token.revision + 1);
       loads.set(resource, (loads.get(resource) ?? 0) + 1);
     },
     isTombstoned: (resource: string, id: string) => tombstones.has(key(resource, id)),

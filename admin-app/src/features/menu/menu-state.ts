@@ -119,16 +119,21 @@ export function failMutation(state: MenuState, token: MenuMutationToken, error: 
   return current(state, token.resource, token.id, token) ? { ...state, error: message } : state;
 }
 
-export function completeDelete(state: MenuState, resource: MenuResource, id: string): MenuState {
+export function completeDelete(state: MenuState, token: MenuMutationToken): MenuState {
+  const { resource, id } = token;
   const key = entityKey(resource, id);
-  if (state.tombstones.has(key)) return state;
+  if (
+    token.generation !== state.generation
+    || state.mutations[key] !== token.revision
+    || state.tombstones.has(key)
+  ) return state;
   const tombstones = new Set(state.tombstones);
   tombstones.add(key);
   return {
     ...state,
     [resource]: (state[resource] as Entity[]).filter((entity) => entity.id !== id),
     tombstones,
-    mutations: { ...state.mutations, [key]: (state.mutations[key] ?? 0) + 1 },
+    mutations: { ...state.mutations, [key]: token.revision + 1 },
     loads: { ...state.loads, [resource]: state.loads[resource] + 1 },
     loading: { ...state.loading, [resource]: 0 },
   } as MenuState;
