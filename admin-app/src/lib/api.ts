@@ -79,6 +79,20 @@ function nullableText(value: unknown): string | null {
   return value == null ? null : text(value);
 }
 
+function moneyNumber(value: string | number): number {
+  const number = typeof value === "string" && value.trim() === "" ? Number.NaN : Number(value);
+  if (!Number.isFinite(number)) throw new AdminApiError(FALLBACK_MESSAGE);
+  return number;
+}
+
+function dishRequestBody(input: DishInput): RawRecord {
+  return {
+    ...input,
+    price: moneyNumber(input.price),
+    cost_price: input.cost_price == null ? null : moneyNumber(input.cost_price),
+  };
+}
+
 function category(value: unknown): Category {
   const raw = record(value);
   return { id: text(raw.id), name: text(raw.name), sortOrder: Number(raw.sortOrder ?? raw.sort_order ?? 0) };
@@ -152,7 +166,9 @@ function qrFilename(disposition: string | null, tableNumber: string): string {
     if (!value) return null;
     const basename = value.split(/[\\/]/).pop()?.replace(/[\u0000-\u001f\u007f]/g, "").trim() ?? "";
     const safe = basename.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "");
-    return safe || null;
+    if (!safe) return null;
+    const stem = safe.replace(/\.[^.]+$/, "") || "qr";
+    return `${stem}.png`;
   };
   const encoded = disposition?.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
   if (encoded) {
@@ -172,6 +188,8 @@ function qrFilename(disposition: string | null, tableNumber: string): string {
 export function createAdminApi(options: AdminApiOptions = {}) {
   const fetchImpl = options.fetchImpl ?? fetch;
   let authTransitioned = false;
+  let authGeneration = 0;
+  let latestLoginRequest = 0;
 
   async function request(path: string, init: RequestInit = {}, loginRequest = false): Promise<RawRecord> {
     const hasBody = init.body !== undefined;
@@ -203,6 +221,7 @@ export function createAdminApi(options: AdminApiOptions = {}) {
       const error = new AdminApiError(message, { status: response.status, authHandled });
       if (authHandled && !authTransitioned) {
         authTransitioned = true;
+        authGeneration += 1;
         options.onUnauthorized?.(error);
       }
       throw error;
@@ -223,6 +242,7 @@ export function createAdminApi(options: AdminApiOptions = {}) {
       const error = new AdminApiError(localizedError(body.error), { status: response.status, authHandled });
       if (authHandled && !authTransitioned) {
         authTransitioned = true;
+        authGeneration += 1;
         options.onUnauthorized?.(error);
       }
       throw error;
@@ -245,8 +265,12 @@ export function createAdminApi(options: AdminApiOptions = {}) {
       return { authenticated: Boolean(body.authenticated) };
     },
     login: async (credentials: { login: string; password: string }): Promise<LoginResult> => {
+      const loginRequest = ++latestLoginRequest;
+      const loginGeneration = authGeneration;
       const body = await request("/api/admin/login", { method: "POST", body: JSON.stringify(credentials) }, true);
-      authTransitioned = false;
+      if (loginRequest === latestLoginRequest && loginGeneration === authGeneration) {
+        authTransitioned = false;
+      }
       return { ok: Boolean(body.ok) };
     },
     logout: async (): Promise<void> => {
@@ -268,8 +292,8 @@ export function createAdminApi(options: AdminApiOptions = {}) {
         const body = await request("/api/admin/dishes");
         return (Array.isArray(body.dishes) ? body.dishes : []).map(dish);
       },
-      create: async (input: DishInput) => dish((await request("/api/admin/dishes", { method: "POST", body: JSON.stringify(input) })).dish),
-      update: async (id: string, input: DishInput) => dish((await request(`/api/admin/dishes/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(input) })).dish),
+      create: async (input: DishInput) => dish((await request("/api/admin/dishes", { method: "POST", body: JSON.stringify(dishRequestBody(input)) })).dish),
+      update: async (id: string, input: DishInput) => dish((await request(`/api/admin/dishes/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(dishRequestBody(input)) })).dish),
       setAvailability: async (id: string, isAvailable: boolean) => dish((await request(`/api/admin/dishes/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ is_available: isAvailable }) })).dish),
       delete: async (id: string): Promise<void> => {
         await request(`/api/admin/dishes/${encodeURIComponent(id)}`, { method: "DELETE" });

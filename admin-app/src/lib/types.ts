@@ -40,8 +40,8 @@ export type DishInput = {
   category_id: string;
   name: string;
   description: string | null;
-  price: string;
-  cost_price: string | null;
+  price: string | number;
+  cost_price: string | number | null;
   photo_url: string | null;
   is_available: boolean;
   sort_order: number;

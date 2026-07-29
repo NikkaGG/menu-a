@@ -15,6 +15,7 @@ describe("typed admin API", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("uses same-origin credentials and only adds JSON headers for bodies", async () => {
@@ -66,6 +67,28 @@ describe("typed admin API", () => {
     expect(fetchMock.mock.calls[2][1].body).toBe(JSON.stringify({ number: "12" }));
   });
 
+  it("serializes dish money inputs as finite JSON numbers", async () => {
+    fetchMock
+      .mockResolvedValueOnce(createMockResponse({ dish: {} }))
+      .mockResolvedValueOnce(createMockResponse({ dish: {} }));
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+
+    await api.dishes.create({ category_id: "c", name: "N", description: null, price: "12.30", cost_price: "4.50", photo_url: null, is_available: true, sort_order: 0 });
+    await api.dishes.update("d1", { category_id: "c", name: "N", description: null, price: "10.00", cost_price: null, photo_url: null, is_available: true, sort_order: 0 });
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ price: 12.3, cost_price: 4.5 });
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({ price: 10, cost_price: null });
+    expect(typeof JSON.parse(fetchMock.mock.calls[0][1].body).price).toBe("number");
+  });
+
+  it("rejects invalid dish money before making a request", async () => {
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+    await expect(api.dishes.create({ category_id: "c", name: "N", description: null, price: "not-a-number", cost_price: null, photo_url: null, is_available: true, sort_order: 0 })).rejects.toMatchObject({
+      message: "Не удалось выполнить действие. Попробуйте ещё раз.",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("handles QR blobs, Content-Disposition names, safe fallback, and revokes URLs after click", async () => {
     const click = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation(() => ({ click, href: "", download: "" } as unknown as HTMLElement));
@@ -105,7 +128,7 @@ describe("typed admin API", () => {
 
     await createAdminApi({ fetchImpl: fetchMock, onUnauthorized }).tables.downloadQr("t1", "12");
 
-    expect(anchor.download).toBe("secret-report.html");
+    expect(anchor.download).toBe("secret-report.png");
   });
 
   it("maps known backend errors without exposing raw details", async () => {
@@ -171,5 +194,22 @@ describe("typed admin API", () => {
     await Promise.allSettled([api.categories.list(), api.dishes.list(), api.tables.list()]);
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
     expect((onUnauthorized.mock.calls[0][0] as AdminApiError).authHandled).toBe(true);
+  });
+
+  it("does not let an older login success reset a newer unauthorized transition", async () => {
+    let resolveLogin: ((response: Response) => void) | undefined;
+    fetchMock
+      .mockImplementationOnce(() => new Promise<Response>((resolve) => { resolveLogin = resolve; }))
+      .mockResolvedValueOnce(createMockResponse({ error: "Unauthorized" }, { status: 401 }))
+      .mockResolvedValueOnce(createMockResponse({ error: "Unauthorized" }, { status: 401 }));
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+
+    const oldLogin = api.login({ login: "admin", password: "secret" });
+    await expect(api.categories.list()).rejects.toMatchObject({ authHandled: true });
+    resolveLogin?.(createMockResponse({ ok: true }));
+    await oldLogin;
+    await expect(api.dishes.list()).rejects.toMatchObject({ authHandled: true });
+
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
   });
 });
