@@ -186,6 +186,25 @@ describe("guarded menu state", () => {
     expect(state.categories).toEqual([]);
   });
 
+  it("retains a delayed create when the server returns a generated ID", async () => {
+    let state = createMenuState();
+    const response = deferred<Category>();
+    const create = beginMutation(state, "categories", "provisional-category");
+    state = create.state;
+    response.resolve(category("postgres-category-42", "Серверная категория"));
+    state = completeCreate(state, create.token, await response.promise);
+    expect(state.categories).toEqual([category("postgres-category-42", "Серверная категория")]);
+  });
+
+  it("resets deletion tombstones after generation invalidation", () => {
+    let state = createMenuState({ categories: [category("cat-1")] });
+    state = completeDelete(state, "categories", "cat-1");
+    state = invalidateMenuState(state);
+    const load = beginLoad(state, "categories");
+    state = completeLoad(load.state, load.token, [category("cat-1", "Заново загружено")]);
+    expect(state.categories).toEqual([category("cat-1", "Заново загружено")]);
+  });
+
   it("clears loading when a mutation supersedes a pending reload", () => {
     let state = createMenuState();
     const load = beginLoad(state, "dishes");

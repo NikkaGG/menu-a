@@ -112,6 +112,15 @@ describe("menu concurrency guards", () => {
     expect(guard.isCurrentLoad("dishes", nextLoad)).toBe(false);
   });
 
+  it("resets deletion tombstones when the generation is invalidated", () => {
+    const guard = createConcurrencyGuard();
+    guard.delete("categories", "cat-1");
+    expect(guard.acceptEntity("categories", "cat-1")).toBe(false);
+    guard.invalidate();
+    expect(guard.isTombstoned("categories", "cat-1")).toBe(false);
+    expect(guard.acceptEntity("categories", "cat-1")).toBe(true);
+  });
+
   it("only emits one centralized auth transition per generation", () => {
     const auth = createAuthGuard();
     expect(auth.transition()).toBe(true);

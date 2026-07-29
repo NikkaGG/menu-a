@@ -42,6 +42,7 @@ export function createConcurrencyGuard() {
       generation += 1;
       loads.clear();
       mutations.clear();
+      tombstones.clear();
     },
   };
 }

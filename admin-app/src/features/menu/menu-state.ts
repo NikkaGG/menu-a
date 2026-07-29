@@ -106,7 +106,8 @@ export function completeMutation<T extends Entity>(
 
 export function completeCreate<T extends Entity>(state: MenuState, token: MenuMutationToken, entity: T): MenuState {
   const resource = token.resource;
-  if (!current(state, resource, entity.id, token)) return state;
+  if (!current(state, resource, token.id, token)) return state;
+  if (state.tombstones.has(entityKey(resource, entity.id))) return state;
   const items = state[resource] as T[];
   return items.some((item) => item.id === entity.id)
     ? state
@@ -145,6 +146,7 @@ export function invalidateMenuState(state: MenuState): MenuState {
   return {
     ...state,
     loading: { categories: 0, dishes: 0 },
+    tombstones: new Set(),
     generation: state.generation + 1,
     error: null,
   };
