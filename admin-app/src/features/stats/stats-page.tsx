@@ -84,6 +84,7 @@ export function StatsPage({ api }: { api: AdminApi }) {
   const [query, setQuery] = useState<StatsQuery>({ ...initial, groupBy: "day" });
   const [submittedQuery, setSubmittedQuery] = useState<StatsQuery>({ ...initial, groupBy: "day" });
   const [data, setData] = useState<Statistics | null>(null);
+  const [dataRevision, setDataRevision] = useState(0);
   const [pending, setPending] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Partial<Record<"from" | "to" | "range", string>>>({});
@@ -102,6 +103,7 @@ export function StatsPage({ api }: { api: AdminApi }) {
     try {
       const result = await api.stats(nextQuery, { signal: controller.signal });
       if (!mounted.current || !guard.current.isCurrentLoad("statistics", token)) return;
+      setDataRevision((revision) => revision + 1);
       setData(result);
     } catch (caught) {
       if (typeof caught === "object" && caught !== null && "name" in caught && caught.name === "AbortError") return;
@@ -148,9 +150,7 @@ export function StatsPage({ api }: { api: AdminApi }) {
 
   const hasNoStatistics = Boolean(data && data.points.length === 0 && data.topDishes.length === 0);
   const showProfit = data?.totalProfit !== null;
-  const chartKey = data
-    ? `${data.range.from}:${data.range.to}:${data.range.groupBy}:${data.totalProfit ?? "null"}`
-    : "empty";
+  const chartKey = data ? `statistics-${dataRevision}` : "empty";
 
   return (
     <section

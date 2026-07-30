@@ -313,11 +313,63 @@ describe("StatsPage", () => {
     render(<StatsPage api={mockApi()} />);
     await screen.findByTestId("stats-chart");
     const content = chartState.tooltipProps[0].content as ReactElement<{
-      formatter: (value: string, name: string, item: { dataKey: string }) => ReactNode;
+      formatter: (value: string, name: string, item: {
+        dataKey: string;
+        payload: Record<string, unknown>;
+      }) => ReactNode;
     }>;
-    const tooltip = render(<>{content.props.formatter("3000.25", "Прибыль", { dataKey: "profit" })}</>);
+    const tooltip = render(<>{content.props.formatter("3000.25", "Прибыль", {
+      dataKey: "profit",
+      payload: { profitRaw: "3000.25", revenueRaw: "10000.50" },
+    })}</>);
     expect(within(tooltip.container).getByText("Прибыль")).toBeInTheDocument();
     expect(within(tooltip.container).queryByText("Выручка")).not.toBeInTheDocument();
+  });
+
+  it("formats tooltip money from exact raw decimals beyond safe integer precision", async () => {
+    const exact = "9007199254740993.37";
+    render(<StatsPage api={mockApi(statistics({
+      totalRevenue: exact,
+      points: [{ date: "2026-03-31", revenue: exact, profit: null }],
+    }))} />);
+    await screen.findByTestId("stats-chart");
+    const datum = (chartState.dataRefs[0] as Array<Record<string, unknown>>)[0];
+    const content = chartState.tooltipProps[0].content as ReactElement<{
+      formatter: (
+        value: number,
+        name: string,
+        item: { dataKey: string; payload: Record<string, unknown> },
+      ) => ReactNode;
+    }>;
+    const tooltip = render(<>{content.props.formatter(
+      datum.revenue as number,
+      "Выручка",
+      { dataKey: "revenue", payload: datum },
+    )}</>);
+    const exactMoney = /9\s?007\s?199\s?254\s?740\s?993,37\s?₸/;
+    expect(within(tooltip.container).getByText(exactMoney)).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Данные графика" })).toHaveTextContent(exactMoney);
+  });
+
+  it("replaces chart resources for accepted data with the same range and profit", async () => {
+    const first = statistics();
+    const second = statistics({
+      points: [{ date: "2026-03-31", revenue: "777.77", profit: "111.11" }],
+    });
+    const api = mockApi();
+    vi.mocked(api.stats).mockResolvedValueOnce(first).mockResolvedValueOnce(second);
+    const user = userEvent.setup();
+    const { unmount } = render(<StatsPage api={api} />);
+    await screen.findByTestId("stats-chart");
+    expect(chartState.mounts).toBe(1);
+
+    await user.click(screen.getByRole("button", { name: "Обновить" }));
+    expect(await screen.findByText(/777,77\s?₸/)).toBeInTheDocument();
+    expect(chartState.cleanups).toBe(1);
+    expect(chartState.mounts).toBe(2);
+
+    unmount();
+    expect(chartState.cleanups).toBe(2);
   });
 
   it("does not rebuild chart data while draft filters change", async () => {

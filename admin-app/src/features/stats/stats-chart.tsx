@@ -69,6 +69,8 @@ export const StatsChart = memo(function StatsChart({ points, showProfit }: Stats
     date: point.date,
     revenue: Number(point.revenue),
     profit: point.profit === null ? null : Number(point.profit),
+    revenueRaw: point.revenue,
+    profitRaw: point.profit,
   })), [points]);
 
   return (
@@ -86,14 +88,21 @@ export const StatsChart = memo(function StatsChart({ points, showProfit }: Stats
           <ChartTooltip
             content={(
               <ChartTooltipContent
-                formatter={(value, name, item) => (
-                  <>
-                    <span className="text-muted-foreground" data-series-name={String(name)}>
-                      {item.dataKey === "profit" ? "Прибыль" : "Выручка"}
-                    </span>
-                    <span className="font-mono font-medium tabular-nums">{formatMoney(String(value))}</span>
-                  </>
-                )}
+                formatter={(value, name, item) => {
+                  const rawValue = item.dataKey === "profit"
+                    ? item.payload.profitRaw
+                    : item.payload.revenueRaw;
+                  return (
+                    <>
+                      <span className="text-muted-foreground" data-series-name={String(name)}>
+                        {item.dataKey === "profit" ? "Прибыль" : "Выручка"}
+                      </span>
+                      <span className="font-mono font-medium tabular-nums">
+                        {formatMoney(typeof rawValue === "string" ? rawValue : String(value))}
+                      </span>
+                    </>
+                  );
+                }}
               />
             )}
           />
