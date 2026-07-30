@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AdminShell } from "@/components/admin-shell";
 import { SessionGate } from "@/components/session-gate";
 import { MenuPage } from "@/features/menu/menu-page";
+import { TablesPage } from "@/features/tables/tables-page";
 import { createAdminApi } from "@/lib/api";
 import { createRouteController, resolveRoute, type AdminRoute } from "@/lib/routes";
 
@@ -29,7 +30,7 @@ export default function App() {
   const body = route.page === "menu"
     ? <MenuPage api={api} />
     : route.page === "tables"
-      ? <p className="text-muted-foreground">Здесь будет управление столами и QR-кодами.</p>
+      ? <TablesPage api={api} />
       : route.page === "stats"
         ? <p className="text-muted-foreground">Здесь будет статистика заказов.</p>
         : <p>Запрошенная страница не существует. <a className="underline" href="/admin/menu" onClick={(event) => { event.preventDefault(); controller.current?.navigate("/admin/menu"); }}>Перейти к управлению меню</a></p>;
