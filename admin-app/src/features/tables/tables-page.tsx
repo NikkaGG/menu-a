@@ -21,6 +21,7 @@ const safeMessage = (error: unknown, fallback: string) => error instanceof Admin
 export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
   const [api] = useState(() => injectedApi ?? createAdminApi());
   const stateRef = useRef<TablesState>(createTablesState());
+  const mountedRef = useRef(true);
   const [state, renderState] = useState(stateRef.current);
   const [loadError, setLoadError] = useState(false);
   const [editor, setEditor] = useState<{ table: TableModel | null; revision: number; generation: number } | null>(null);
@@ -38,8 +39,12 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
     catch (error) { const before = stateRef.current; const next = failLoad(before, begun.token, error); commit(next); if (next !== before) setLoadError(true); }
   }, [api, commit]);
   useEffect(() => {
+    mountedRef.current = true;
     void load();
-    return () => { stateRef.current = invalidateTablesState(stateRef.current); };
+    return () => {
+      mountedRef.current = false;
+      stateRef.current = invalidateTablesState(stateRef.current);
+    };
   }, [load]);
   const openCreate = () => { const opened = beginDialog(stateRef.current); commit(opened.state); setEditor({ table: null, ...opened.token }); };
   const submit = async (input: TableInput) => {
@@ -56,21 +61,37 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
   const remove = async (table: TableModel) => {
     if (pendingDeletes.has(table.id)) return false;
     const deletion = beginDelete(stateRef.current, table.id); commit(deletion.state);
+    const actionGeneration = deletion.token.generation;
+    const isCurrent = () => mountedRef.current && stateRef.current.generation === actionGeneration;
     setPendingDeletes((items) => new Set(items).add(table.id));
     try {
-      await api.tables.delete(table.id); commit((next) => settleDelete(next, deletion.token, "success")); toast.success("Стол удалён."); return true;
+      await api.tables.delete(table.id);
+      if (!isCurrent()) return false;
+      commit((next) => settleDelete(next, deletion.token, "success"));
+      toast.success("Стол удалён.");
+      return true;
     } catch (error) {
+      if (!isCurrent()) return false;
       commit((next) => settleDelete(next, deletion.token, "failure"));
       setActionErrors((items) => ({ ...items, [table.id]: safeMessage(error, "Не удалось удалить стол. Попробуйте ещё раз.") }));
       return false;
-    } finally { setPendingDeletes((items) => { const next = new Set(items); next.delete(table.id); return next; }); }
+    } finally {
+      if (isCurrent()) setPendingDeletes((items) => { const next = new Set(items); next.delete(table.id); return next; });
+    }
   };
   const download = async (table: TableModel) => {
     if (pendingQr.has(table.id)) return;
+    const actionGeneration = stateRef.current.generation;
+    const isCurrent = () => mountedRef.current && stateRef.current.generation === actionGeneration;
     setPendingQr((items) => new Set(items).add(table.id)); setActionErrors((items) => { const next = { ...items }; delete next[`qr:${table.id}`]; return next; });
-    try { await api.tables.downloadQr(table.id, table.number); toast.success("QR-код скачан."); }
-    catch (error) { setActionErrors((items) => ({ ...items, [`qr:${table.id}`]: safeMessage(error, "Не удалось скачать QR-код. Попробуйте ещё раз.") })); }
-    finally { setPendingQr((items) => { const next = new Set(items); next.delete(table.id); return next; }); }
+    try {
+      await api.tables.downloadQr(table.id, table.number);
+      if (isCurrent()) toast.success("QR-код скачан.");
+    } catch (error) {
+      if (isCurrent()) setActionErrors((items) => ({ ...items, [`qr:${table.id}`]: safeMessage(error, "Не удалось скачать QR-код. Попробуйте ещё раз.") }));
+    } finally {
+      if (isCurrent()) setPendingQr((items) => { const next = new Set(items); next.delete(table.id); return next; });
+    }
   };
   const numbers = useMemo(() => state.tables.map((table) => table.number), [state.tables]);
   const initialLoading = state.loading > 0 && state.tables.length === 0;

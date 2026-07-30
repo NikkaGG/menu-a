@@ -23,7 +23,7 @@ export function TableRow({ table, deleting, downloading, deleteError, downloadEr
           <AlertDialogContent>
             <AlertDialogHeader><AlertDialogTitle>Удалить стол «{table.number}»?</AlertDialogTitle><AlertDialogDescription>Действие нельзя отменить. Стол с активной сессией или историей заказов удалить нельзя.</AlertDialogDescription></AlertDialogHeader>
             {deleteError && <p role="alert" className="text-destructive text-sm [overflow-wrap:anywhere]">{deleteError}</p>}
-            <AlertDialogFooter><AlertDialogCancel className="min-h-11" disabled={deleting}>Отмена</AlertDialogCancel><AlertDialogAction className="min-h-11" disabled={deleting} onClick={(event) => { event.preventDefault(); void onDelete(); }}>Удалить стол</AlertDialogAction></AlertDialogFooter>
+            <AlertDialogFooter><AlertDialogCancel className="min-h-11" disabled={deleting}>Отмена</AlertDialogCancel><AlertDialogAction variant="destructive" className="min-h-11" disabled={deleting} onClick={(event) => { event.preventDefault(); void onDelete(); }}>Удалить стол</AlertDialogAction></AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>

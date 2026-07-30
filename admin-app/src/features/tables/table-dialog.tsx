@@ -7,13 +7,14 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-const MAX_LENGTH = 32;
+const MAX_LENGTH = 100;
 
 export function TableDialog({ table, existingNumbers, open, onOpenChange, onSubmit }: {
   table: Table | null; existingNumbers: string[]; open: boolean;
   onOpenChange: (open: boolean) => void; onSubmit: (input: TableInput) => Promise<boolean>;
 }) {
   const id = useId();
+  const errorId = `${id}-error`;
   const [number, setNumber] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -48,7 +49,7 @@ export function TableDialog({ table, existingNumbers, open, onOpenChange, onSubm
       <DialogClose asChild><Button type="button" variant="ghost" className="absolute top-2 right-2 min-h-11 min-w-11" aria-label="Закрыть"><X data-icon="inline-start" /><span className="sr-only">Закрыть</span></Button></DialogClose>
       <DialogHeader><DialogTitle>{table ? "Изменить стол" : "Новый стол"}</DialogTitle><DialogDescription id={`${id}-description`}>Укажите номер или название стола.</DialogDescription></DialogHeader>
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-        <FieldGroup><Field data-invalid={Boolean(error)}><FieldLabel htmlFor={id}>Номер стола</FieldLabel><Input id={id} className="min-h-11 [overflow-wrap:anywhere]" value={number} onChange={(event) => setNumber(event.target.value)} aria-invalid={Boolean(error)} disabled={pending} autoFocus /><FieldError>{error}</FieldError></Field></FieldGroup>
+        <FieldGroup><Field data-invalid={Boolean(error)}><FieldLabel htmlFor={id}>Номер стола</FieldLabel><Input id={id} className="min-h-11 [overflow-wrap:anywhere]" maxLength={MAX_LENGTH} value={number} onChange={(event) => setNumber(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={pending} autoFocus /><FieldError id={errorId}>{error}</FieldError></Field></FieldGroup>
         <DialogFooter><Button type="button" variant="outline" className="min-h-11" onClick={() => onOpenChange(false)} disabled={pending}>Отмена</Button><Button type="submit" className="min-h-11" disabled={pending}>{table ? "Сохранить стол" : "Создать стол"}</Button></DialogFooter>
       </form>
     </DialogContent>
