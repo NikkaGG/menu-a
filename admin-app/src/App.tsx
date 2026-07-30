@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AdminShell } from "@/components/admin-shell";
 import { SessionGate } from "@/components/session-gate";
 import { MenuPage } from "@/features/menu/menu-page";
+import { StatsPage } from "@/features/stats/stats-page";
 import { TablesPage } from "@/features/tables/tables-page";
 import { createAdminApi } from "@/lib/api";
 import { createRouteController, resolveRoute, type AdminRoute } from "@/lib/routes";
@@ -32,7 +33,7 @@ export default function App() {
     : route.page === "tables"
       ? <TablesPage api={api} />
       : route.page === "stats"
-        ? <p className="text-muted-foreground">Здесь будет статистика заказов.</p>
+        ? <StatsPage api={api} />
         : <p>Запрошенная страница не существует. <a className="underline" href="/admin/menu" onClick={(event) => { event.preventDefault(); controller.current?.navigate("/admin/menu"); }}>Перейти к управлению меню</a></p>;
   return (
     <div data-admin-app>
