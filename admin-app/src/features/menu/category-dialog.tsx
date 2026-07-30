@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { AdminApiError } from "@/lib/api";
 import type { Category, CategoryInput } from "@/lib/types";
+
+const MAX_SORT_ORDER = 2147483647;
+const SORT_ORDER_ERROR = `Порядок сортировки должен быть целым числом от 0 до ${MAX_SORT_ORDER}.`;
+
+function validSortOrder(value: string) {
+  return /^\d+$/.test(value) && Number(value) <= MAX_SORT_ORDER;
+}
 
 export function CategoryDialog({
   category,
@@ -48,7 +56,7 @@ export function CategoryDialog({
     if (pending) return;
     const nextErrors: typeof errors = {};
     if (!name.trim()) nextErrors.name = "Введите название категории.";
-    if (!/^-?\d+$/.test(sortOrder.trim())) nextErrors.sortOrder = "Введите целое число.";
+    if (!validSortOrder(sortOrder.trim())) nextErrors.sortOrder = SORT_ORDER_ERROR;
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
       return;
@@ -59,9 +67,13 @@ export function CategoryDialog({
     try {
       const success = await onSubmit({ name: name.trim(), sort_order: Number(sortOrder) });
       if (revision === submissionRevision.current && success) onOpenChange(false);
-    } catch {
+    } catch (error) {
       if (revision === submissionRevision.current) {
-        setErrors({ form: "Не удалось сохранить категорию. Попробуйте ещё раз." });
+        setErrors({
+          form: error instanceof AdminApiError
+            ? error.message
+            : "Не удалось сохранить категорию. Попробуйте ещё раз.",
+        });
       }
     } finally {
       if (revision === submissionRevision.current) setPending(false);
@@ -77,8 +89,8 @@ export function CategoryDialog({
           </Button>
         </DialogClose>
         <DialogHeader>
-          <DialogTitle>{category ? "Изменить категорию" : "Новая категория"}</DialogTitle>
-          <DialogDescription id={`${nameId}-description`}>
+          <DialogTitle className="min-w-0 pr-10 [overflow-wrap:anywhere]">{category ? "Изменить категорию" : "Новая категория"}</DialogTitle>
+          <DialogDescription id={`${nameId}-description`} className="min-w-0 [overflow-wrap:anywhere]">
             Укажите название и порядок отображения категории.
           </DialogDescription>
         </DialogHeader>
@@ -104,6 +116,8 @@ export function CategoryDialog({
                 id={orderId}
                 className="min-h-11"
                 type="number"
+                min="0"
+                max={MAX_SORT_ORDER}
                 step="1"
                 value={sortOrder}
                 onChange={(event) => setSortOrder(event.target.value)}

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { axe } from "vitest-axe";
 
+import { AdminApiError } from "@/lib/api";
 import type { AdminApi } from "@/lib/api";
 import type { Category, Dish } from "@/lib/types";
 import { MenuPage } from "./menu-page";
@@ -200,6 +201,49 @@ describe("MenuPage", () => {
     expect(screen.queryByText("database internals")).not.toBeInTheDocument();
   });
 
+  it("rejects category sort orders outside the backend integer range before the API", async () => {
+    const api = mockApi();
+    vi.mocked(api.categories.create).mockResolvedValue(category("c1", "Роллы", 2147483647));
+    const user = userEvent.setup();
+    render(<MenuPage api={api} />);
+    await screen.findByText("Категорий пока нет");
+    await user.click(screen.getAllByRole("button", { name: "Добавить категорию" })[0]);
+    const sortOrder = screen.getByLabelText("Порядок сортировки");
+    expect(sortOrder).toHaveAttribute("min", "0");
+    expect(sortOrder).toHaveAttribute("max", "2147483647");
+    expect(sortOrder).toHaveAttribute("step", "1");
+    for (const value of ["-1", "2147483648", "1.5", ""]) {
+      await user.clear(sortOrder);
+      if (value) await user.type(sortOrder, value);
+      await user.click(screen.getByRole("button", { name: "Создать категорию" }));
+      expect(screen.getByText("Порядок сортировки должен быть целым числом от 0 до 2147483647.")).toBeInTheDocument();
+      expect(api.categories.create).not.toHaveBeenCalled();
+    }
+    await user.clear(sortOrder);
+    await user.type(sortOrder, "2147483647");
+    await user.type(screen.getByLabelText("Название категории"), "Роллы");
+    await user.click(screen.getByRole("button", { name: "Создать категорию" }));
+    expect(api.categories.create).toHaveBeenCalledWith({ name: "Роллы", sort_order: 2147483647 });
+  });
+
+  it("preserves mapped category save and delete errors while hiding unknown details", async () => {
+    const api = mockApi([category("c1", "Роллы")]);
+    vi.mocked(api.categories.update).mockRejectedValue(new AdminApiError("Категория не найдена."));
+    vi.mocked(api.categories.delete).mockRejectedValue(new AdminApiError("Категория используется и не может быть удалена."));
+    const user = userEvent.setup();
+    render(<MenuPage api={api} />);
+    await screen.findByRole("heading", { name: "Роллы" });
+    await user.click(screen.getByRole("button", { name: "Изменить категорию «Роллы»" }));
+    await user.click(screen.getByRole("button", { name: "Сохранить категорию" }));
+    expect(await screen.findByText("Категория не найдена.")).toBeInTheDocument();
+    expect(screen.queryByText("Категория не найдена.")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Удалить категорию «Роллы»" }));
+    await user.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Удалить категорию" }));
+    expect(await screen.findByText("Категория используется и не может быть удалена.")).toBeInTheDocument();
+  });
+
   it("creates a dish with exact nullable fields, category, sort order, and availability", async () => {
     const api = mockApi([category("c1", "Роллы")]);
     vi.mocked(api.dishes.create).mockResolvedValue(dish("d1", "c1", "Филадельфия", { price: "1250.50", sortOrder: 3, isAvailable: false }));
@@ -225,6 +269,32 @@ describe("MenuPage", () => {
       is_available: false,
       sort_order: 3,
     });
+  });
+
+  it("rejects dish sort orders outside the backend integer range before the API", async () => {
+    const api = mockApi([category("c1", "Роллы")]);
+    vi.mocked(api.dishes.create).mockResolvedValue(dish("d1", "c1", "Ролл", { sortOrder: 2147483647 }));
+    const user = userEvent.setup();
+    render(<MenuPage api={api} />);
+    await screen.findByRole("heading", { name: "Роллы" });
+    await user.click(screen.getByRole("button", { name: "Добавить блюдо в категорию «Роллы»" }));
+    const sortOrder = screen.getByLabelText("Порядок сортировки");
+    expect(sortOrder).toHaveAttribute("min", "0");
+    expect(sortOrder).toHaveAttribute("max", "2147483647");
+    expect(sortOrder).toHaveAttribute("step", "1");
+    await user.type(screen.getByLabelText("Название блюда"), "Ролл");
+    await user.type(screen.getByLabelText("Цена"), "100");
+    for (const value of ["-1", "2147483648", "1.5", ""]) {
+      await user.clear(sortOrder);
+      if (value) await user.type(sortOrder, value);
+      await user.click(screen.getByRole("button", { name: "Создать блюдо" }));
+      expect(screen.getByText("Порядок сортировки должен быть целым числом от 0 до 2147483647.")).toBeInTheDocument();
+      expect(api.dishes.create).not.toHaveBeenCalled();
+    }
+    await user.clear(sortOrder);
+    await user.type(sortOrder, "2147483647");
+    await user.click(screen.getByRole("button", { name: "Создать блюдо" }));
+    expect(api.dishes.create).toHaveBeenCalledWith(expect.objectContaining({ sort_order: 2147483647 }));
   });
 
   it("validates dish fields and photo URLs without rendering unsafe previews", async () => {
@@ -286,6 +356,24 @@ describe("MenuPage", () => {
     });
   });
 
+  it("preserves mapped dish save and delete errors", async () => {
+    const api = mockApi([category("c1", "Роллы")], [dish("d1", "c1", "Ролл")]);
+    vi.mocked(api.dishes.update).mockRejectedValue(new AdminApiError("Блюдо не найдено."));
+    vi.mocked(api.dishes.delete).mockRejectedValue(new AdminApiError("Не удалось удалить блюдо."));
+    const user = userEvent.setup();
+    render(<MenuPage api={api} />);
+    await screen.findByText("Ролл");
+
+    await user.click(screen.getByRole("button", { name: "Изменить блюдо «Ролл»" }));
+    await user.click(screen.getByRole("button", { name: "Сохранить блюдо" }));
+    expect(await screen.findByText("Блюдо не найдено.")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+
+    await user.click(screen.getByRole("button", { name: "Удалить блюдо «Ролл»" }));
+    await user.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Удалить блюдо" }));
+    expect(await screen.findByText("Не удалось удалить блюдо.")).toBeInTheDocument();
+  });
+
   it("optimistically toggles availability, exposes pending intent, and rolls back current failure", async () => {
     const api = mockApi([category("c1", "Роллы")], [dish("d1", "c1", "Ролл")]);
     const update = deferred<Dish>();
@@ -345,6 +433,13 @@ describe("MenuPage", () => {
     expect(page?.className).not.toMatch(/min-w-\[(?!0)/);
     expect(container.querySelectorAll(".\\[overflow-wrap\\:anywhere\\]").length).toBeGreaterThan(0);
     expect(container.querySelector('[data-dish-actions="true"]')?.className).toMatch(/flex-col/);
+    expect(container.querySelector("h2")?.className ?? "").toMatch(/overflow-wrap/);
+    const editButton = screen.getByRole("button", { name: `Изменить блюдо «${long}»` });
+    const deleteButton = screen.getByRole("button", { name: `Удалить блюдо «${long}»` });
+    expect(within(editButton).getByText("Изменить")).toBeVisible();
+    expect(within(deleteButton).getByText("Удалить")).toBeVisible();
+    expect(within(editButton).getByText("Изменить")).not.toHaveClass("sr-only");
+    expect(within(deleteButton).getByText("Удалить")).not.toHaveClass("sr-only");
   });
 
   it("has accessible page and dialogs, descriptions, target sizes, focus restoration, and Escape", async () => {

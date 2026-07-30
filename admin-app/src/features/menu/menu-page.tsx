@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
-import { createAdminApi, type AdminApi } from "@/lib/api";
+import { AdminApiError, createAdminApi, type AdminApi } from "@/lib/api";
 import { pluralizeRussian, sortByMenuOrder } from "@/lib/format";
 import type { Category, CategoryInput, Dish, DishInput } from "@/lib/types";
 import { CategoryDialog } from "./category-dialog";
@@ -32,6 +32,7 @@ import {
 } from "./menu-state";
 
 type DialogEditor<T> = { entity: T | null; token: { revision: number; generation: number } };
+type DeleteResult = { ok: true } | { ok: false; message: string };
 
 export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
   const [api] = useState(() => injectedApi ?? createAdminApi());
@@ -193,7 +194,7 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
     }
   };
 
-  const deleteEntity = async (resource: "categories" | "dishes", id: string) => {
+  const deleteEntity = async (resource: "categories" | "dishes", id: string): Promise<DeleteResult> => {
     const deletion = beginDelete(stateRef.current, resource, id);
     commit(deletion.state);
     try {
@@ -201,10 +202,17 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
       else await api.dishes.delete(id);
       commit((current) => completeDelete(current, deletion.token));
       toast.success(resource === "categories" ? "Категория удалена." : "Блюдо удалено.");
-      return true;
-    } catch {
+      return { ok: true };
+    } catch (error) {
       commit((current) => settleDelete(current, deletion.token, "failure"));
-      return false;
+      return {
+        ok: false,
+        message: error instanceof AdminApiError
+          ? error.message
+          : resource === "categories"
+            ? "Не удалось удалить категорию. Попробуйте ещё раз."
+            : "Не удалось удалить блюдо. Попробуйте ещё раз.",
+      };
     }
   };
 

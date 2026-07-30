@@ -16,10 +16,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminApiError } from "@/lib/api";
 import { normalizePhotoUrl, sortByMenuOrder } from "@/lib/format";
 import type { Category, Dish, DishInput } from "@/lib/types";
 
 type Errors = Partial<Record<"name" | "category" | "price" | "costPrice" | "photoUrl" | "sortOrder" | "form", string>>;
+const MAX_SORT_ORDER = 2147483647;
+const SORT_ORDER_ERROR = `Порядок сортировки должен быть целым числом от 0 до ${MAX_SORT_ORDER}.`;
+
+function validSortOrder(value: string) {
+  return /^\d+$/.test(value) && Number(value) <= MAX_SORT_ORDER;
+}
 
 export function DishDialog({
   dish,
@@ -83,7 +90,7 @@ export function DishDialog({
     if (photoUrl.trim() && !safePhotoUrl) {
       nextErrors.photoUrl = "Укажите безопасную ссылку http(s) или путь от корня сайта.";
     }
-    if (!/^-?\d+$/.test(sortOrder.trim())) nextErrors.sortOrder = "Введите целое число.";
+    if (!validSortOrder(sortOrder.trim())) nextErrors.sortOrder = SORT_ORDER_ERROR;
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
       return;
@@ -103,9 +110,13 @@ export function DishDialog({
         sort_order: Number(sortOrder),
       });
       if (revision === submissionRevision.current && success) onOpenChange(false);
-    } catch {
+    } catch (error) {
       if (revision === submissionRevision.current) {
-        setErrors({ form: "Не удалось сохранить блюдо. Попробуйте ещё раз." });
+        setErrors({
+          form: error instanceof AdminApiError
+            ? error.message
+            : "Не удалось сохранить блюдо. Попробуйте ещё раз.",
+        });
       }
     } finally {
       if (revision === submissionRevision.current) setPending(false);
@@ -144,8 +155,8 @@ export function DishDialog({
           </Button>
         </DialogClose>
         <DialogHeader>
-          <DialogTitle>{dish ? "Изменить блюдо" : "Новое блюдо"}</DialogTitle>
-          <DialogDescription id={id("description")}>
+          <DialogTitle className="min-w-0 pr-10 [overflow-wrap:anywhere]">{dish ? "Изменить блюдо" : "Новое блюдо"}</DialogTitle>
+          <DialogDescription id={id("description")} className="min-w-0 [overflow-wrap:anywhere]">
             Заполните данные блюда. Пустые описание, себестоимость и фото будут сохранены как отсутствующие.
           </DialogDescription>
         </DialogHeader>
@@ -186,7 +197,12 @@ export function DishDialog({
                 )}
               </div>
             )}
-            {textField("sortOrder", "Порядок сортировки", sortOrder, setSortOrder, { type: "number", step: 1 })}
+            {textField("sortOrder", "Порядок сортировки", sortOrder, setSortOrder, {
+              type: "number",
+              min: 0,
+              max: MAX_SORT_ORDER,
+              step: 1,
+            })}
             <Field orientation="horizontal">
               <FieldLabel htmlFor={id("available")}>Блюдо доступно</FieldLabel>
               <span className="inline-flex min-h-11 min-w-11 items-center justify-center">

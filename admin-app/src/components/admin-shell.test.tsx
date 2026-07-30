@@ -50,4 +50,27 @@ describe("AdminShell", () => {
     expect(screen.getByRole("heading", { name: "Статистика" })).toHaveFocus();
     expect((await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations).toEqual([]);
   });
+
+  it("keeps the shared header compact and accessible for long Russian headings", async () => {
+    const heading = "Управление меню ".repeat(14);
+    const { container } = render(
+      <AdminShell
+        route={{ page: "menu", canonicalPath: "/admin/menu", title: `${heading} — Панель управления`, heading }}
+        onNavigate={vi.fn()}
+        onLogout={vi.fn()}
+      >
+        <p>Меню</p>
+      </AdminShell>,
+    );
+    const header = container.querySelector("header");
+    expect(header?.className).toContain("min-w-0");
+    expect(header?.className).toMatch(/flex-wrap|overflow/);
+    expect(screen.getByRole("button", { name: "Открыть меню" })).toHaveAccessibleName("Открыть меню");
+    expect(screen.getByRole("button", { name: /Тема:/ })).toHaveAccessibleName();
+    expect(screen.getByRole("button", { name: "Выйти" })).toHaveAccessibleName("Выйти");
+    const pageHeading = screen.getByRole("heading", { level: 1 });
+    expect(pageHeading).toHaveTextContent(heading.trim());
+    expect(pageHeading.className).toMatch(/min-w-0|break|overflow|truncate/);
+    expect((await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations).toEqual([]);
+  });
 });

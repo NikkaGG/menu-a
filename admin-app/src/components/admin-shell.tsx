@@ -68,10 +68,10 @@ export function AdminShell({
         </Sidebar>
       </div>
       <SidebarInset>
-        <header className="flex min-h-16 items-center gap-2 border-b px-4">
+        <header className="flex min-h-16 min-w-0 flex-wrap items-center gap-2 overflow-hidden border-b px-4 sm:flex-nowrap">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" className="min-h-11 min-w-11 md:hidden" aria-label="Открыть меню"><MenuIcon /></Button>
+              <Button variant="ghost" className="min-h-11 min-w-11 md:hidden" aria-label="Открыть меню"><MenuIcon data-icon="inline-start" /></Button>
             </SheetTrigger>
             <SheetContent side="left" showCloseButton={false}>
               <SheetHeader>
@@ -84,12 +84,12 @@ export function AdminShell({
               </SheetClose>
             </SheetContent>
           </Sheet>
-          <span className="font-medium">{route.heading}</span>
-          <div className="ml-auto flex gap-2">
+          <span className="min-w-0 flex-1 truncate font-medium">{route.heading}</span>
+          <div className="ml-auto flex shrink-0 gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="min-h-11" aria-label={`Тема: ${labels[theme]}`}>
-                  {theme === "dark" ? <Moon /> : theme === "light" ? <Sun /> : <Monitor />}<span className="hidden sm:inline">{labels[theme]}</span>
+                <Button variant="outline" className="min-h-11 min-w-11" aria-label={`Тема: ${labels[theme]}`}>
+                  {theme === "dark" ? <Moon data-icon="inline-start" /> : theme === "light" ? <Sun data-icon="inline-start" /> : <Monitor data-icon="inline-start" />}<span className="hidden sm:inline">{labels[theme]}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -100,11 +100,13 @@ export function AdminShell({
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" className="min-h-11" onClick={onLogout}><LogOut />Выйти</Button>
+            <Button variant="outline" className="min-h-11 min-w-11" aria-label="Выйти" onClick={onLogout}>
+              <LogOut data-icon="inline-start" /><span className="hidden sm:inline">Выйти</span>
+            </Button>
           </div>
         </header>
         <div className="min-w-0 flex-1 p-4 md:p-6">
-          <h1 ref={heading} tabIndex={-1} className="mb-6 text-2xl font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">{route.heading}</h1>
+          <h1 ref={heading} tabIndex={-1} className="mb-6 min-w-0 text-2xl font-semibold [overflow-wrap:anywhere] outline-none focus-visible:ring-2 focus-visible:ring-ring">{route.heading}</h1>
           {children}
         </div>
       </SidebarInset>

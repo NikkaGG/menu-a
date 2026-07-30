@@ -21,6 +21,8 @@ import { sortByMenuOrder } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 import { DishRow } from "./dish-row";
 
+type DeleteResult = { ok: true } | { ok: false; message: string };
+
 export function CategorySection({
   category,
   dishes,
@@ -39,21 +41,22 @@ export function CategorySection({
   onEditCategory: () => void;
   onEditDish: (dish: Dish) => void;
   onAvailability: (dish: Dish, next: boolean) => void;
-  onDeleteDish: (dish: Dish) => Promise<boolean>;
-  onDeleteCategory: () => Promise<boolean>;
+  onDeleteDish: (dish: Dish) => Promise<DeleteResult>;
+  onDeleteCategory: () => Promise<DeleteResult>;
 }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const removeCategory = async (event: React.MouseEvent) => {
     event.preventDefault();
     if (deleting) return;
     setDeleting(true);
-    setDeleteError(false);
+    setDeleteError(null);
     try {
-      if (await onDeleteCategory()) setDeleteOpen(false);
-      else setDeleteError(true);
+      const result = await onDeleteCategory();
+      if (result.ok) setDeleteOpen(false);
+      else setDeleteError(result.message);
     } finally {
       setDeleting(false);
     }
@@ -64,7 +67,7 @@ export function CategorySection({
       <CardHeader className="min-w-0">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
           <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-            <CardTitle><h2>{category.name}</h2></CardTitle>
+            <CardTitle><h2 className="min-w-0 [overflow-wrap:anywhere]">{category.name}</h2></CardTitle>
             <CardDescription>Порядок: {category.sortOrder}</CardDescription>
           </div>
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -72,15 +75,15 @@ export function CategorySection({
               <Plus data-icon="inline-start" />Добавить блюдо
             </Button>
             <Button type="button" variant="outline" className="min-h-11 min-w-11" onClick={onEditCategory} aria-label={`Изменить категорию «${category.name}»`}>
-              <Pencil data-icon="inline-start" /><span className="sm:sr-only">Изменить категорию «{category.name}»</span>
+              <Pencil data-icon="inline-start" /><span className="max-w-20 truncate">Изменить</span>
             </Button>
             <AlertDialog open={deleteOpen} onOpenChange={(open) => !deleting && setDeleteOpen(open)}>
               <AlertDialogTrigger asChild>
                 <Button type="button" variant="outline" className="min-h-11 min-w-11" aria-label={`Удалить категорию «${category.name}»`}>
-                  <Trash2 data-icon="inline-start" /><span className="sm:sr-only">Удалить категорию «{category.name}»</span>
+                  <Trash2 data-icon="inline-start" /><span className="max-w-20 truncate">Удалить</span>
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="min-w-0 [overflow-wrap:anywhere]">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Удалить категорию «{category.name}»?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -90,7 +93,7 @@ export function CategorySection({
                 {deleteError && (
                   <Alert variant="destructive">
                     <AlertTitle>Не удалось удалить категорию</AlertTitle>
-                    <AlertDescription>Убедитесь, что категория пуста, и попробуйте ещё раз.</AlertDescription>
+                    <AlertDescription>{deleteError}</AlertDescription>
                   </Alert>
                 )}
                 <AlertDialogFooter>

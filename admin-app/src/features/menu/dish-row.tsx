@@ -20,6 +20,8 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { formatMoney, normalizePhotoUrl } from "@/lib/format";
 import type { Dish } from "@/lib/types";
 
+type DeleteResult = { ok: true } | { ok: false; message: string };
+
 export function DishRow({
   dish,
   availabilityPending,
@@ -31,11 +33,11 @@ export function DishRow({
   availabilityPending: boolean;
   onEdit: () => void;
   onAvailability: (next: boolean) => void;
-  onDelete: () => Promise<boolean>;
+  onDelete: () => Promise<DeleteResult>;
 }) {
   const [deleting, setDeleting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteError, setDeleteError] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [imageFailed, setImageFailed] = useState(false);
   const photoUrl = normalizePhotoUrl(dish.photoUrl);
 
@@ -43,10 +45,11 @@ export function DishRow({
     event.preventDefault();
     if (deleting) return;
     setDeleting(true);
-    setDeleteError(false);
+    setDeleteError(null);
     try {
-      if (await onDelete()) setDeleteOpen(false);
-      else setDeleteError(true);
+      const result = await onDelete();
+      if (result.ok) setDeleteOpen(false);
+      else setDeleteError(result.message);
     } finally {
       setDeleting(false);
     }
@@ -62,7 +65,7 @@ export function DishRow({
               : <ImageOff />}
           </div>
           <div className="min-w-0 [overflow-wrap:anywhere]">
-            <p className="font-medium">{dish.name}</p>
+            <p className="min-w-0 font-medium [overflow-wrap:anywhere]">{dish.name}</p>
             {dish.description && <p className="text-sm text-muted-foreground">{dish.description}</p>}
           </div>
         </div>
@@ -77,16 +80,16 @@ export function DishRow({
         <div data-dish-actions="true" className="flex min-w-0 flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center md:justify-end">
           <Button type="button" variant="outline" className="min-h-11 min-w-11" onClick={onEdit} aria-label={`Изменить блюдо «${dish.name}»`}>
             <Pencil data-icon="inline-start" />
-            <span className="sm:sr-only">Изменить блюдо «{dish.name}»</span>
+            <span className="max-w-20 truncate">Изменить</span>
           </Button>
           <AlertDialog open={deleteOpen} onOpenChange={(open) => !deleting && setDeleteOpen(open)}>
             <AlertDialogTrigger asChild>
               <Button type="button" variant="outline" className="min-h-11 min-w-11" aria-label={`Удалить блюдо «${dish.name}»`}>
                 <Trash2 data-icon="inline-start" />
-                <span className="sm:sr-only">Удалить блюдо «{dish.name}»</span>
+                <span className="max-w-20 truncate">Удалить</span>
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="min-w-0 [overflow-wrap:anywhere]">
               <AlertDialogHeader>
                 <AlertDialogTitle>Удалить блюдо «{dish.name}»?</AlertDialogTitle>
                 <AlertDialogDescription>Блюдо исчезнет из меню. Это действие нельзя отменить.</AlertDialogDescription>
@@ -94,7 +97,7 @@ export function DishRow({
               {deleteError && (
                 <Alert variant="destructive">
                   <AlertTitle>Не удалось удалить блюдо</AlertTitle>
-                  <AlertDescription>Попробуйте ещё раз.</AlertDescription>
+                  <AlertDescription>{deleteError}</AlertDescription>
                 </Alert>
               )}
               <AlertDialogFooter>
