@@ -89,20 +89,26 @@ export function StatsPage({ api }: { api: AdminApi }) {
   const [errors, setErrors] = useState<Partial<Record<"from" | "to" | "range", string>>>({});
   const guard = useRef(createConcurrencyGuard());
   const mounted = useRef(true);
+  const activeRequest = useRef<AbortController | null>(null);
 
   const load = useCallback(async (nextQuery: StatsQuery) => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     const token = guard.current.beginLoad("statistics");
     setPending(true);
     setError(null);
     setData(null);
     try {
-      const result = await api.stats(nextQuery);
+      const result = await api.stats(nextQuery, { signal: controller.signal });
       if (!mounted.current || !guard.current.isCurrentLoad("statistics", token)) return;
       setData(result);
     } catch (caught) {
+      if (typeof caught === "object" && caught !== null && "name" in caught && caught.name === "AbortError") return;
       if (!mounted.current || !guard.current.isCurrentLoad("statistics", token)) return;
       if (!(caught instanceof AdminApiError && caught.authHandled)) setError(safeError(caught));
     } finally {
+      if (activeRequest.current === controller) activeRequest.current = null;
       if (mounted.current && guard.current.isCurrentLoad("statistics", token)) setPending(false);
     }
   }, [api]);
@@ -113,6 +119,8 @@ export function StatsPage({ api }: { api: AdminApi }) {
     void load(submittedQuery);
     return () => {
       mounted.current = false;
+      activeRequest.current?.abort();
+      activeRequest.current = null;
       currentGuard.invalidate();
     };
   }, [load, submittedQuery]);

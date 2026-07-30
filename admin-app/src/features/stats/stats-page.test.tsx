@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { axe } from "vitest-axe";
 
@@ -7,14 +8,24 @@ import { AdminApiError, type AdminApi } from "@/lib/api";
 import type { Statistics } from "@/lib/types";
 import { StatsPage } from "./stats-page";
 
-const chartState = vi.hoisted(() => ({ fail: false, mounts: 0, cleanups: 0 }));
+const chartState = vi.hoisted(() => ({
+  fail: false,
+  mounts: 0,
+  cleanups: 0,
+  renders: 0,
+  dataRefs: [] as unknown[],
+  yAxisProps: [] as Array<Record<string, unknown>>,
+  tooltipProps: [] as Array<Record<string, unknown>>,
+}));
 
 vi.mock("recharts", async () => {
   const React = await import("react");
   const Wrapper = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
   return {
     ResponsiveContainer: Wrapper,
-    LineChart: ({ children }: { children?: React.ReactNode }) => {
+    LineChart: ({ children, data }: { children?: React.ReactNode; data?: unknown }) => {
+      chartState.renders += 1;
+      chartState.dataRefs.push(data);
       React.useEffect(() => {
         chartState.mounts += 1;
         return () => { chartState.cleanups += 1; };
@@ -24,9 +35,15 @@ vi.mock("recharts", async () => {
     },
     CartesianGrid: () => null,
     XAxis: () => null,
-    YAxis: () => null,
+    YAxis: (props: Record<string, unknown>) => {
+      chartState.yAxisProps.push(props);
+      return null;
+    },
     Line: ({ dataKey }: { dataKey: string }) => <span data-chart-series={dataKey} />,
-    Tooltip: () => null,
+    Tooltip: (props: Record<string, unknown>) => {
+      chartState.tooltipProps.push(props);
+      return null;
+    },
     Legend: () => null,
   };
 });
@@ -78,6 +95,10 @@ describe("StatsPage", () => {
     chartState.fail = false;
     chartState.mounts = 0;
     chartState.cleanups = 0;
+    chartState.renders = 0;
+    chartState.dataRefs = [];
+    chartState.yAxisProps = [];
+    chartState.tooltipProps = [];
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
@@ -105,15 +126,20 @@ describe("StatsPage", () => {
     const user = userEvent.setup();
     render(<StatsPage api={api} />);
 
-    await waitFor(() => expect(api.stats).toHaveBeenCalledWith({
-      from: "2026-03-26",
-      to: "2026-04-01",
-      groupBy: "day",
-    }));
+    await waitFor(() => expect(api.stats).toHaveBeenCalledWith(
+      { from: "2026-03-26", to: "2026-04-01", groupBy: "day" },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    ));
     await user.click(screen.getByRole("button", { name: "Последние 30 дней" }));
-    expect(api.stats).toHaveBeenLastCalledWith({ from: "2026-03-03", to: "2026-04-01", groupBy: "day" });
+    expect(api.stats).toHaveBeenLastCalledWith(
+      { from: "2026-03-03", to: "2026-04-01", groupBy: "day" },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
     await user.click(screen.getByRole("button", { name: "Текущий месяц" }));
-    expect(api.stats).toHaveBeenLastCalledWith({ from: "2026-04-01", to: "2026-04-01", groupBy: "day" });
+    expect(api.stats).toHaveBeenLastCalledWith(
+      { from: "2026-04-01", to: "2026-04-01", groupBy: "day" },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
   it("submits custom inclusive dates and exact day, week, and month grouping queries", async () => {
@@ -130,12 +156,18 @@ describe("StatsPage", () => {
     grouping.focus();
     await user.keyboard("{Enter}{ArrowDown}{Enter}");
     await user.click(screen.getByRole("button", { name: "Показать статистику" }));
-    expect(api.stats).toHaveBeenLastCalledWith({ from: "2026-01-01", to: "2026-01-31", groupBy: "week" });
+    expect(api.stats).toHaveBeenLastCalledWith(
+      { from: "2026-01-01", to: "2026-01-31", groupBy: "week" },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
 
     grouping.focus();
     await user.keyboard("{Enter}{End}{Enter}");
     await user.click(screen.getByRole("button", { name: "Показать статистику" }));
-    expect(api.stats).toHaveBeenLastCalledWith({ from: "2026-01-01", to: "2026-01-31", groupBy: "month" });
+    expect(api.stats).toHaveBeenLastCalledWith(
+      { from: "2026-01-01", to: "2026-01-31", groupBy: "month" },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
   it("shows loading skeletons, clears stale results, localizes errors, and retries persistently", async () => {
@@ -182,6 +214,53 @@ describe("StatsPage", () => {
     expect(chartState.cleanups).toBeGreaterThan(0);
   });
 
+  it.each(["resolve", "reject"] as const)("aborts unresolved requests on unmount and stays quiet when they later %s", async (settlement) => {
+    const request = deferred<Statistics>();
+    const signals: AbortSignal[] = [];
+    const api = mockApi();
+    vi.mocked(api.stats).mockImplementation((_query, options) => {
+      signals.push(options?.signal as AbortSignal);
+      return request.promise;
+    });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { unmount } = render(<StatsPage api={api} />);
+    await waitFor(() => expect(signals).toHaveLength(1));
+    unmount();
+    expect(signals[0].aborted).toBe(true);
+    if (settlement === "resolve") request.resolve(statistics());
+    else request.reject(new Error("late failure"));
+    await Promise.resolve();
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it("aborts the superseded preset request and lets only the latest result win", async () => {
+    const older = deferred<Statistics>();
+    const latest = deferred<Statistics>();
+    const signals: AbortSignal[] = [];
+    const api = mockApi();
+    vi.mocked(api.stats)
+      .mockImplementationOnce((_query, options) => {
+        signals.push(options?.signal as AbortSignal);
+        return older.promise;
+      })
+      .mockImplementationOnce((_query, options) => {
+        signals.push(options?.signal as AbortSignal);
+        return latest.promise;
+      });
+    const user = userEvent.setup();
+    const { unmount } = render(<StatsPage api={api} />);
+    await waitFor(() => expect(signals).toHaveLength(1));
+    await user.click(screen.getByRole("button", { name: "Последние 30 дней" }));
+    await waitFor(() => expect(signals).toHaveLength(2));
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(false);
+    latest.resolve(statistics({ totalRevenue: "99.00" }));
+    expect(await screen.findByText(/99,00\s?₸/)).toBeInTheDocument();
+    older.resolve(statistics({ totalRevenue: "1.00" }));
+    expect(screen.queryByText(/1,00\s?₸/)).not.toBeInTheDocument();
+    unmount();
+  });
+
   it("suppresses shared handled 401 errors while authentication transitions", async () => {
     const api = mockApi();
     vi.mocked(api.stats).mockRejectedValue(new AdminApiError("Сессия истекла. Войдите снова.", { status: 401, authHandled: true }));
@@ -217,6 +296,41 @@ describe("StatsPage", () => {
     expect(within(table).getByText("2026-04-01")).toBeInTheDocument();
     expect(within(table).getByText(/^2\s?500,01\s?₸$/)).toBeInTheDocument();
     expect(within(table).getByText(/^500,01\s?₸$/)).toBeInTheDocument();
+  });
+
+  it("uses compact Y-axis labels for large values while keeping full table values", async () => {
+    render(<StatsPage api={mockApi(statistics({
+      points: [{ date: "2026-03-31", revenue: "1234567890.12", profit: "123456789.12" }],
+    }))} />);
+    await screen.findByTestId("stats-chart");
+    const formatter = chartState.yAxisProps[0].tickFormatter as (value: string) => string;
+    expect(formatter("1234567890")).toMatch(/млрд/);
+    expect(formatter("1234567890")).not.toContain("1 234 567 890");
+    expect(screen.getByRole("table", { name: "Данные графика" })).toHaveTextContent(/1\s?234\s?567\s?890,12\s?₸/);
+  });
+
+  it("labels profit tooltip rows from the chart series data key", async () => {
+    render(<StatsPage api={mockApi()} />);
+    await screen.findByTestId("stats-chart");
+    const content = chartState.tooltipProps[0].content as ReactElement<{
+      formatter: (value: string, name: string, item: { dataKey: string }) => ReactNode;
+    }>;
+    const tooltip = render(<>{content.props.formatter("3000.25", "Прибыль", { dataKey: "profit" })}</>);
+    expect(within(tooltip.container).getByText("Прибыль")).toBeInTheDocument();
+    expect(within(tooltip.container).queryByText("Выручка")).not.toBeInTheDocument();
+  });
+
+  it("does not rebuild chart data while draft filters change", async () => {
+    const user = userEvent.setup();
+    render(<StatsPage api={mockApi()} />);
+    await screen.findByTestId("stats-chart");
+    const initialRenders = chartState.renders;
+    const initialData = chartState.dataRefs[0];
+    const from = screen.getByLabelText("Дата начала");
+    await user.clear(from);
+    await user.type(from, "2026-01-01");
+    expect(chartState.renders).toBe(initialRenders);
+    expect(chartState.dataRefs[0]).toBe(initialData);
   });
 
   it("contains chart rendering failures while preserving KPIs and the table fallback", async () => {

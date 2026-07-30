@@ -50,6 +50,32 @@ describe("typed admin API", () => {
     expect(stats).toMatchObject({ totalRevenue: "1200.50", totalProfit: null, topDishes: [{ dishName: "Ролл", quantity: 2 }] });
   });
 
+  it("passes an optional stats abort signal through to fetch and keeps abort errors quiet", async () => {
+    const controller = new AbortController();
+    const abortError = Object.assign(new Error("aborted"), { name: "AbortError" });
+    fetchMock.mockRejectedValueOnce(abortError);
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+
+    await expect(api.stats(
+      { from: "2026-01-01", to: "2026-01-02", groupBy: "day" },
+      { signal: controller.signal },
+    )).rejects.toBe(abortError);
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockRejectedValue(abortError),
+    });
+    await expect(api.stats(
+      { from: "2026-01-01", to: "2026-01-02", groupBy: "day" },
+      { signal: controller.signal },
+    )).rejects.toBe(abortError);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/admin/stats?from=2026-01-01&to=2026-01-02&groupBy=day",
+      expect.objectContaining({ signal: controller.signal }),
+    );
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
   it("sends exact snake_case mutation contracts and URL-encodes IDs", async () => {
     fetchMock
       .mockResolvedValueOnce(createMockResponse({ dish: {} }))

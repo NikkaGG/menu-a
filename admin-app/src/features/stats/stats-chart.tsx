@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from "react";
+import { Component, memo, useMemo, type ReactNode } from "react";
 import {
   CartesianGrid,
   Line,
@@ -27,6 +27,16 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const compactNumber = new Intl.NumberFormat("ru-RU", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function formatCompactMoney(value: string | number): string {
+  const number = Number(value);
+  return `${compactNumber.format(Number.isFinite(number) ? number : 0)}\u00a0₸`;
+}
+
 class ChartErrorBoundary extends Component<
   { children: ReactNode },
   { failed: boolean }
@@ -54,12 +64,12 @@ type StatsChartProps = {
   showProfit: boolean;
 };
 
-export function StatsChart({ points, showProfit }: StatsChartProps) {
-  const data = points.map((point) => ({
+export const StatsChart = memo(function StatsChart({ points, showProfit }: StatsChartProps) {
+  const data = useMemo(() => points.map((point) => ({
     date: point.date,
     revenue: Number(point.revenue),
     profit: point.profit === null ? null : Number(point.profit),
-  }));
+  })), [points]);
 
   return (
     <ChartErrorBoundary>
@@ -69,16 +79,18 @@ export function StatsChart({ points, showProfit }: StatsChartProps) {
         role="img"
         aria-label={showProfit ? "График выручки и прибыли" : "График выручки"}
       >
-        <LineChart accessibilityLayer data={data} margin={{ left: 8, right: 8 }}>
+        <LineChart accessibilityLayer data={data} margin={{ left: 4, right: 8 }}>
           <CartesianGrid vertical={false} />
           <XAxis dataKey="date" tickLine={false} axisLine={false} minTickGap={24} />
-          <YAxis tickLine={false} axisLine={false} width={72} tickFormatter={(value) => formatMoney(String(value))} />
+          <YAxis tickLine={false} axisLine={false} width={56} tickFormatter={formatCompactMoney} />
           <ChartTooltip
             content={(
               <ChartTooltipContent
-                formatter={(value, name) => (
+                formatter={(value, name, item) => (
                   <>
-                    <span className="text-muted-foreground">{name === "profit" ? "Прибыль" : "Выручка"}</span>
+                    <span className="text-muted-foreground" data-series-name={String(name)}>
+                      {item.dataKey === "profit" ? "Прибыль" : "Выручка"}
+                    </span>
                     <span className="font-mono font-medium tabular-nums">{formatMoney(String(value))}</span>
                   </>
                 )}
@@ -108,4 +120,4 @@ export function StatsChart({ points, showProfit }: StatsChartProps) {
       </ChartContainer>
     </ChartErrorBoundary>
   );
-}
+});

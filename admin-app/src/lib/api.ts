@@ -153,10 +153,18 @@ function localizedError(serverError: unknown): string {
   return knownPrefix ? ERROR_MESSAGES[knownPrefix] : FALLBACK_MESSAGE;
 }
 
+function isAbortError(error: unknown): boolean {
+  return typeof error === "object"
+    && error !== null
+    && "name" in error
+    && error.name === "AbortError";
+}
+
 async function responseBody(response: Response): Promise<RawRecord> {
   try {
     return record(await response.json());
-  } catch {
+  } catch (error) {
+    if (isAbortError(error)) throw error;
     return {};
   }
 }
@@ -201,7 +209,8 @@ export function createAdminApi(options: AdminApiOptions = {}) {
         credentials: "same-origin",
         headers: hasBody ? { "Content-Type": "application/json", ...init.headers } : init.headers,
       });
-    } catch {
+    } catch (error) {
+      if (isAbortError(error)) throw error;
       throw new AdminApiError(
         loginRequest
           ? "Не удалось выполнить вход. Проверьте подключение к интернету."
@@ -316,9 +325,12 @@ export function createAdminApi(options: AdminApiOptions = {}) {
       },
       downloadQr: qr,
     },
-    stats: async (query: { from: string; to: string; groupBy: "day" | "week" | "month" }) => {
+    stats: async (
+      query: { from: string; to: string; groupBy: "day" | "week" | "month" },
+      requestOptions: { signal?: AbortSignal } = {},
+    ) => {
       const params = new URLSearchParams(query);
-      const body = await request(`/api/admin/stats?${params}`);
+      const body = await request(`/api/admin/stats?${params}`, requestOptions.signal ? { signal: requestOptions.signal } : {});
       return statistics(body.stats ?? body);
     },
   };
