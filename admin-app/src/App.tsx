@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { AdminShell } from "@/components/admin-shell";
 import { SessionGate } from "@/components/session-gate";
+import { MenuPage } from "@/features/menu/menu-page";
 import { createAdminApi } from "@/lib/api";
 import { createRouteController, resolveRoute, type AdminRoute } from "@/lib/routes";
 
@@ -26,7 +27,7 @@ export default function App() {
     canonical.href = new URL(route.canonicalPath, window.location.origin).href;
   }, [route]);
   const body = route.page === "menu"
-    ? <p className="text-muted-foreground">Здесь будет управление категориями и блюдами.</p>
+    ? <MenuPage api={api} />
     : route.page === "tables"
       ? <p className="text-muted-foreground">Здесь будет управление столами и QR-кодами.</p>
       : route.page === "stats"
