@@ -50,7 +50,7 @@ export function AdminShell({
     <SidebarMenu>
       {ADMIN_NAVIGATION.map((item) => (
         <SidebarMenuItem key={item.page}>
-          <SidebarMenuButton asChild isActive={route.page === item.page}>
+          <SidebarMenuButton asChild isActive={route.page === item.page} className="min-h-11">
             <a href={item.href} aria-current={route.page === item.page ? "page" : undefined} onClick={(event) => { event.preventDefault(); if (closeMobile) setMobileOpen(false); onNavigate(item.href); }}>
               <item.icon /><span>{item.label}</span>
             </a>
@@ -67,7 +67,7 @@ export function AdminShell({
           <SidebarContent className="p-2">{navigation()}</SidebarContent>
         </Sidebar>
       </div>
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="flex min-h-16 min-w-0 flex-wrap items-center gap-2 overflow-hidden border-b px-4 sm:flex-nowrap">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>

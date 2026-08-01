@@ -28,6 +28,7 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
   const [pendingDeletes, setPendingDeletes] = useState<Set<string>>(new Set());
   const [pendingQr, setPendingQr] = useState<Set<string>>(new Set());
   const [actionErrors, setActionErrors] = useState<Record<string, string>>({});
+  const lastDialogTrigger = useRef<HTMLElement | null>(null);
   const commit = useCallback((next: TablesState | ((current: TablesState) => TablesState)) => {
     const value = typeof next === "function" ? next(stateRef.current) : next;
     stateRef.current = value; renderState(value); return value;
@@ -46,7 +47,12 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
       stateRef.current = invalidateTablesState(stateRef.current);
     };
   }, [load]);
-  const openCreate = () => { const opened = beginDialog(stateRef.current); commit(opened.state); setEditor({ table: null, ...opened.token }); };
+  const openCreate = () => {
+    lastDialogTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const opened = beginDialog(stateRef.current);
+    commit(opened.state);
+    setEditor({ table: null, ...opened.token });
+  };
   const submit = async (input: TableInput) => {
     if (!editor) return false;
     const mutation = beginCreate(stateRef.current, `new-table-${editor.revision}`); commit(mutation.state);
@@ -101,7 +107,12 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
     {loadError ? <Alert variant="destructive"><AlertTitle>Столы не загружены</AlertTitle><AlertDescription className="flex flex-col items-start gap-3">Не удалось загрузить столы. Попробуйте ещё раз.<Button type="button" variant="outline" className="min-h-11" onClick={() => void load()}><RefreshCw data-icon="inline-start" />Повторить</Button></AlertDescription></Alert>
       : initialLoading ? <Card><CardHeader><CardTitle><Skeleton className="h-6 w-40" /></CardTitle></CardHeader><CardContent><Skeleton className="h-14 w-full" /><Skeleton className="mt-3 h-14 w-full" /></CardContent></Card>
       : state.tables.length === 0 ? <Empty className="min-h-64 border"><EmptyHeader><EmptyMedia variant="icon"><QrCode /></EmptyMedia><EmptyTitle>Столов пока нет</EmptyTitle><EmptyDescription>Создайте стол, чтобы скачать QR-код.</EmptyDescription></EmptyHeader><EmptyContent><Button type="button" className="min-h-11" onClick={openCreate}><Plus data-icon="inline-start" />Добавить стол</Button></EmptyContent></Empty>
-      : <div data-table-scroll-region="true" className="min-w-0 max-w-full overflow-x-auto rounded-lg border"><Table className="min-w-[720px]"><TableHeader><TableRow><TableHead>Стол</TableHead><TableHead>Создан</TableHead><TableHead>Действия</TableHead></TableRow></TableHeader><TableBody>{state.tables.map((table) => <ManagedTableRow key={table.id} table={table} deleting={pendingDeletes.has(table.id)} downloading={pendingQr.has(table.id)} deleteError={actionErrors[table.id]} downloadError={actionErrors[`qr:${table.id}`]} onDelete={() => remove(table)} onDownload={() => void download(table)} />)}</TableBody></Table></div>}
-    <TableDialog table={editor?.table ?? null} existingNumbers={numbers} open={Boolean(editor)} onOpenChange={(open) => { if (!open) setEditor(null); }} onSubmit={submit} />
+      : <div data-table-scroll="true" data-table-scroll-region="true" className="min-w-0 max-w-full overflow-x-auto rounded-lg border"><Table className="min-w-[720px]"><TableHeader><TableRow><TableHead>Стол</TableHead><TableHead>Создан</TableHead><TableHead>Действия</TableHead></TableRow></TableHeader><TableBody>{state.tables.map((table) => <ManagedTableRow key={table.id} table={table} deleting={pendingDeletes.has(table.id)} downloading={pendingQr.has(table.id)} deleteError={actionErrors[table.id]} downloadError={actionErrors[`qr:${table.id}`]} onDelete={() => remove(table)} onDownload={() => void download(table)} />)}</TableBody></Table></div>}
+    <TableDialog table={editor?.table ?? null} existingNumbers={numbers} open={Boolean(editor)} onOpenChange={(open) => {
+      if (!open) {
+        setEditor(null);
+        queueMicrotask(() => lastDialogTrigger.current?.focus());
+      }
+    }} onSubmit={submit} />
   </section>;
 }

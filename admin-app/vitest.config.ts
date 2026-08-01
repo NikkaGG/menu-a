@@ -21,6 +21,6 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: [path.resolve(repositoryRoot, "admin-app/src/test/setup.ts")],
     include: ["admin-app/**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["tests/*.test.js", "node_modules/**", "admin-dist/**"],
+    exclude: ["tests/*.test.js", "admin-app/tests/**", "node_modules/**", "admin-dist/**"],
   },
 });
