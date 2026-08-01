@@ -123,7 +123,7 @@ async function installAdminApi(page: Page, state: ApiState) {
       return route.fulfill({
         status: 200,
         headers: { "Content-Type": "image/png", "Content-Disposition": 'attachment; filename="table-qr.png"' },
-        body: Buffer.from("mock-png"),
+        body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64"),
       });
     }
     const tableMatch = path.match(/^\/api\/admin\/tables\/([^/]+)$/);

@@ -33,6 +33,14 @@ test("login form has no axe violations and errors are announced once", async ({ 
 
   await page.getByRole("button", { name: "Войти" }).click();
   await expect(page.locator('[role="alert"]')).toHaveCount(1);
+  const error = page.locator("#admin-login-error");
+  await expect(error).toBeVisible();
+  for (const label of ["Логин", "Пароль"]) {
+    const field = page.getByLabel(label);
+    await expect(field).toHaveAttribute("aria-invalid", "true");
+    await expect(field).toHaveAttribute("aria-describedby", "admin-login-error");
+    await expect(field).toHaveAttribute("aria-errormessage", "admin-login-error");
+  }
   const liveMessages = await page.locator('[aria-live]:visible, [role="alert"]:visible').allTextContents();
   expect(new Set(liveMessages).size).toBe(liveMessages.length);
 });

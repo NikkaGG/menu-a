@@ -60,6 +60,31 @@ describe("SessionGate", () => {
     expect(login).toHaveBeenCalledTimes(1);
     await act(async () => reject(new AdminApiError("Слишком много попыток. Попробуйте позже.", { status: 429 })));
     expect(await screen.findByText("Слишком много попыток. Попробуйте позже.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Логин")).toHaveAttribute("aria-invalid", "false");
+    expect(screen.getByLabelText("Пароль")).toHaveAttribute("aria-invalid", "false");
+  });
+
+  it("connects a general credential error to both invalid fields with a stable id", async () => {
+    render(
+      <SessionGate api={api({ login: vi.fn(async () => ({ ok: false })) })}>
+        {() => <div>Оболочка</div>}
+      </SessionGate>,
+    );
+    const user = userEvent.setup();
+    const login = await screen.findByLabelText("Логин");
+    const password = screen.getByLabelText("Пароль");
+    await user.type(login, "admin");
+    await user.type(password, "wrong");
+    await user.click(screen.getByRole("button", { name: "Войти" }));
+
+    const error = await screen.findByText("Не удалось войти. Проверьте логин и пароль.");
+    expect(error).toHaveAttribute("id", "admin-login-error");
+    for (const field of [login, password]) {
+      expect(field).toHaveAttribute("aria-invalid", "true");
+      expect(field).toHaveAttribute("aria-describedby", "admin-login-error");
+      expect(field).toHaveAttribute("aria-errormessage", "admin-login-error");
+      expect(field.closest('[data-slot="field"]')).toHaveAttribute("data-invalid", "true");
+    }
   });
 
   it("logs in, logs out, and quietly handles idempotent expiry", async () => {

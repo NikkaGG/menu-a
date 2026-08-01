@@ -80,6 +80,30 @@ async function expectInsideViewportAndNoControlIntersections(page: Page, contain
   await expectMinimumTargets(container, "open overlay targets");
 }
 
+async function expectFocusTrapCycle(page: Page, overlay: Locator) {
+  const focusables = overlay.locator(
+    'a[href]:visible, button:not([disabled]):visible, input:not([disabled]):visible, select:not([disabled]):visible, textarea:not([disabled]):visible, [tabindex]:not([tabindex="-1"]):visible, [contenteditable="true"]:visible',
+  );
+  await expect.poll(() => focusables.count()).toBeGreaterThan(1);
+  const first = focusables.first();
+  const last = focusables.last();
+  await first.focus();
+  await page.keyboard.press("Shift+Tab");
+  await expect(last).toBeFocused();
+  await last.focus();
+  await page.keyboard.press("Tab");
+  await expect(first).toBeFocused();
+}
+
+async function expectOverlayKeyboardContract(page: Page, overlay: Locator, trigger?: Locator) {
+  await expect(overlay).toBeVisible();
+  await expectInsideViewportAndNoControlIntersections(page, overlay);
+  await expectFocusTrapCycle(page, overlay);
+  await page.keyboard.press("Escape");
+  await expect(overlay).toBeHidden();
+  if (trigger) await expect(trigger).toBeFocused();
+}
+
 async function expectReducedMotion(page: Page, scope: Locator = page.locator("body")) {
   const offenders = await scope.locator("*:visible").evaluateAll((elements) => {
     const milliseconds = (value: string) => value.split(",").map((item) => {
@@ -99,16 +123,8 @@ async function expectDialogKeyboardContract(page: Page, trigger: Locator, name: 
   await trigger.focus();
   await trigger.click();
   const dialog = page.getByRole("dialog", { name });
-  await expect(dialog).toBeVisible();
-  await expectInsideViewportAndNoControlIntersections(page, dialog);
   await expect(dialog).toContainText(/./);
-  const focusedInside = await dialog.evaluate((element) => element.contains(document.activeElement));
-  expect(focusedInside).toBe(true);
-  await page.keyboard.press("Shift+Tab");
-  expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await page.keyboard.press("Escape");
-  await expect(dialog).toBeHidden();
-  await expect(trigger).toBeFocused();
+  await expectOverlayKeyboardContract(page, dialog, trigger);
 }
 
 test("direct routes, aliases, history, titles, current navigation and heading focus", async ({ page }) => {
@@ -207,14 +223,8 @@ test("mobile sheet traps focus, closes with Escape and restores its trigger", as
   const trigger = page.getByRole("button", { name: "Открыть меню" });
   await trigger.click();
   const sheet = page.getByRole("dialog", { name: "Навигация" });
-  await expect(sheet).toBeVisible();
-  await expectInsideViewportAndNoControlIntersections(page, sheet);
   await expectNoIntersections(sheet.locator("a:visible, button:visible"));
-  await page.keyboard.press("Shift+Tab");
-  expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await page.keyboard.press("Escape");
-  await expect(sheet).toBeHidden();
-  await expect(trigger).toBeFocused();
+  await expectOverlayKeyboardContract(page, sheet, trigger);
 });
 
 test("menu CRUD, confirmations, availability and dialog keyboard contracts", async ({ page, apiState }) => {
@@ -223,6 +233,7 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   await expect(page.getByText(UNBROKEN, { exact: true }).first()).toBeVisible();
 
   const addCategory = page.getByRole("button", { name: "Добавить категорию" }).first();
+  await expectDialogKeyboardContract(page, addCategory, /Новая категория/);
   await addCategory.click();
   await page.getByRole("textbox", { name: "Название категории", exact: true }).fill("");
   await page.getByRole("button", { name: "Создать категорию" }).click();
@@ -271,7 +282,9 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   }));
   await expect(page.getByText("Блюдо создано.", { exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "Изменить блюдо «Блюдо браузерного теста»" }).click();
+  const editCreatedDish = page.getByRole("button", { name: "Изменить блюдо «Блюдо браузерного теста»" });
+  await expectDialogKeyboardContract(page, editCreatedDish, /Изменить блюдо/);
+  await editCreatedDish.click();
   await page.getByLabel("Название блюда").fill("Блюдо браузерного теста изменено");
   await page.getByRole("button", { name: "Сохранить блюдо" }).click();
   await expect(page.getByText("Блюдо браузерного теста изменено", { exact: true })).toBeVisible();
@@ -285,12 +298,7 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   const deleteCategory = page.getByRole("button", { name: new RegExp(`Удалить категорию «${LONG_RUSSIAN} новая`) });
   await deleteCategory.click();
   const categoryAlert = page.getByRole("alertdialog", { name: /Удалить категорию/ });
-  await expectInsideViewportAndNoControlIntersections(page, categoryAlert);
-  await page.keyboard.press("Shift+Tab");
-  expect(await categoryAlert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await page.keyboard.press("Escape");
-  await expect(categoryAlert).toBeHidden();
-  await expect(deleteCategory).toBeFocused();
+  await expectOverlayKeyboardContract(page, categoryAlert, deleteCategory);
   await deleteCategory.click();
   await page.getByRole("button", { name: "Удалить категорию" }).click();
   await expect(page.getByText(`${LONG_RUSSIAN} новая`, { exact: true })).toBeHidden();
@@ -316,13 +324,7 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   const deleteDish = page.getByRole("button", { name: new RegExp(`Удалить блюдо «${UNBROKEN}`) });
   await deleteDish.click();
   const alert = page.getByRole("alertdialog", { name: /Удалить блюдо/ });
-  await expectInsideViewportAndNoControlIntersections(page, alert);
-  expect(await alert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await page.keyboard.press("Shift+Tab");
-  expect(await alert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await page.keyboard.press("Escape");
-  await expect(alert).toBeHidden();
-  await expect(deleteDish).toBeFocused();
+  await expectOverlayKeyboardContract(page, alert, deleteDish);
   const deleteCreatedDish = page.getByRole("button", { name: "Удалить блюдо «Блюдо браузерного теста изменено»" });
   await deleteCreatedDish.click();
   await page.getByRole("button", { name: "Удалить блюдо" }).click();
@@ -371,19 +373,22 @@ test("table form, delete confirmation, QR and explicit horizontal scroll region"
   await input.fill("Стол браузерного теста");
   await page.getByRole("button", { name: "Создать стол" }).click();
   await expect(page.getByText("Стол браузерного теста", { exact: true })).toBeVisible();
+  await expectNoIntersections(scrollRegion.locator("tbody tr:visible"));
+  await expectNoIntersections(scrollRegion.locator("tbody tr button:visible"));
 
+  const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: new RegExp(`Скачать QR-код стола «${UNBROKEN}`) }).click();
+  const qrDownload = await downloadPromise;
+  expect(qrDownload.suggestedFilename()).toBe("table-qr.png");
+  const qrStream = await qrDownload.createReadStream();
+  const qrChunks: Buffer[] = [];
+  for await (const chunk of qrStream) qrChunks.push(Buffer.from(chunk));
+  expect(Buffer.concat(qrChunks).subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
   await expect.poll(() => apiState.requests.some((request) => request === "GET /api/admin/tables/table-1/qr")).toBe(true);
   const remove = page.getByRole("button", { name: new RegExp(`Удалить стол «${UNBROKEN}`) });
   await remove.click();
   const tableAlert = page.getByRole("alertdialog", { name: /Удалить стол/ });
-  await expect(tableAlert).toBeVisible();
-  await expectInsideViewportAndNoControlIntersections(page, tableAlert);
-  await page.keyboard.press("Shift+Tab");
-  expect(await tableAlert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await page.keyboard.press("Escape");
-  await expect(tableAlert).toBeHidden();
-  await expect(remove).toBeFocused();
+  await expectOverlayKeyboardContract(page, tableAlert, remove);
   await remove.click();
   await page.getByRole("button", { name: "Удалить стол" }).click();
   await expect(page.getByText(UNBROKEN, { exact: true })).toBeHidden();
@@ -411,6 +416,12 @@ test("statistics filters, chart fallback table, wrapping and reduced motion are 
     expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth);
   }
   await expect(page.getByText(UNBROKEN, { exact: true })).toBeVisible();
+  const statsPage = page.locator("[data-stats-page]");
+  await expectNoIntersections(statsPage.locator('form button:visible, form input:visible, form [role="combobox"]:visible'));
+  await expectNoIntersections(page.locator("[data-stats-kpis] > *:visible"));
+  await expectNoIntersections(statsScroll.locator("tbody tr:visible"));
+  await expectNoIntersections(statsScroll.locator("th:visible, td:visible"));
+  await expectNoIntersections(statsPage.locator("button:visible"));
   await page.getByLabel("Дата начала").fill("2026-08-10");
   await page.getByLabel("Дата окончания").fill("2026-08-01");
   await page.getByRole("button", { name: "Показать статистику" }).click();
