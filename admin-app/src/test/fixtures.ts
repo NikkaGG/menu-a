@@ -9,6 +9,10 @@ type ApiState = {
   dishes: Array<Record<string, unknown>>;
   tables: Array<Record<string, unknown>>;
   requests: string[];
+  calls: Array<{ method: string; path: string; search: string; body: unknown }>;
+  unexpectedRequests: string[];
+  assets: Array<{ url: string; status: number; type: string }>;
+  failedAssets: string[];
 };
 
 function json(route: Route, body: unknown, status = 200) {
@@ -16,12 +20,31 @@ function json(route: Route, body: unknown, status = 200) {
 }
 
 async function installAdminApi(page: Page, state: ApiState) {
+  await page.route("**/*", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const allowedDocument = request.resourceType() === "document"
+      && /^\/(?:admin(?:\/.*)?|admin-next(?:\/.*)?|stats\/?)$/.test(url.pathname);
+    const allowedStatic = /^\/admin-dist\/assets\/[^/]+$/.test(url.pathname);
+    if (url.origin === "http://127.0.0.1:4173" && (allowedDocument || allowedStatic)) {
+      await route.fallback();
+      return;
+    }
+    state.unexpectedRequests.push(`${request.method()} ${request.url()}`);
+    await route.abort("blockedbyclient");
+  });
   await page.route("**/api/admin/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     const path = url.pathname;
     const method = request.method();
     state.requests.push(`${method} ${path}${url.search}`);
+    state.calls.push({
+      method,
+      path,
+      search: url.search,
+      body: request.postData() ? request.postDataJSON() : null,
+    });
 
     if (path === "/api/admin/session") {
       if (method !== "GET") return json(route, { error: "Method not allowed" }, 405);
@@ -138,12 +161,26 @@ export const test = base.extend<{ apiState: ApiState; mockAdminApi: void }>({
       }],
       tables: [{ id: "table-1", number: UNBROKEN, created_at: "2026-07-29T10:00:00.000Z" }],
       requests: [],
+      calls: [],
+      unexpectedRequests: [],
+      assets: [],
+      failedAssets: [],
     };
     await provide(state);
   },
   mockAdminApi: [async ({ page, apiState }, provide) => {
+    const assetTypes = new Set(["script", "stylesheet", "font", "image"]);
+    page.on("response", (response) => {
+      const type = response.request().resourceType();
+      if (assetTypes.has(type)) apiState.assets.push({ url: response.url(), status: response.status(), type });
+    });
+    page.on("requestfailed", (request) => {
+      if (assetTypes.has(request.resourceType())) apiState.failedAssets.push(request.url());
+    });
     await installAdminApi(page, apiState);
     await provide();
+    expect(apiState.unexpectedRequests).toEqual([]);
+    expect(apiState.failedAssets).toEqual([]);
   }, { auto: true }],
 });
 

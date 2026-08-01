@@ -204,7 +204,7 @@ export function DishDialog({
               step: 1,
             })}
             <Field orientation="horizontal">
-              <FieldLabel htmlFor={id("available")}>Блюдо доступно</FieldLabel>
+              <FieldLabel htmlFor={id("available")} className="min-h-11 cursor-pointer items-center">Блюдо доступно</FieldLabel>
               <span className="inline-flex min-h-11 min-w-11 items-center justify-center">
                 <Switch id={id("available")} checked={isAvailable} onCheckedChange={setIsAvailable} disabled={pending} aria-describedby={id("available-description")} />
               </span>

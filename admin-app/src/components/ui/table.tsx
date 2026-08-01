@@ -11,9 +11,6 @@ function Table({ className, containerProps, ...props }: TableProps) {
   return (
     <div
       data-slot="table-container"
-      data-table-scroll="true"
-      tabIndex={0}
-      aria-label="Прокручиваемая таблица"
       {...restContainerProps}
       className={cn("relative w-full overflow-x-auto", containerClassName)}
     >

@@ -111,7 +111,9 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
           className="min-w-[720px]"
           containerProps={{
             "aria-label": "Таблица столов",
+            "data-table-scroll": "true",
             "data-table-scroll-region": "true",
+            tabIndex: 0,
             className: "min-w-0 max-w-full rounded-lg border",
           } as React.ComponentProps<"div">}
         ><TableHeader><TableRow><TableHead>Стол</TableHead><TableHead>Создан</TableHead><TableHead>Действия</TableHead></TableRow></TableHeader><TableBody>{state.tables.map((table) => <ManagedTableRow key={table.id} table={table} deleting={pendingDeletes.has(table.id)} downloading={pendingQr.has(table.id)} deleteError={actionErrors[table.id]} downloadError={actionErrors[`qr:${table.id}`]} onDelete={() => remove(table)} onDownload={() => void download(table)} />)}</TableBody></Table>}

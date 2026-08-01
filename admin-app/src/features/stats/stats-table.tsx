@@ -45,7 +45,15 @@ export function StatsTable({
         <CardDescription>Таблица содержит те же значения, что и график.</CardDescription>
       </CardHeader>
       <CardContent className="min-w-0">
-        <Table aria-label="Данные графика">
+        <Table
+          aria-label="Данные графика"
+          className="min-w-[520px]"
+          containerProps={{
+            "aria-label": "Таблица данных графика",
+            "data-table-scroll": "true",
+            tabIndex: 0,
+          } as React.ComponentProps<"div">}
+        >
           <TableCaption>Данные графика</TableCaption>
           <TableHeader>
             <TableRow>

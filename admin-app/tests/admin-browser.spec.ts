@@ -39,6 +39,31 @@ async function expectNoIntersections(locator: Locator) {
   }
 }
 
+async function expectMinimumTargets(scope: Locator, context: string) {
+  await scope.evaluate(async (element) => {
+    await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => undefined)));
+  });
+  const undersized = await scope.locator(
+    'button:visible, nav a[href]:visible, [data-slot="sidebar-menu-button"]:visible, input[data-slot="input"]:visible, textarea[data-slot="textarea"]:visible, [role="combobox"]:visible, [role="menuitemradio"]:visible, [role="switch"]:visible',
+  ).evaluateAll((elements) => elements.map((element) => {
+    const id = element.getAttribute("id");
+    const target = element.getAttribute("role") === "switch" && id
+      ? document.querySelector<HTMLElement>(`label[for="${CSS.escape(id)}"]`) ?? element
+      : element;
+    const box = target.getBoundingClientRect();
+    return {
+      tag: element.tagName,
+      role: element.getAttribute("role"),
+      slot: element.getAttribute("data-slot"),
+      id,
+      name: element.getAttribute("aria-label") ?? element.textContent?.trim(),
+      width: box.width,
+      height: box.height,
+    };
+  }).filter(({ width, height }) => width < 44 || height < 44));
+  expect(undersized, context).toEqual([]);
+}
+
 async function expectInsideViewportAndNoControlIntersections(page: Page, container: Locator) {
   await container.evaluate(async (element) => {
     await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => undefined)));
@@ -52,6 +77,7 @@ async function expectInsideViewportAndNoControlIntersections(page: Page, contain
   expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width + 1);
   expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height + 1);
   await expectNoIntersections(container.locator("button:visible, input:visible, textarea:visible, [role=switch]:visible"));
+  await expectMinimumTargets(container, "open overlay targets");
 }
 
 async function expectReducedMotion(page: Page, scope: Locator = page.locator("body")) {
@@ -123,10 +149,21 @@ test("direct routes, aliases, history, titles, current navigation and heading fo
   await expect(page).toHaveURL(/\/admin\/menu$/);
 });
 
-test("serves the built admin bundle and rejects wrong API methods", async ({ page }) => {
-  await page.goto("/admin");
+test("serves the built admin bundle, assets, and rejects wrong API methods", async ({ page, apiState }) => {
+  const documentResponse = await page.goto("/admin");
+  expect(documentResponse?.headers()["vary"]).toContain("Origin");
   const moduleSource = await page.locator('script[type="module"]').getAttribute("src");
   expect(moduleSource).toMatch(/^\/admin-dist\/assets\/index-[\w-]+\.js$/);
+  await expect.poll(() => apiState.assets.map((asset) => asset.type))
+    .toEqual(expect.arrayContaining(["script", "stylesheet", "font"]));
+  expect(apiState.assets.length).toBeGreaterThan(0);
+  for (const asset of apiState.assets) {
+    expect(asset.status, asset.url).toBeGreaterThanOrEqual(200);
+    expect(asset.status, asset.url).toBeLessThan(300);
+    expect(new URL(asset.url).origin).toBe("http://127.0.0.1:4173");
+    expect(new URL(asset.url).pathname).toMatch(/^\/admin-dist\/assets\//);
+  }
+  expect(apiState.failedAssets).toEqual([]);
   const statuses = await page.evaluate(async () => Promise.all([
     fetch("/api/admin/session", { method: "POST" }).then((response) => response.status),
     fetch("/api/admin/logout", { method: "GET" }).then((response) => response.status),
@@ -145,6 +182,9 @@ test("login, logout and theme choices work without real credentials", async ({ p
   await expect(page.getByRole("heading", { level: 1, name: "Управление меню" })).toBeVisible();
 
   const theme = page.getByRole("button", { name: /^Тема:/ });
+  await theme.click();
+  await expectMinimumTargets(page.getByRole("menu"), "theme menu targets");
+  await page.keyboard.press("Escape");
   for (const [choice, stored, dark] of [
     ["Тёмная", "dark", true],
     ["Светлая", "light", false],
@@ -179,6 +219,7 @@ test("mobile sheet traps focus, closes with Escape and restores its trigger", as
 
 test("menu CRUD, confirmations, availability and dialog keyboard contracts", async ({ page, apiState }) => {
   await page.goto("/admin/menu");
+  await expect(page.locator("[data-table-scroll]")).toHaveCount(0);
   await expect(page.getByText(UNBROKEN, { exact: true }).first()).toBeVisible();
 
   const addCategory = page.getByRole("button", { name: "Добавить категорию" }).first();
@@ -194,15 +235,54 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
 
   await expectDialogKeyboardContract(
     page,
-    page.getByRole("button", { name: new RegExp(`Изменить категорию «${LONG_RUSSIAN}`) }).first(),
+    page.getByRole("button", { name: `Изменить категорию «${LONG_RUSSIAN}»` }),
     /Изменить категорию/,
   );
+  await page.getByRole("button", { name: `Изменить категорию «${LONG_RUSSIAN}»` }).click();
+  await page.getByRole("textbox", { name: "Название категории", exact: true }).fill(`${LONG_RUSSIAN} изменена`);
+  await page.getByRole("button", { name: "Сохранить категорию" }).click();
+  await expect(page.getByText(`${LONG_RUSSIAN} изменена`, { exact: true })).toBeVisible();
+  expect(apiState.calls).toContainEqual(expect.objectContaining({
+    method: "PATCH",
+    path: "/api/admin/categories/category-1",
+    body: { name: `${LONG_RUSSIAN} изменена`, sort_order: 1 },
+  }));
+  await expect(page.getByText("Категория обновлена.", { exact: true })).toBeVisible();
+
   await expectDialogKeyboardContract(
     page,
-    page.getByRole("button", { name: new RegExp(`Добавить блюдо в категорию «${LONG_RUSSIAN}`) }).first(),
+    page.getByRole("button", { name: `Добавить блюдо в категорию «${LONG_RUSSIAN} изменена»` }),
     /Новое блюдо/,
   );
-  const deleteCategory = page.getByRole("button", { name: new RegExp(`Удалить категорию «${LONG_RUSSIAN}`) }).first();
+  await page.getByRole("button", { name: `Добавить блюдо в категорию «${LONG_RUSSIAN} изменена»` }).click();
+  await page.getByLabel("Название блюда").fill("Блюдо браузерного теста");
+  await page.getByLabel("Цена").fill("4500.50");
+  await page.getByRole("button", { name: "Создать блюдо" }).click();
+  await expect(page.getByText("Блюдо браузерного теста", { exact: true })).toBeVisible();
+  expect(apiState.calls).toContainEqual(expect.objectContaining({
+    method: "POST",
+    path: "/api/admin/dishes",
+    body: expect.objectContaining({
+      category_id: "category-1",
+      name: "Блюдо браузерного теста",
+      price: 4500.5,
+      is_available: true,
+    }),
+  }));
+  await expect(page.getByText("Блюдо создано.", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Изменить блюдо «Блюдо браузерного теста»" }).click();
+  await page.getByLabel("Название блюда").fill("Блюдо браузерного теста изменено");
+  await page.getByRole("button", { name: "Сохранить блюдо" }).click();
+  await expect(page.getByText("Блюдо браузерного теста изменено", { exact: true })).toBeVisible();
+  expect(apiState.calls).toContainEqual(expect.objectContaining({
+    method: "PATCH",
+    path: "/api/admin/dishes/dish-2",
+    body: expect.objectContaining({ name: "Блюдо браузерного теста изменено", price: 4500.5 }),
+  }));
+  await expect(page.getByText("Блюдо обновлено.", { exact: true })).toBeVisible();
+
+  const deleteCategory = page.getByRole("button", { name: new RegExp(`Удалить категорию «${LONG_RUSSIAN} новая`) });
   await deleteCategory.click();
   const categoryAlert = page.getByRole("alertdialog", { name: /Удалить категорию/ });
   await expectInsideViewportAndNoControlIntersections(page, categoryAlert);
@@ -211,6 +291,15 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   await page.keyboard.press("Escape");
   await expect(categoryAlert).toBeHidden();
   await expect(deleteCategory).toBeFocused();
+  await deleteCategory.click();
+  await page.getByRole("button", { name: "Удалить категорию" }).click();
+  await expect(page.getByText(`${LONG_RUSSIAN} новая`, { exact: true })).toBeHidden();
+  expect(apiState.calls).toContainEqual(expect.objectContaining({
+    method: "DELETE",
+    path: "/api/admin/categories/category-2",
+    body: null,
+  }));
+  await expect(page.getByText("Категория удалена.", { exact: true })).toBeVisible();
 
   const availability = page.getByRole("switch", { name: new RegExp(`Скрыть блюдо «${UNBROKEN}`) });
   const availabilityId = await availability.getAttribute("id");
@@ -234,8 +323,18 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   await page.keyboard.press("Escape");
   await expect(alert).toBeHidden();
   await expect(deleteDish).toBeFocused();
+  const deleteCreatedDish = page.getByRole("button", { name: "Удалить блюдо «Блюдо браузерного теста изменено»" });
+  await deleteCreatedDish.click();
+  await page.getByRole("button", { name: "Удалить блюдо" }).click();
+  await expect(page.getByText("Блюдо браузерного теста изменено", { exact: true })).toBeHidden();
+  expect(apiState.calls).toContainEqual(expect.objectContaining({
+    method: "DELETE",
+    path: "/api/admin/dishes/dish-2",
+    body: null,
+  }));
+  await expect(page.getByText("Блюдо удалено.", { exact: true })).toBeVisible();
   await expectNoIntersections(page.locator("header button:visible"));
-  await expect(page.locator("[data-category-actions]")).toHaveCount(2);
+  await expect(page.locator("[data-category-actions]")).toHaveCount(1);
   await expectNoIntersections(page.locator("[data-category-actions] > *:visible"));
   await expectNoIntersections(page.locator("[data-dish-actions] > *:visible"));
   await expectNoIntersections(page.locator("[data-menu-page] > div:first-of-type button:visible"));
@@ -285,6 +384,15 @@ test("table form, delete confirmation, QR and explicit horizontal scroll region"
   await page.keyboard.press("Escape");
   await expect(tableAlert).toBeHidden();
   await expect(remove).toBeFocused();
+  await remove.click();
+  await page.getByRole("button", { name: "Удалить стол" }).click();
+  await expect(page.getByText(UNBROKEN, { exact: true })).toBeHidden();
+  expect(apiState.calls).toContainEqual(expect.objectContaining({
+    method: "DELETE",
+    path: "/api/admin/tables/table-1",
+    body: null,
+  }));
+  await expect(page.getByText("Стол удалён.", { exact: true })).toBeVisible();
 });
 
 test("statistics filters, chart fallback table, wrapping and reduced motion are accessible", async ({ page }) => {
@@ -292,6 +400,16 @@ test("statistics filters, chart fallback table, wrapping and reduced motion are 
   await page.goto("/stats");
   await expect(page.getByRole("img", { name: "График выручки и прибыли" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Данные графика" })).toBeVisible();
+  const statsScroll = page.locator('[data-table-scroll][aria-label="Таблица данных графика"]');
+  await expect(statsScroll).toHaveCount(1);
+  await expect(statsScroll).toHaveAttribute("tabindex", "0");
+  if ((page.viewportSize()?.width ?? 0) <= 390) {
+    const sizes = await statsScroll.evaluate((element) => ({
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+    }));
+    expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth);
+  }
   await expect(page.getByText(UNBROKEN, { exact: true })).toBeVisible();
   await page.getByLabel("Дата начала").fill("2026-08-10");
   await page.getByLabel("Дата окончания").fill("2026-08-01");
@@ -317,16 +435,15 @@ test("reduced motion applies to the page and open overlays", async ({ page }) =>
   await expectReducedMotion(page, page.getByRole("dialog", { name: "Новая категория" }));
 });
 
-test("visible primary controls expose at least 44 by 44 real targets", async ({ page }) => {
-  await page.goto("/admin/menu");
-  const undersized = await page.locator("button:visible, a[aria-current]:visible, [role=switch]:visible").evaluateAll((elements) =>
-    elements.map((element) => {
-      const id = element.getAttribute("id");
-      const target = element.getAttribute("role") === "switch" && id
-        ? document.querySelector<HTMLElement>(`label[for="${CSS.escape(id)}"]`) ?? element
-        : element;
-      const box = target.getBoundingClientRect();
-      return { name: element.getAttribute("aria-label") ?? element.textContent?.trim(), width: box.width, height: box.height };
-    }).filter(({ width, height }) => width < 44 || height < 44));
-  expect(undersized).toEqual([]);
+test("login, navigation, pages, forms and switch labels expose 44 by 44 targets", async ({ page, apiState }) => {
+  apiState.authenticated = false;
+  await page.goto("/admin");
+  await expectMinimumTargets(page.locator("body"), "login targets");
+
+  apiState.authenticated = true;
+  for (const path of ["/admin/menu", "/admin/tables", "/stats"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expectMinimumTargets(page.locator("body"), `${path} targets`);
+  }
 });

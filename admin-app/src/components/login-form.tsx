@@ -35,11 +35,11 @@ export function LoginForm({ api, message, onSuccess }: { api: AdminApi; message?
         <FieldGroup>
           <Field data-invalid={Boolean(error && !login)}>
             <FieldLabel htmlFor="admin-login">Логин</FieldLabel>
-            <Input ref={inputRef} id="admin-login" name="login" autoComplete="username" value={login} onChange={(event) => setLogin(event.target.value)} aria-invalid={Boolean(error && !login)} />
+            <Input ref={inputRef} id="admin-login" name="login" className="min-h-11" autoComplete="username" value={login} onChange={(event) => setLogin(event.target.value)} aria-invalid={Boolean(error && !login)} />
           </Field>
           <Field>
             <FieldLabel htmlFor="admin-password">Пароль</FieldLabel>
-            <Input id="admin-password" name="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} />
+            <Input id="admin-password" name="password" className="min-h-11" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} />
           </Field>
         </FieldGroup>
         <Button className="min-h-11 w-full" type="submit" disabled={pending}>{pending ? "Входим…" : "Войти"}</Button>

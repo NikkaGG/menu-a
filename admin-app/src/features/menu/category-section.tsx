@@ -114,7 +114,7 @@ export function CategorySection({
             </EmptyHeader>
           </Empty>
         ) : (
-          <Table className="menu-dishes-table table-fixed">
+          <Table className="menu-dishes-table table-fixed" containerProps={{ className: "overflow-x-hidden" }}>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[45%]">Блюдо</TableHead>

@@ -28,7 +28,7 @@ export default defineConfig({
     use: { viewport: { width, height: width <= 390 ? 844 : 900 } },
   })),
   webServer: {
-    command: "npm --prefix .. run build && node tests/serve-admin-preview.mjs",
+    command: "npm --prefix .. run build && node ../node_modules/vite/bin/vite.js preview --config vite.config.ts --host 127.0.0.1 --port 4173 --strictPort",
     url: "http://127.0.0.1:4173/admin",
     reuseExistingServer: false,
     timeout: 30_000,
