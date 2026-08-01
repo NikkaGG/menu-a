@@ -70,7 +70,7 @@ export function CategorySection({
             <CardTitle><h2 className="min-w-0 [overflow-wrap:anywhere]">{category.name}</h2></CardTitle>
             <CardDescription>Порядок: {category.sortOrder}</CardDescription>
           </div>
-          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <div data-category-actions="true" className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button type="button" variant="outline" className="min-h-11" onClick={onAddDish} aria-label={`Добавить блюдо в категорию «${category.name}»`}>
               <Plus data-icon="inline-start" />Добавить блюдо
             </Button>

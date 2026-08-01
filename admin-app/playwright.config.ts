@@ -16,7 +16,6 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:4173",
     browserName: "chromium",
-    channel: "chrome",
     locale: "ru-RU",
     colorScheme: "light",
     reducedMotion: "reduce",
@@ -29,7 +28,7 @@ export default defineConfig({
     use: { viewport: { width, height: width <= 390 ? 844 : 900 } },
   })),
   webServer: {
-    command: "node ../node_modules/vite/bin/vite.js --config vite.config.ts --base / --host 127.0.0.1 --port 4173 --strictPort",
+    command: "npm --prefix .. run build && node tests/serve-admin-preview.mjs",
     url: "http://127.0.0.1:4173/admin",
     reuseExistingServer: false,
     timeout: 30_000,

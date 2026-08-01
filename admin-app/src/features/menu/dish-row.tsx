@@ -40,6 +40,7 @@ export function DishRow({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [imageFailed, setImageFailed] = useState(false);
   const photoUrl = normalizePhotoUrl(dish.photoUrl);
+  const availabilityId = `dish-availability-${dish.id}`;
 
   const remove = async (event: React.MouseEvent) => {
     event.preventDefault();
@@ -106,15 +107,16 @@ export function DishRow({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <span className="inline-flex min-h-11 min-w-11 items-center justify-center">
+          <label htmlFor={availabilityId} className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center">
             <Switch
+              id={availabilityId}
               className="after:-inset-y-3.5"
               checked={dish.isAvailable}
               onCheckedChange={onAvailability}
               disabled={availabilityPending}
               aria-label={`${dish.isAvailable ? "Скрыть" : "Показать"} блюдо «${dish.name}»`}
             />
-          </span>
+          </label>
         </div>
       </TableCell>
     </TableRow>

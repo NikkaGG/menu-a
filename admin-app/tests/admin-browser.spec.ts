@@ -39,11 +39,42 @@ async function expectNoIntersections(locator: Locator) {
   }
 }
 
+async function expectInsideViewportAndNoControlIntersections(page: Page, container: Locator) {
+  await container.evaluate(async (element) => {
+    await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => undefined)));
+  });
+  const box = await container.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(-1);
+  expect(box!.y).toBeGreaterThanOrEqual(-1);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width + 1);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height + 1);
+  await expectNoIntersections(container.locator("button:visible, input:visible, textarea:visible, [role=switch]:visible"));
+}
+
+async function expectReducedMotion(page: Page, scope: Locator = page.locator("body")) {
+  const offenders = await scope.locator("*:visible").evaluateAll((elements) => {
+    const milliseconds = (value: string) => value.split(",").map((item) => {
+      const duration = item.trim();
+      return duration.endsWith("ms") ? Number.parseFloat(duration) : Number.parseFloat(duration) * 1000;
+    });
+    return elements.flatMap((element) => {
+      const style = getComputedStyle(element);
+      const longest = Math.max(...milliseconds(style.transitionDuration), ...milliseconds(style.animationDuration));
+      return longest > 1 ? [{ tag: element.tagName, slot: element.getAttribute("data-slot"), longest }] : [];
+    });
+  });
+  expect(offenders).toEqual([]);
+}
+
 async function expectDialogKeyboardContract(page: Page, trigger: Locator, name: RegExp) {
   await trigger.focus();
   await trigger.click();
   const dialog = page.getByRole("dialog", { name });
   await expect(dialog).toBeVisible();
+  await expectInsideViewportAndNoControlIntersections(page, dialog);
   await expect(dialog).toContainText(/./);
   const focusedInside = await dialog.evaluate((element) => element.contains(document.activeElement));
   expect(focusedInside).toBe(true);
@@ -83,6 +114,25 @@ test("direct routes, aliases, history, titles, current navigation and heading fo
   await expect(page).toHaveURL(/\/admin\/menu$/);
   await page.goForward();
   await expect(page).toHaveURL(/\/admin\/tables$/);
+
+  await page.goto("/admin/неизвестно");
+  await expect(page).toHaveTitle("Страница не найдена — Панель управления");
+  await expect(page.getByRole("heading", { level: 1, name: "Страница не найдена" })).toBeFocused();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "http://127.0.0.1:4173/admin/menu");
+  await page.getByRole("link", { name: "Перейти к управлению меню" }).click();
+  await expect(page).toHaveURL(/\/admin\/menu$/);
+});
+
+test("serves the built admin bundle and rejects wrong API methods", async ({ page }) => {
+  await page.goto("/admin");
+  const moduleSource = await page.locator('script[type="module"]').getAttribute("src");
+  expect(moduleSource).toMatch(/^\/admin-dist\/assets\/index-[\w-]+\.js$/);
+  const statuses = await page.evaluate(async () => Promise.all([
+    fetch("/api/admin/session", { method: "POST" }).then((response) => response.status),
+    fetch("/api/admin/logout", { method: "GET" }).then((response) => response.status),
+    fetch("/api/admin/stats", { method: "POST" }).then((response) => response.status),
+  ]));
+  expect(statuses).toEqual([405, 405, 405]);
 });
 
 test("login, logout and theme choices work without real credentials", async ({ page, apiState }) => {
@@ -101,7 +151,9 @@ test("login, logout and theme choices work without real credentials", async ({ p
     ["Системная", "system", false],
   ] as const) {
     await theme.click();
-    await page.getByRole("menuitemradio", { name: choice }).click();
+    const item = page.getByRole("menuitemradio", { name: choice });
+    await item.focus();
+    await page.keyboard.press("Enter");
     await expect.poll(() => page.evaluate(() => localStorage.getItem("admin-theme"))).toBe(stored);
     await expect.poll(() => page.locator("html").evaluate((element) => element.classList.contains("dark"))).toBe(dark);
   }
@@ -116,6 +168,8 @@ test("mobile sheet traps focus, closes with Escape and restores its trigger", as
   await trigger.click();
   const sheet = page.getByRole("dialog", { name: "Навигация" });
   await expect(sheet).toBeVisible();
+  await expectInsideViewportAndNoControlIntersections(page, sheet);
+  await expectNoIntersections(sheet.locator("a:visible, button:visible"));
   await page.keyboard.press("Shift+Tab");
   expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Escape");
@@ -151,6 +205,7 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   const deleteCategory = page.getByRole("button", { name: new RegExp(`Удалить категорию «${LONG_RUSSIAN}`) }).first();
   await deleteCategory.click();
   const categoryAlert = page.getByRole("alertdialog", { name: /Удалить категорию/ });
+  await expectInsideViewportAndNoControlIntersections(page, categoryAlert);
   await page.keyboard.press("Shift+Tab");
   expect(await categoryAlert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Escape");
@@ -158,13 +213,21 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   await expect(deleteCategory).toBeFocused();
 
   const availability = page.getByRole("switch", { name: new RegExp(`Скрыть блюдо «${UNBROKEN}`) });
-  await availability.click();
+  const availabilityId = await availability.getAttribute("id");
+  expect(availabilityId).toBeTruthy();
+  const availabilityTarget = page.locator(`label[for="${availabilityId}"]`);
+  await expect(availabilityTarget).toBeVisible();
+  const targetBox = await availabilityTarget.boundingBox();
+  expect(targetBox!.width).toBeGreaterThanOrEqual(44);
+  expect(targetBox!.height).toBeGreaterThanOrEqual(44);
+  await availabilityTarget.click();
   await expect(page.getByRole("switch", { name: new RegExp(`Показать блюдо «${UNBROKEN}`) })).not.toBeChecked();
   expect(apiState.requests.some((request) => request === "PATCH /api/admin/dishes/dish-1")).toBe(true);
 
   const deleteDish = page.getByRole("button", { name: new RegExp(`Удалить блюдо «${UNBROKEN}`) });
   await deleteDish.click();
   const alert = page.getByRole("alertdialog", { name: /Удалить блюдо/ });
+  await expectInsideViewportAndNoControlIntersections(page, alert);
   expect(await alert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Shift+Tab");
   expect(await alert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
@@ -172,7 +235,10 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   await expect(alert).toBeHidden();
   await expect(deleteDish).toBeFocused();
   await expectNoIntersections(page.locator("header button:visible"));
+  await expect(page.locator("[data-category-actions]")).toHaveCount(2);
+  await expectNoIntersections(page.locator("[data-category-actions] > *:visible"));
   await expectNoIntersections(page.locator("[data-dish-actions] > *:visible"));
+  await expectNoIntersections(page.locator("[data-menu-page] > div:first-of-type button:visible"));
   await expectNoPageOverflow(page);
 });
 
@@ -180,6 +246,20 @@ test("table form, delete confirmation, QR and explicit horizontal scroll region"
   await page.goto("/admin/tables");
   const scrollRegion = page.locator("[data-table-scroll-region][data-table-scroll]");
   await expect(scrollRegion).toHaveCount(1);
+  await expect(page.locator("[data-table-scroll]")).toHaveCount(1);
+  await expect(scrollRegion).toHaveAttribute("tabindex", "0");
+  await expect(scrollRegion).toHaveAttribute("aria-label", "Таблица столов");
+  if ((page.viewportSize()?.width ?? 0) <= 390) {
+    const before = await scrollRegion.evaluate((element) => ({
+      left: element.scrollLeft,
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+    }));
+    expect(before.scrollWidth).toBeGreaterThan(before.clientWidth);
+    await scrollRegion.focus();
+    await scrollRegion.evaluate((element) => { element.scrollLeft = element.scrollWidth; });
+    await expect.poll(() => scrollRegion.evaluate((element) => element.scrollLeft)).toBeGreaterThan(before.left);
+  }
   await expectNoPageOverflow(page);
 
   const addTable = page.getByRole("button", { name: "Добавить стол" }).first();
@@ -199,9 +279,11 @@ test("table form, delete confirmation, QR and explicit horizontal scroll region"
   await remove.click();
   const tableAlert = page.getByRole("alertdialog", { name: /Удалить стол/ });
   await expect(tableAlert).toBeVisible();
+  await expectInsideViewportAndNoControlIntersections(page, tableAlert);
   await page.keyboard.press("Shift+Tab");
   expect(await tableAlert.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await page.getByRole("button", { name: "Отмена" }).click();
+  await page.keyboard.press("Escape");
+  await expect(tableAlert).toBeHidden();
   await expect(remove).toBeFocused();
 });
 
@@ -218,21 +300,31 @@ test("statistics filters, chart fallback table, wrapping and reduced motion are 
   await expect(page.getByLabel("Дата начала")).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByLabel("Дата окончания")).toHaveAttribute("aria-describedby", "stats-range-error");
   expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
-  const reduced = await page.locator("header button").first().evaluate((element) => {
-    const value = getComputedStyle(element).transitionDuration || "0s";
-    return value.split(",").map((duration) => duration.trim().endsWith("ms")
-      ? Number.parseFloat(duration)
-      : Number.parseFloat(duration) * 1000);
-  });
-  expect(Math.max(...reduced)).toBeLessThanOrEqual(1);
+  await expectReducedMotion(page);
   await expectNoPageOverflow(page);
 });
 
-test("visible primary controls expose at least 44 by 44 CSS-pixel targets", async ({ page }) => {
+test("reduced motion applies to the page and open overlays", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/admin/menu");
+  await expectReducedMotion(page);
+  if ((page.viewportSize()?.width ?? 0) < 768) {
+    await page.getByRole("button", { name: "Открыть меню" }).click();
+    await expectReducedMotion(page, page.getByRole("dialog", { name: "Навигация" }));
+    await page.keyboard.press("Escape");
+  }
+  await page.getByRole("button", { name: "Добавить категорию" }).first().click();
+  await expectReducedMotion(page, page.getByRole("dialog", { name: "Новая категория" }));
+});
+
+test("visible primary controls expose at least 44 by 44 real targets", async ({ page }) => {
   await page.goto("/admin/menu");
   const undersized = await page.locator("button:visible, a[aria-current]:visible, [role=switch]:visible").evaluateAll((elements) =>
     elements.map((element) => {
-      const target = element.getAttribute("role") === "switch" ? element.parentElement ?? element : element;
+      const id = element.getAttribute("id");
+      const target = element.getAttribute("role") === "switch" && id
+        ? document.querySelector<HTMLElement>(`label[for="${CSS.escape(id)}"]`) ?? element
+        : element;
       const box = target.getBoundingClientRect();
       return { name: element.getAttribute("aria-label") ?? element.textContent?.trim(), width: box.width, height: box.height };
     }).filter(({ width, height }) => width < 44 || height < 44));

@@ -107,7 +107,14 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
     {loadError ? <Alert variant="destructive"><AlertTitle>Столы не загружены</AlertTitle><AlertDescription className="flex flex-col items-start gap-3">Не удалось загрузить столы. Попробуйте ещё раз.<Button type="button" variant="outline" className="min-h-11" onClick={() => void load()}><RefreshCw data-icon="inline-start" />Повторить</Button></AlertDescription></Alert>
       : initialLoading ? <Card><CardHeader><CardTitle><Skeleton className="h-6 w-40" /></CardTitle></CardHeader><CardContent><Skeleton className="h-14 w-full" /><Skeleton className="mt-3 h-14 w-full" /></CardContent></Card>
       : state.tables.length === 0 ? <Empty className="min-h-64 border"><EmptyHeader><EmptyMedia variant="icon"><QrCode /></EmptyMedia><EmptyTitle>Столов пока нет</EmptyTitle><EmptyDescription>Создайте стол, чтобы скачать QR-код.</EmptyDescription></EmptyHeader><EmptyContent><Button type="button" className="min-h-11" onClick={openCreate}><Plus data-icon="inline-start" />Добавить стол</Button></EmptyContent></Empty>
-      : <div data-table-scroll="true" data-table-scroll-region="true" className="min-w-0 max-w-full overflow-x-auto rounded-lg border"><Table className="min-w-[720px]"><TableHeader><TableRow><TableHead>Стол</TableHead><TableHead>Создан</TableHead><TableHead>Действия</TableHead></TableRow></TableHeader><TableBody>{state.tables.map((table) => <ManagedTableRow key={table.id} table={table} deleting={pendingDeletes.has(table.id)} downloading={pendingQr.has(table.id)} deleteError={actionErrors[table.id]} downloadError={actionErrors[`qr:${table.id}`]} onDelete={() => remove(table)} onDownload={() => void download(table)} />)}</TableBody></Table></div>}
+      : <Table
+          className="min-w-[720px]"
+          containerProps={{
+            "aria-label": "Таблица столов",
+            "data-table-scroll-region": "true",
+            className: "min-w-0 max-w-full rounded-lg border",
+          } as React.ComponentProps<"div">}
+        ><TableHeader><TableRow><TableHead>Стол</TableHead><TableHead>Создан</TableHead><TableHead>Действия</TableHead></TableRow></TableHeader><TableBody>{state.tables.map((table) => <ManagedTableRow key={table.id} table={table} deleting={pendingDeletes.has(table.id)} downloading={pendingQr.has(table.id)} deleteError={actionErrors[table.id]} downloadError={actionErrors[`qr:${table.id}`]} onDelete={() => remove(table)} onDownload={() => void download(table)} />)}</TableBody></Table>}
     <TableDialog table={editor?.table ?? null} existingNumbers={numbers} open={Boolean(editor)} onOpenChange={(open) => {
       if (!open) {
         setEditor(null);

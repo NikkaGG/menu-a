@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit -p admin-app/tsconfig.json",
     "lint": "eslint admin-app",
     "build": "node scripts/build-admin.js",
-    "test:browser": "playwright test --config admin-app/playwright.config.ts"
+    "test:browser": "playwright test --config admin-app/playwright.config.ts",
+    "test:browser:install": "playwright install chromium"
   },
   "engines": {
     "node": "20.19.x"

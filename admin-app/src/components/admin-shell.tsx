@@ -86,7 +86,7 @@ export function AdminShell({
           </Sheet>
           <span className="min-w-0 flex-1 truncate font-medium">{route.heading}</span>
           <div className="ml-auto flex shrink-0 gap-2">
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="min-h-11 min-w-11" aria-label={`Тема: ${labels[theme]}`}>
                   {theme === "dark" ? <Moon data-icon="inline-start" /> : theme === "light" ? <Sun data-icon="inline-start" /> : <Monitor data-icon="inline-start" />}<span className="hidden sm:inline">{labels[theme]}</span>

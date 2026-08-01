@@ -2,13 +2,20 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+type TableProps = React.ComponentProps<"table"> & {
+  containerProps?: React.ComponentProps<"div">
+}
+
+function Table({ className, containerProps, ...props }: TableProps) {
+  const { className: containerClassName, ...restContainerProps } = containerProps ?? {}
   return (
     <div
       data-slot="table-container"
       data-table-scroll="true"
-      className="relative w-full overflow-x-auto"
       tabIndex={0}
+      aria-label="Прокручиваемая таблица"
+      {...restContainerProps}
+      className={cn("relative w-full overflow-x-auto", containerClassName)}
     >
       <table
         data-slot="table"
