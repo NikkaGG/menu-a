@@ -23,8 +23,14 @@ function listFiles(directory) {
   });
 }
 
+function referencedAssetNames(content) {
+  return [...content.matchAll(/(?:\/admin-dist\/)?assets\/([^"'()\s]+)|url\((?:["']?)(?:\/admin-dist\/)?assets\/([^"'()\s]+)(?:["']?)\)/g)]
+    .map((match) => match[1] || match[2]);
+}
+
 function verifyBuildOutput(rootDir) {
-  requireFile(rootDir, path.join('admin-dist', 'index.html'));
+  const indexPath = path.join('admin-dist', 'index.html');
+  requireFile(rootDir, indexPath);
   for (const relativePath of REQUIRED_ROOT_FILES) {
     requireFile(rootDir, relativePath);
   }
@@ -36,6 +42,36 @@ function verifyBuildOutput(rootDir) {
   const hasHashedAsset = listFiles(assetsDir).some((file) => /-[A-Za-z0-9_-]{6,}\.[^.]+$/.test(path.basename(file)));
   if (!hasHashedAsset) {
     throw new Error('Admin build verification failed: no hashed assets found in admin-dist/assets');
+  }
+
+  const pending = referencedAssetNames(fs.readFileSync(path.join(rootDir, indexPath), 'utf8'));
+  const referenced = new Set();
+  while (pending.length) {
+    const assetName = pending.shift();
+    if (referenced.has(assetName)) continue;
+    referenced.add(assetName);
+    const relativePath = path.join('admin-dist', 'assets', assetName);
+    try {
+      requireFile(rootDir, relativePath);
+    } catch {
+      throw new Error(`Admin build verification failed: missing referenced asset ${assetName}`);
+    }
+    if (path.extname(assetName) === '.css') {
+      pending.push(...referencedAssetNames(fs.readFileSync(path.join(rootDir, relativePath), 'utf8')));
+    }
+  }
+
+  if ([...referenced].some((asset) => path.extname(asset) === '.css')) {
+    const requiredKinds = [
+      ['CSS', /\.css$/],
+      ['JavaScript', /\.js$/],
+      ['font', /\.(?:woff2?|ttf|otf)$/],
+    ];
+    for (const [kind, pattern] of requiredKinds) {
+      if (![...referenced].some((asset) => pattern.test(asset) && /-[A-Za-z0-9_-]{6,}\.[^.]+$/.test(asset))) {
+        throw new Error(`Admin build verification failed: missing referenced hashed ${kind} asset`);
+      }
+    }
   }
 }
 

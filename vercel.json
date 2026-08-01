@@ -6,6 +6,8 @@
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/admin/menu", "destination": "/admin.html" },
     { "source": "/admin/tables", "destination": "/admin.html" },
-    { "source": "/stats", "destination": "/admin.html" }
+    { "source": "/stats", "destination": "/admin.html" },
+    { "source": "/admin-next", "destination": "/admin-dist/index.html" },
+    { "source": "/admin-next/:path*", "destination": "/admin-dist/index.html" }
   ]
 }
