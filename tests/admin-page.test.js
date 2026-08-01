@@ -53,11 +53,17 @@ test('admin shell and rewrites exist', () => {
   assert.match(html(), /admin\.css/);
   assert.match(html(), /admin\.js/);
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
-  assert.deepEqual(config.rewrites.slice(-4), [
+  assert.deepEqual(config.rewrites[0], {
+    source: '/api/:path*',
+    destination: '/api/router?path=:path*',
+  });
+  assert.deepEqual(config.rewrites.slice(3), [
     { source: '/admin', destination: '/admin.html' },
     { source: '/admin/menu', destination: '/admin.html' },
     { source: '/admin/tables', destination: '/admin.html' },
     { source: '/stats', destination: '/admin.html' },
+    { source: '/admin-next', destination: '/admin-dist/index.html' },
+    { source: '/admin-next/:path*', destination: '/admin-dist/index.html' },
   ]);
 });
 
