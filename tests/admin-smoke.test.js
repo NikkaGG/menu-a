@@ -25,6 +25,8 @@ function mutationEnv(prefix = 'branch-42', overrides = {}) {
     ADMIN_SMOKE_ENVIRONMENT: 'preview',
     ADMIN_SMOKE_MUTATION_CONFIRM: 'preview-only',
     ADMIN_SMOKE_PREFIX: prefix,
+    ADMIN_SMOKE_EXPECTED_PREVIEW_ORIGIN: 'https://preview.example.test',
+    ADMIN_SMOKE_PRODUCTION_ORIGIN: 'https://production.example.test',
     ADMIN_SMOKE_READONLY_TABLE_ID: undefined,
     ...overrides,
   });
@@ -280,6 +282,56 @@ test('production configuration can neither create nor clean up resources', async
   assert.deepEqual(calls.filter(({ method }) => ['POST', 'PATCH', 'DELETE'].includes(method)), []);
 });
 
+test('production origin is rejected even with every preview mutation flag', async () => {
+  const { runAdminSmoke } = require(smokePath);
+  const calls = [];
+  await assert.rejects(runAdminSmoke({
+    env: mutationEnv('production-origin', {
+      ADMIN_SMOKE_BASE_URL: 'https://production.example.test/',
+      ADMIN_SMOKE_EXPECTED_PREVIEW_ORIGIN: 'https://production.example.test',
+      ADMIN_SMOKE_PRODUCTION_ORIGIN: 'https://production.example.test',
+    }),
+    fetchImpl: async (...args) => {
+      calls.push(args);
+      return response(500);
+    },
+  }), /production origin/i);
+  assert.equal(calls.length, 0);
+});
+
+test('preview mutation rejects a mismatched expected preview origin', async () => {
+  const { runAdminSmoke } = require(smokePath);
+  const calls = [];
+  await assert.rejects(runAdminSmoke({
+    env: mutationEnv('wrong-origin', {
+      ADMIN_SMOKE_EXPECTED_PREVIEW_ORIGIN: 'https://different-preview.example.test',
+    }),
+    fetchImpl: async (...args) => {
+      calls.push(args);
+      return response(500);
+    },
+  }), /expected preview origin/i);
+  assert.equal(calls.length, 0);
+});
+
+test('valid distinct preview and production origins allow mutation mode', () => {
+  const { requiredEnvironment } = require(smokePath);
+  const config = requiredEnvironment(mutationEnv());
+  assert.equal(config.baseUrl, 'https://preview.example.test/');
+  assert.equal(config.mode, 'preview-mutation');
+});
+
+test('preview and production origins are both validated as strict origins', () => {
+  const { requiredEnvironment } = require(smokePath);
+  for (const overrides of [
+    { ADMIN_SMOKE_EXPECTED_PREVIEW_ORIGIN: 'https://preview.example.test/path' },
+    { ADMIN_SMOKE_PRODUCTION_ORIGIN: 'https://production.example.test/?query=unsafe' },
+    { ADMIN_SMOKE_PRODUCTION_ORIGIN: 'http://production.example.test' },
+  ]) {
+    assert.throws(() => requiredEnvironment(mutationEnv('strict-origin', overrides)), /origin|HTTPS/i);
+  }
+});
+
 test('long prefixes retain bounded unique suffixes and concurrent runs differ', () => {
   const { uniqueResourceNames } = require(smokePath);
   const prefix = 'x'.repeat(120);
@@ -311,6 +363,21 @@ test('base URL rejects credentials, query, fragment, and non-root paths', () => 
     );
   }
   assert.equal(requiredEnvironment(baseEnv({ ADMIN_SMOKE_BASE_URL: 'https://example.test/' })).baseUrl, 'https://example.test/');
+});
+
+test('HTTP is rejected remotely and accepted only for loopback hosts', () => {
+  const { requiredEnvironment } = require(smokePath);
+  assert.throws(
+    () => requiredEnvironment(baseEnv({ ADMIN_SMOKE_BASE_URL: 'http://preview.example.test/' })),
+    /HTTPS|loopback/i,
+  );
+  for (const baseUrl of [
+    'http://localhost:3000/',
+    'http://127.0.0.1:3000/',
+    'http://[::1]:3000/',
+  ]) {
+    assert.equal(requiredEnvironment(baseEnv({ ADMIN_SMOKE_BASE_URL: baseUrl })).baseUrl, baseUrl);
+  }
 });
 
 test('requests resolve endpoints from the validated base URL', async () => {

@@ -1,5 +1,27 @@
 const RETRY_DELAYS = [250, 1000, 2000];
 const TRANSIENT_CLEANUP_STATUSES = new Set([408, 425, 429]);
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+function strictOrigin(name, value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`${name} must be a valid HTTP(S) origin URL`);
+  }
+  if (!['http:', 'https:'].includes(url.protocol)
+    || url.username
+    || url.password
+    || url.search
+    || url.hash
+    || url.pathname !== '/') {
+    throw new Error(`${name} must be a valid origin URL with a root path`);
+  }
+  if (url.protocol === 'http:' && !LOOPBACK_HOSTS.has(url.hostname)) {
+    throw new Error(`${name} must use HTTPS unless it is a loopback origin`);
+  }
+  return url;
+}
 
 function requiredEnvironment(env) {
   const common = ['ADMIN_SMOKE_BASE_URL', 'ADMIN_SMOKE_LOGIN', 'ADMIN_SMOKE_PASSWORD'];
@@ -11,6 +33,8 @@ function requiredEnvironment(env) {
     'ADMIN_SMOKE_ENVIRONMENT',
     'ADMIN_SMOKE_MUTATION_CONFIRM',
     'ADMIN_SMOKE_PREFIX',
+    'ADMIN_SMOKE_EXPECTED_PREVIEW_ORIGIN',
+    'ADMIN_SMOKE_PRODUCTION_ORIGIN',
   ];
   const required = mode === 'preview-mutation'
     ? [...common, ...mutationRequired]
@@ -22,17 +46,22 @@ function requiredEnvironment(env) {
       || env.ADMIN_SMOKE_MUTATION_CONFIRM !== 'preview-only')) {
     throw new Error('Preview mutation requires a preview environment and preview-only confirmation');
   }
-  let baseUrl;
-  try {
-    baseUrl = new URL(env.ADMIN_SMOKE_BASE_URL);
-  } catch {
-    throw new Error('ADMIN_SMOKE_BASE_URL must be a valid HTTP(S) URL');
-  }
-  if (!['http:', 'https:'].includes(baseUrl.protocol)) {
-    throw new Error('ADMIN_SMOKE_BASE_URL must be a valid HTTP(S) URL');
-  }
-  if (baseUrl.username || baseUrl.password || baseUrl.search || baseUrl.hash || baseUrl.pathname !== '/') {
-    throw new Error('ADMIN_SMOKE_BASE_URL must be an origin URL with a root path');
+  const baseUrl = strictOrigin('ADMIN_SMOKE_BASE_URL', env.ADMIN_SMOKE_BASE_URL);
+  if (mode === 'preview-mutation') {
+    const expectedPreview = strictOrigin(
+      'ADMIN_SMOKE_EXPECTED_PREVIEW_ORIGIN',
+      env.ADMIN_SMOKE_EXPECTED_PREVIEW_ORIGIN,
+    );
+    const production = strictOrigin(
+      'ADMIN_SMOKE_PRODUCTION_ORIGIN',
+      env.ADMIN_SMOKE_PRODUCTION_ORIGIN,
+    );
+    if (baseUrl.origin !== expectedPreview.origin) {
+      throw new Error('ADMIN_SMOKE_BASE_URL does not match the expected preview origin');
+    }
+    if (baseUrl.origin === production.origin) {
+      throw new Error('Preview mutation is forbidden on the production origin');
+    }
   }
   return {
     baseUrl: baseUrl.href,
