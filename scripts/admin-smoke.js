@@ -3,9 +3,25 @@ const TRANSIENT_CLEANUP_STATUSES = new Set([408, 425, 429]);
 
 function requiredEnvironment(env) {
   const common = ['ADMIN_SMOKE_BASE_URL', 'ADMIN_SMOKE_LOGIN', 'ADMIN_SMOKE_PASSWORD'];
-  const required = env.ADMIN_SMOKE_PREFIX ? common : [...common, 'ADMIN_SMOKE_READONLY_TABLE_ID'];
+  const mode = env.ADMIN_SMOKE_MODE?.trim() || 'readonly';
+  if (!['readonly', 'preview-mutation'].includes(mode)) {
+    throw new Error('ADMIN_SMOKE_MODE must be readonly or preview-mutation');
+  }
+  const mutationRequired = [
+    'ADMIN_SMOKE_ENVIRONMENT',
+    'ADMIN_SMOKE_MUTATION_CONFIRM',
+    'ADMIN_SMOKE_PREFIX',
+  ];
+  const required = mode === 'preview-mutation'
+    ? [...common, ...mutationRequired]
+    : [...common, 'ADMIN_SMOKE_READONLY_TABLE_ID'];
   const missing = required.filter((name) => typeof env[name] !== 'string' || !env[name].trim());
   if (missing.length) throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  if (mode === 'preview-mutation'
+    && (env.ADMIN_SMOKE_ENVIRONMENT !== 'preview'
+      || env.ADMIN_SMOKE_MUTATION_CONFIRM !== 'preview-only')) {
+    throw new Error('Preview mutation requires a preview environment and preview-only confirmation');
+  }
   let baseUrl;
   try {
     baseUrl = new URL(env.ADMIN_SMOKE_BASE_URL);
@@ -15,10 +31,14 @@ function requiredEnvironment(env) {
   if (!['http:', 'https:'].includes(baseUrl.protocol)) {
     throw new Error('ADMIN_SMOKE_BASE_URL must be a valid HTTP(S) URL');
   }
+  if (baseUrl.username || baseUrl.password || baseUrl.search || baseUrl.hash || baseUrl.pathname !== '/') {
+    throw new Error('ADMIN_SMOKE_BASE_URL must be an origin URL with a root path');
+  }
   return {
-    baseUrl: baseUrl.href.replace(/\/+$/, ''),
+    baseUrl: baseUrl.href,
     login: env.ADMIN_SMOKE_LOGIN,
     password: env.ADMIN_SMOKE_PASSWORD,
+    mode,
     prefix: env.ADMIN_SMOKE_PREFIX?.trim() || null,
     readonlyTableId: env.ADMIN_SMOKE_READONLY_TABLE_ID?.trim() || null,
   };
@@ -34,7 +54,7 @@ function cookieFrom(response) {
 }
 
 function transientCleanupStatus(status) {
-  return TRANSIENT_CLEANUP_STATUSES.has(status) || status >= 500;
+  return TRANSIENT_CLEANUP_STATUSES.has(status) || (status >= 500 && status <= 599);
 }
 
 async function cleanupResource({ path, request, sleep }) {
@@ -91,6 +111,19 @@ function expectEntity(body, key, expectedId) {
   }
 }
 
+function uniqueResourceNames(prefix, timestamp, randomValue) {
+  const runId = `${timestamp}-${Math.floor(randomValue * 1000000000)}`;
+  const bounded = (label, maximum) => {
+    const suffix = `-${runId}-${label}`;
+    return `${prefix.slice(0, Math.max(0, maximum - suffix.length))}${suffix}`;
+  };
+  return {
+    category: bounded('category', 200),
+    dish: bounded('dish', 200),
+    table: bounded('table', 100),
+  };
+}
+
 async function runAdminSmoke(options = {}) {
   const {
     env = process.env,
@@ -111,7 +144,7 @@ async function runAdminSmoke(options = {}) {
     if (init.body !== undefined) headers['Content-Type'] = 'application/json';
     let response;
     try {
-      response = await fetchImpl(`${config.baseUrl}${requestPath}`, {
+      response = await fetchImpl(new URL(requestPath, config.baseUrl), {
         ...init,
         method,
         headers,
@@ -147,7 +180,7 @@ async function runAdminSmoke(options = {}) {
     const date = new Date(now()).toISOString().slice(0, 10);
     await jsonRequest(`/api/admin/stats?from=${date}&to=${date}&groupBy=day`);
 
-    if (!config.prefix) {
+    if (config.mode === 'readonly') {
       await jsonRequest('/api/admin/categories');
       await jsonRequest('/api/admin/dishes');
       const tables = await jsonRequest('/api/admin/tables');
@@ -160,13 +193,12 @@ async function runAdminSmoke(options = {}) {
       return { mode: 'readonly' };
     }
 
-    const suffix = `${now()}-${Math.floor(random() * 1000000)}`;
-    const uniquePrefix = `${config.prefix}-${suffix}`.slice(0, 80);
+    const names = uniqueResourceNames(config.prefix, now(), random());
     const created = {};
     try {
       const categoryBody = await jsonRequest('/api/admin/categories', {
         method: 'POST',
-        body: JSON.stringify({ name: `${uniquePrefix}-category`, sort_order: 0 }),
+        body: JSON.stringify({ name: names.category, sort_order: 0 }),
       });
       created.category = categoryBody.category?.id;
       if (!created.category) throw new Error('Admin smoke category creation failed');
@@ -175,7 +207,7 @@ async function runAdminSmoke(options = {}) {
         method: 'POST',
         body: JSON.stringify({
           category_id: created.category,
-          name: `${uniquePrefix}-dish`,
+          name: names.dish,
           price: 1,
           is_available: true,
           sort_order: 0,
@@ -186,7 +218,7 @@ async function runAdminSmoke(options = {}) {
 
       const tableBody = await jsonRequest('/api/admin/tables', {
         method: 'POST',
-        body: JSON.stringify({ number: `${uniquePrefix}-table` }),
+        body: JSON.stringify({ number: names.table }),
       });
       created.table = tableBody.table?.id;
       if (!created.table) throw new Error('Admin smoke table creation failed');
@@ -243,4 +275,5 @@ module.exports = {
   cleanupResource,
   requiredEnvironment,
   runAdminSmoke,
+  uniqueResourceNames,
 };

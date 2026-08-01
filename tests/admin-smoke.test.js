@@ -19,6 +19,17 @@ function baseEnv(overrides = {}) {
   };
 }
 
+function mutationEnv(prefix = 'branch-42', overrides = {}) {
+  return baseEnv({
+    ADMIN_SMOKE_MODE: 'preview-mutation',
+    ADMIN_SMOKE_ENVIRONMENT: 'preview',
+    ADMIN_SMOKE_MUTATION_CONFIRM: 'preview-only',
+    ADMIN_SMOKE_PREFIX: prefix,
+    ADMIN_SMOKE_READONLY_TABLE_ID: undefined,
+    ...overrides,
+  });
+}
+
 function successfulFetch(calls, overrides = {}) {
   return async (url, init = {}) => {
     const pathname = new URL(url).pathname;
@@ -80,7 +91,7 @@ test('preview mode creates, verifies, and cleans table, dish, category in order'
   });
 
   const result = await runAdminSmoke({
-    env: baseEnv({ ADMIN_SMOKE_PREFIX: 'branch-42', ADMIN_SMOKE_READONLY_TABLE_ID: undefined }),
+    env: mutationEnv(),
     fetchImpl,
     logger: { log() {}, error() {} },
     now: () => 123,
@@ -111,7 +122,7 @@ test('partial preview setup cleans every ID that was created', async () => {
   });
 
   await assert.rejects(
-    runAdminSmoke({ env: baseEnv({ ADMIN_SMOKE_PREFIX: 'partial', ADMIN_SMOKE_READONLY_TABLE_ID: undefined }), fetchImpl, sleep: async () => {}, logger: { log() {}, error() {} } }),
+    runAdminSmoke({ env: mutationEnv('partial'), fetchImpl, sleep: async () => {}, logger: { log() {}, error() {} } }),
     /smoke request failed/i,
   );
   assert.deepEqual(calls.filter(({ method }) => method === 'DELETE').map(({ pathname }) => pathname), [
@@ -138,6 +149,19 @@ test('cleanup accepts 404 and retries only transient statuses with exact backoff
   let attempts = 0;
   await cleanupResource({ path: '/resource', request: async () => { attempts += 1; return response(404); }, sleep: async () => {} });
   assert.equal(attempts, 1);
+});
+
+test('cleanup retry status boundaries are exactly 500 through 599', async () => {
+  const { cleanupResource } = require(smokePath);
+  for (const [status, expectedAttempts] of [[499, 1], [500, 4], [599, 4], [600, 1]]) {
+    let attempts = 0;
+    await assert.rejects(cleanupResource({
+      path: '/resource',
+      request: async () => { attempts += 1; return { ok: false, status }; },
+      sleep: async () => {},
+    }), /cleanup failed/i);
+    assert.equal(attempts, expectedAttempts, `HTTP ${status}`);
+  }
 });
 
 test('cleanup retries network errors and fails after initial plus three retries', async () => {
@@ -194,7 +218,7 @@ test('preview cleanup attempts every created resource even when earlier cleanup 
   });
 
   await assert.rejects(runAdminSmoke({
-    env: baseEnv({ ADMIN_SMOKE_PREFIX: 'cleanup-all', ADMIN_SMOKE_READONLY_TABLE_ID: undefined }),
+    env: mutationEnv('cleanup-all'),
     fetchImpl,
     sleep: async () => {},
     logger: { log() {}, error() {} },
@@ -204,6 +228,105 @@ test('preview cleanup attempts every created resource even when earlier cleanup 
     '/api/admin/dishes/dish-created',
     '/api/admin/categories/category-created',
   ]);
+});
+
+test('default and explicit read-only modes ignore a mutation prefix and never mutate business data', async () => {
+  const { runAdminSmoke } = require(smokePath);
+  for (const mode of [undefined, 'readonly']) {
+    const calls = [];
+    const result = await runAdminSmoke({
+      env: baseEnv({ ADMIN_SMOKE_MODE: mode, ADMIN_SMOKE_PREFIX: 'must-be-ignored' }),
+      fetchImpl: successfulFetch(calls),
+      logger: { log() {}, error() {} },
+    });
+
+    assert.equal(result.mode, 'readonly');
+    assert.deepEqual(
+      calls.filter(({ method, pathname }) => ['POST', 'PATCH', 'DELETE'].includes(method)
+        && !['/api/admin/login', '/api/admin/logout'].includes(pathname)),
+      [],
+    );
+  }
+});
+
+test('preview mutation requires every explicit preview-only confirmation', async () => {
+  const { runAdminSmoke } = require(smokePath);
+  for (const env of [
+    mutationEnv('unsafe', { ADMIN_SMOKE_ENVIRONMENT: undefined }),
+    mutationEnv('unsafe', { ADMIN_SMOKE_MUTATION_CONFIRM: undefined }),
+    mutationEnv('unsafe', { ADMIN_SMOKE_PREFIX: undefined }),
+    mutationEnv('unsafe', { ADMIN_SMOKE_ENVIRONMENT: 'production' }),
+  ]) {
+    const calls = [];
+    await assert.rejects(
+      runAdminSmoke({ env, fetchImpl: async (...args) => { calls.push(args); throw new Error('must not fetch'); } }),
+      /preview mutation|missing required environment/i,
+    );
+    assert.equal(calls.length, 0);
+  }
+});
+
+test('production configuration can neither create nor clean up resources', async () => {
+  const { runAdminSmoke } = require(smokePath);
+  const calls = [];
+  await assert.rejects(runAdminSmoke({
+    env: mutationEnv('production-danger', { ADMIN_SMOKE_ENVIRONMENT: 'production' }),
+    fetchImpl: async (url, init = {}) => {
+      calls.push({ pathname: new URL(url).pathname, method: init.method || 'GET' });
+      return response(500);
+    },
+    sleep: async () => {},
+  }), /preview mutation/i);
+  assert.deepEqual(calls.filter(({ method }) => ['POST', 'PATCH', 'DELETE'].includes(method)), []);
+});
+
+test('long prefixes retain bounded unique suffixes and concurrent runs differ', () => {
+  const { uniqueResourceNames } = require(smokePath);
+  const prefix = 'x'.repeat(120);
+  const first = uniqueResourceNames(prefix, 1700000000000, 0.1);
+  const second = uniqueResourceNames(prefix, 1700000000000, 0.2);
+
+  assert.notDeepEqual(first, second);
+  assert.match(first.category, /1700000000000/);
+  assert.match(first.dish, /1700000000000/);
+  assert.match(first.table, /1700000000000/);
+  assert.ok(first.category.length <= 200);
+  assert.ok(first.dish.length <= 200);
+  assert.ok(first.table.length <= 100);
+  assert.notEqual(first.category.slice(-20), second.category.slice(-20));
+});
+
+test('base URL rejects credentials, query, fragment, and non-root paths', () => {
+  const { requiredEnvironment } = require(smokePath);
+  for (const baseUrl of [
+    'https://user:password@example.test/',
+    'https://example.test/?token=secret',
+    'https://example.test/#fragment',
+    'https://example.test/deployment',
+  ]) {
+    assert.throws(
+      () => requiredEnvironment(baseEnv({ ADMIN_SMOKE_BASE_URL: baseUrl })),
+      /origin URL.*root path|valid HTTP/i,
+      baseUrl,
+    );
+  }
+  assert.equal(requiredEnvironment(baseEnv({ ADMIN_SMOKE_BASE_URL: 'https://example.test/' })).baseUrl, 'https://example.test/');
+});
+
+test('requests resolve endpoints from the validated base URL', async () => {
+  const { runAdminSmoke } = require(smokePath);
+  const urls = [];
+  await runAdminSmoke({
+    env: baseEnv({ ADMIN_SMOKE_BASE_URL: 'https://example.test/' }),
+    fetchImpl: async (url, init) => {
+      urls.push(url);
+      return successfulFetch([])(url, init);
+    },
+    logger: { log() {}, error() {} },
+  });
+  assert.ok(urls.length > 0);
+  assert.ok(urls.every((url) => new URL(url).origin === 'https://example.test'));
+  assert.ok(urls.some((url) => new URL(url).pathname === '/api/admin/session'));
 });
 
 test('missing environment errors and logs never expose secrets', async () => {

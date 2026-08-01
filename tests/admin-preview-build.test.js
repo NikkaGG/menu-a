@@ -58,3 +58,38 @@ test('build verification requires every referenced hashed CSS, JS, and font asse
   assert.equal(fs.readFileSync(path.join(fixture, 'qr-ordering.js'), 'utf8'), 'preserved');
   assert.equal(fs.readFileSync(path.join(fixture, 'api', 'router.js'), 'utf8'), 'preserved');
 });
+
+test('buildAdmin execution preserves root public and API bytes', (t) => {
+  const { buildAdmin } = require(path.join(root, 'scripts', 'build-admin.js'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'admin-preview-execution-'));
+  t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(fixture, 'admin-app'));
+  fs.mkdirSync(path.join(fixture, 'api'));
+  const preserved = new Map([
+    ['index.html', Buffer.from([0, 1, 2, 3])],
+    ['menu.html', Buffer.from([4, 5, 6, 7])],
+    ['qr-ordering.js', Buffer.from([8, 9, 10, 11])],
+    [path.join('api', 'router.js'), Buffer.from([12, 13, 14, 15])],
+  ]);
+  for (const [relativePath, bytes] of preserved) fs.writeFileSync(path.join(fixture, relativePath), bytes);
+
+  buildAdmin({
+    rootDir: fixture,
+    runVite: (rootDir) => {
+      const assetsDir = path.join(rootDir, 'admin-dist', 'assets');
+      fs.mkdirSync(assetsDir, { recursive: true });
+      fs.writeFileSync(path.join(rootDir, 'admin-dist', 'index.html'), [
+        '<link rel="stylesheet" href="/admin-dist/assets/index-Ab12cd34.css">',
+        '<script src="/admin-dist/assets/index-Xy98kl76.js"></script>',
+      ].join(''));
+      fs.writeFileSync(path.join(assetsDir, 'index-Ab12cd34.css'), 'url(/admin-dist/assets/geist-Qr56st78.woff2)');
+      fs.writeFileSync(path.join(assetsDir, 'index-Xy98kl76.js'), '');
+      fs.writeFileSync(path.join(assetsDir, 'geist-Qr56st78.woff2'), '');
+      return 0;
+    },
+  });
+
+  for (const [relativePath, bytes] of preserved) {
+    assert.deepEqual(fs.readFileSync(path.join(fixture, relativePath)), bytes, relativePath);
+  }
+});
