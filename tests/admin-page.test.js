@@ -53,18 +53,20 @@ test('admin shell and rewrites exist', () => {
   assert.match(html(), /admin\.css/);
   assert.match(html(), /admin\.js/);
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
-  assert.deepEqual(config.rewrites[0], {
-    source: '/api/:path*',
-    destination: '/api/router?path=:path*',
-  });
-  assert.deepEqual(config.rewrites.slice(3), [
-    { source: '/admin', destination: '/admin.html' },
-    { source: '/admin/menu', destination: '/admin.html' },
-    { source: '/admin/tables', destination: '/admin.html' },
-    { source: '/stats', destination: '/admin.html' },
-    { source: '/admin-next', destination: '/admin-dist/index.html' },
-    { source: '/admin-next/:path*', destination: '/admin-dist/index.html' },
+  assert.deepEqual(config.rewrites, [
+    { source: '/api/:path*', destination: '/api/router?path=:path*' },
+    { source: '/t/:token', destination: '/index.html' },
+    { source: '/order/:id', destination: '/index.html' },
+    { source: '/admin', destination: '/admin-dist/index.html' },
+    { source: '/admin/menu', destination: '/admin-dist/index.html' },
+    { source: '/admin/tables', destination: '/admin-dist/index.html' },
+    { source: '/admin/:path*', destination: '/admin-dist/index.html' },
+    { source: '/stats', destination: '/admin-dist/index.html' },
   ]);
+  assert.equal(config.outputDirectory, '.');
+  assert.equal(fs.existsSync(path.join(root, 'admin.html')), true);
+  assert.equal(config.rewrites.some(({ source }) => source === '/admin.html'), false);
+  assert.equal(config.rewrites.some(({ source }) => source.startsWith('/admin-next')), false);
 });
 
 test('admin source contains safe auth gate and all requested form fields', () => {

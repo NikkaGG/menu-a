@@ -64,7 +64,7 @@ test('stats is the third admin destination and canonical rewrite with pinned Cha
   assert.equal(chartScript.getAttribute('crossorigin'), 'anonymous');
   assert.equal(chartScript.getAttribute('referrerpolicy'), 'no-referrer');
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
-  assert.deepEqual(config.rewrites.find(({ source: route }) => route === '/stats'), { source: '/stats', destination: '/admin.html' });
+  assert.deepEqual(config.rewrites.find(({ source: route }) => route === '/stats'), { source: '/stats', destination: '/admin-dist/index.html' });
 });
 
 test('the legacy stats document redirects to the canonical shared admin dashboard', () => {

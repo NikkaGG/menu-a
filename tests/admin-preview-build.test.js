@@ -21,13 +21,15 @@ test('preview rewrites preserve the API router and production admin routes', () 
     { source: '/api/:path*', destination: '/api/router?path=:path*' },
     { source: '/t/:token', destination: '/index.html' },
     { source: '/order/:id', destination: '/index.html' },
-    { source: '/admin', destination: '/admin.html' },
-    { source: '/admin/menu', destination: '/admin.html' },
-    { source: '/admin/tables', destination: '/admin.html' },
-    { source: '/stats', destination: '/admin.html' },
-    { source: '/admin-next', destination: '/admin-dist/index.html' },
-    { source: '/admin-next/:path*', destination: '/admin-dist/index.html' },
+    { source: '/admin', destination: '/admin-dist/index.html' },
+    { source: '/admin/menu', destination: '/admin-dist/index.html' },
+    { source: '/admin/tables', destination: '/admin-dist/index.html' },
+    { source: '/admin/:path*', destination: '/admin-dist/index.html' },
+    { source: '/stats', destination: '/admin-dist/index.html' },
   ]);
+  assert.equal(fs.existsSync(path.join(root, 'admin.html')), true);
+  assert.equal(config.rewrites.some(({ source }) => source === '/admin.html'), false);
+  assert.equal(config.rewrites.some(({ source }) => source.startsWith('/admin-next')), false);
   assert.deepEqual(
     fs.readdirSync(path.join(root, 'api'), { recursive: true })
       .filter((entry) => entry.endsWith('.js'))
