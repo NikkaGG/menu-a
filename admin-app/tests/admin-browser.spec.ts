@@ -217,6 +217,24 @@ test("login, logout and theme choices work without real credentials", async ({ p
   await expect(page.getByRole("heading", { name: "Вход в панель управления" })).toBeVisible();
 });
 
+test("failed logout keeps the shell visible and a successful retry signs out", async ({ page, apiState }) => {
+  apiState.logoutFailures = 1;
+  await page.goto("/admin/menu");
+
+  const logout = page.getByRole("button", { name: "Выйти" });
+  await logout.click();
+
+  await expect(page.getByRole("alert")).toHaveText("Не удалось выйти. Попробуйте ещё раз.");
+  await expect(page.getByRole("heading", { level: 1, name: "Управление меню" })).toBeVisible();
+  await expect(page.getByLabel("Логин")).toHaveCount(0);
+  await expect(page.getByText("secret logout failure")).toHaveCount(0);
+
+  await logout.click();
+
+  await expect(page.getByLabel("Логин")).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
 test("mobile sheet traps focus, closes with Escape and restores its trigger", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) >= 768, "mobile navigation is hidden at this viewport");
   await page.goto("/admin");

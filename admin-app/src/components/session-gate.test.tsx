@@ -106,4 +106,63 @@ describe("SessionGate", () => {
     expect(screen.getAllByLabelText("Логин")).toHaveLength(1);
     expect(screen.queryByText("Сессия истекла")).not.toBeInTheDocument();
   });
+
+  it("keeps the authenticated shell visible on logout failure and retries cleanly", async () => {
+    const logout = vi.fn()
+      .mockRejectedValueOnce(new Error("secret server detail"))
+      .mockResolvedValueOnce(undefined);
+    render(
+      <SessionGate api={api({ session: vi.fn(async () => ({ authenticated: true })), logout })}>
+        {({ logout: signOut, logoutError }) => (
+          <div>
+            <p>Оболочка</p>
+            {logoutError ? <p role="alert">{logoutError}</p> : null}
+            <button onClick={signOut}>Выйти</button>
+          </div>
+        )}
+      </SessionGate>,
+    );
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Выйти" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Не удалось выйти. Попробуйте ещё раз.");
+    expect(screen.getByText("Оболочка")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Логин")).not.toBeInTheDocument();
+    expect(screen.queryByText("secret server detail")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Выйти" }));
+
+    expect(await screen.findByLabelText("Логин")).toHaveFocus();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(logout).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores a stale logout failure after an unauthorized transition", async () => {
+    let rejectLogout!: (error: Error) => void;
+    const logout = vi.fn(() => new Promise<void>((_resolve, reject) => { rejectLogout = reject; }));
+    let expire!: () => void;
+    render(
+      <SessionGate
+        api={api({ session: vi.fn(async () => ({ authenticated: true })), logout })}
+        registerUnauthorized={(handler) => { expire = handler; }}
+      >
+        {({ logout: signOut, logoutError }) => (
+          <div>
+            {logoutError ? <p role="alert">{logoutError}</p> : null}
+            <button onClick={signOut}>Выйти</button>
+          </div>
+        )}
+      </SessionGate>,
+    );
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Выйти" }));
+
+    act(() => expire());
+    await act(async () => rejectLogout(new Error("late secret")));
+
+    expect(await screen.findByLabelText("Логин")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText(/late secret/)).not.toBeInTheDocument();
+  });
 });

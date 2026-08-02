@@ -269,7 +269,7 @@ export function createAdminApi(options: AdminApiOptions = {}) {
     try {
       link.click();
     } finally {
-      URL.revokeObjectURL(objectUrl);
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     }
   }
 

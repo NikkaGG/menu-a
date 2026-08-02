@@ -38,8 +38,8 @@ export default function App() {
   return (
     <div data-admin-app>
       <SessionGate api={api} registerUnauthorized={(handler) => { unauthorizedHandlers.set(authKey, handler); }}>
-        {({ logout }) => (
-          <AdminShell route={route} onNavigate={(path) => controller.current?.navigate(path)} onLogout={logout}>
+        {({ logout, logoutError }) => (
+          <AdminShell route={route} onNavigate={(path) => controller.current?.navigate(path)} onLogout={logout} logoutError={logoutError}>
             {body}
           </AdminShell>
         )}

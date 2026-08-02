@@ -5,6 +5,7 @@ export const UNBROKEN = "СверхдлиннаяСтрокаБезПробел�
 
 type ApiState = {
   authenticated: boolean;
+  logoutFailures: number;
   categories: Array<Record<string, unknown>>;
   dishes: Array<Record<string, unknown>>;
   tables: Array<Record<string, unknown>>;
@@ -59,6 +60,10 @@ async function installAdminApi(page: Page, state: ApiState) {
     }
     if (path === "/api/admin/logout") {
       if (method !== "POST") return json(route, { error: "Method not allowed" }, 405);
+      if (state.logoutFailures > 0) {
+        state.logoutFailures -= 1;
+        return json(route, { error: "secret logout failure" }, 500);
+      }
       state.authenticated = false;
       return json(route, { ok: true });
     }
@@ -153,6 +158,7 @@ export const test = base.extend<{ apiState: ApiState; mockAdminApi: void }>({
   apiState: async ({}, provide) => {
     const state: ApiState = {
       authenticated: true,
+      logoutFailures: 0,
       categories: [{ id: "category-1", name: LONG_RUSSIAN, sort_order: 1 }],
       dishes: [{
         id: "dish-1", category_id: "category-1", name: UNBROKEN,

@@ -14,6 +14,7 @@ describe("typed admin API", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -115,11 +116,14 @@ describe("typed admin API", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("handles QR blobs, Content-Disposition names, safe fallback, and revokes URLs after click", async () => {
-    const click = vi.fn();
+  it("keeps the QR object URL live during click and revokes it once after 1000ms", async () => {
+    vi.useFakeTimers();
+    const revokeObjectURL = vi.fn();
+    const click = vi.fn(() => {
+      expect(revokeObjectURL).not.toHaveBeenCalled();
+    });
     vi.spyOn(document, "createElement").mockImplementation(() => ({ click, href: "", download: "" } as unknown as HTMLElement));
     const createObjectURL = vi.fn(() => "blob:qr");
-    const revokeObjectURL = vi.fn();
     vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
     fetchMock.mockResolvedValue(createMockResponse(new Blob(["qr"]), { headers: { "Content-Disposition": 'attachment; filename="table-12.png"' } }));
     const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
@@ -127,8 +131,36 @@ describe("typed admin API", () => {
     await api.tables.downloadQr("t1", "12");
     expect(click).toHaveBeenCalled();
     expect(createObjectURL).toHaveBeenCalled();
-    expect(revokeObjectURL).toHaveBeenCalledWith("blob:qr");
     expect((document.createElement as unknown as ReturnType<typeof vi.fn>).mock.results[0].value.download).toBe("table-12.png");
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(999);
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(revokeObjectURL).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:qr");
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("still schedules one delayed QR URL revocation when click throws", async () => {
+    vi.useFakeTimers();
+    const clickError = new Error("click failed");
+    vi.spyOn(document, "createElement").mockImplementation(() => ({
+      click: () => { throw clickError; },
+      href: "",
+      download: "",
+    } as unknown as HTMLElement));
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { ...URL, createObjectURL: () => "blob:qr", revokeObjectURL });
+    fetchMock.mockResolvedValue(createMockResponse(new Blob(["qr"])));
+
+    await expect(createAdminApi({ fetchImpl: fetchMock }).tables.downloadQr("t1", "12")).rejects.toBe(clickError);
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(revokeObjectURL).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:qr");
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("uses a sanitized fallback QR filename", async () => {

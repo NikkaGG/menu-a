@@ -21,11 +21,12 @@ const ADMIN_NAVIGATION = [
 ] as const;
 
 export function AdminShell({
-  route, onNavigate, onLogout, children,
+  route, onNavigate, onLogout, logoutError, children,
 }: {
   route: AdminRoute;
   onNavigate: (path: string) => void;
   onLogout: () => void | Promise<void>;
+  logoutError?: string;
   children: React.ReactNode;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
@@ -106,6 +107,11 @@ export function AdminShell({
           </div>
         </header>
         <div className="min-w-0 flex-1 p-4 md:p-6">
+          {logoutError ? (
+            <p role="alert" className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              {logoutError}
+            </p>
+          ) : null}
           <h1 ref={heading} tabIndex={-1} className="mb-6 min-w-0 text-2xl font-semibold [overflow-wrap:anywhere] outline-none focus-visible:ring-2 focus-visible:ring-ring">{route.heading}</h1>
           {children}
         </div>

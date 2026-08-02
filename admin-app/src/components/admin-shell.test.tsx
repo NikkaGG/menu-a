@@ -73,4 +73,21 @@ describe("AdminShell", () => {
     expect(pageHeading.className).toMatch(/min-w-0|break|overflow|truncate/);
     expect((await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations).toEqual([]);
   });
+
+  it("announces a deterministic logout error without replacing shell content", async () => {
+    const { container } = render(
+      <AdminShell
+        route={{ page: "menu", canonicalPath: "/admin/menu", title: "Управление меню — Панель управления", heading: "Управление меню" }}
+        onNavigate={vi.fn()}
+        onLogout={vi.fn()}
+        logoutError="Не удалось выйти. Попробуйте ещё раз."
+      >
+        <p>Тело меню</p>
+      </AdminShell>,
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Не удалось выйти. Попробуйте ещё раз.");
+    expect(screen.getByText("Тело меню")).toBeInTheDocument();
+    expect((await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations).toEqual([]);
+  });
 });
