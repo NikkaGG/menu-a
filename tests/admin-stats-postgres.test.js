@@ -31,7 +31,7 @@ test('admin stats executes production aggregation SQL against PostgreSQL semanti
       ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000002', 'new', 100.00, '2026-02-28T19:00:00.000Z'),
       ('40000000-0000-4000-8000-000000000002', '30000000-0000-4000-8000-000000000002', 'cooking', 60.00, '2026-03-01T07:00:00.000Z'),
       ('40000000-0000-4000-8000-000000000003', '30000000-0000-4000-8000-000000000002', 'ready', 40.00, '2026-03-01T19:00:00.000Z'),
-      ('40000000-0000-4000-8000-000000000004', '30000000-0000-4000-8000-000000000002', 'new', 50.00, '2026-03-02T08:00:00.000Z'),
+      ('40000000-0000-4000-8000-000000000004', '30000000-0000-4000-8000-000000000002', 'new', 50.02, '2026-03-02T08:00:00.000Z'),
       ('40000000-0000-4000-8000-000000000005', '30000000-0000-4000-8000-000000000002', 'ready', 999.00, '2026-03-02T19:00:00.000Z');
 
     INSERT INTO order_items
@@ -58,11 +58,13 @@ test('admin stats executes production aggregation SQL against PostgreSQL semanti
   });
 
   assert.deepEqual(await aggregate(query, range), {
-    totalRevenue: '250.00',
+    totalRevenue: '250.02',
     totalProfit: '50.00',
+    orderCount: 4,
+    averageCheck: '62.51',
     points: [
       { date: '2026-03-01', revenue: '160.00', profit: '50.00' },
-      { date: '2026-03-02', revenue: '90.00', profit: null },
+      { date: '2026-03-02', revenue: '90.02', profit: null },
     ],
     topDishes: [
       { dish_name: 'NullOnly', quantity: 5 },
@@ -71,5 +73,19 @@ test('admin stats executes production aggregation SQL against PostgreSQL semanti
       { dish_name: 'Alpha', quantity: 2 },
       { dish_name: 'Beta', quantity: 2 },
     ],
+  });
+
+  const emptyRange = parseRange({
+    from: '2026-04-01',
+    to: '2026-04-01',
+    groupBy: 'day',
+  });
+  assert.deepEqual(await aggregate(query, emptyRange), {
+    totalRevenue: '0.00',
+    totalProfit: null,
+    orderCount: 0,
+    averageCheck: null,
+    points: [],
+    topDishes: [],
   });
 });

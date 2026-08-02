@@ -94,7 +94,9 @@ test('admin stats sends inclusive Almaty dates as exact half-open UTC bounds', a
     authorize: authorized,
     query: async (sql, values) => {
       calls.push({ sql, values });
-      if (/summary/i.test(sql)) return [{ revenue: '0', profit: null }];
+      if (/summary/i.test(sql)) {
+        return [{ revenue: '0', profit: null, order_count: 0, average_check: null }];
+      }
       return [];
     },
   });
@@ -132,7 +134,9 @@ test('admin stats defaults grouping only when omitted and accepts a 366-day incl
     authorize: authorized,
     query: async (sql, values) => {
       calls.push({ sql, values });
-      return /summary/i.test(sql) ? [{ revenue: '0.00', profit: null }] : [];
+      return /summary/i.test(sql)
+        ? [{ revenue: '0.00', profit: null, order_count: 0, average_check: null }]
+        : [];
     },
   });
   const response = await invoke(handler, {
@@ -149,7 +153,14 @@ test('admin stats serializes aggregate rows exactly and preserves shared buckets
   const calls = [];
   const query = async (sql, values) => {
     calls.push({ sql, values });
-    if (/summary/i.test(sql)) return [{ revenue: '123456789012345.6', profit: '15' }];
+    if (/summary/i.test(sql)) {
+      return [{
+        revenue: '123456789012345.6',
+        profit: '15',
+        order_count: 7,
+        average_check: '17636684144620.8',
+      }];
+    }
     if (/points/i.test(sql)) {
       return [
         { date: '2026-01-05', revenue: '30.1', profit: '4.25' },
@@ -175,6 +186,8 @@ test('admin stats serializes aggregate rows exactly and preserves shared buckets
     },
     totalRevenue: '123456789012345.60',
     totalProfit: '15.00',
+    orderCount: 7,
+    averageCheck: '17636684144620.80',
     points: [
       { date: '2026-01-05', revenue: '30.10', profit: '4.25' },
       { date: '2026-01-12', revenue: '7.00', profit: null },
@@ -197,13 +210,22 @@ test('admin stats serializes aggregate rows exactly and preserves shared buckets
   assert.match(allSql, /SUM\(o\.total\)/i);
   const revenueCte = calls[0].sql.match(/revenue_summary AS \(([\s\S]*?)\),\s*profit_summary/i)[1];
   assert.doesNotMatch(revenueCte, /JOIN order_items/i);
+  assert.match(revenueCte, /SUM\(o\.total\)/i);
+  assert.match(revenueCte, /COUNT\(\*\)/i);
+  assert.match(revenueCte, /SUM\(o\.total\)\s*\/\s*COUNT\(\*\)/i);
+  assert.equal((revenueCte.match(/\bFROM\s+orders\b/gi) || []).length, 1);
+  const profitCte = calls[0].sql.match(/profit_summary AS \(([\s\S]*?)\)\s*SELECT/i)[1];
+  assert.equal((profitCte.match(/\bFROM\s+orders\b/gi) || []).length, 1);
+  assert.equal(calls.length, 3);
 });
 
 test('admin stats returns exact empty aggregates and reports database errors safely', async () => {
   const { createAdminStatsHandler } = require('../server/api/admin/stats');
   const empty = await invoke(createAdminStatsHandler({
     authorize: authorized,
-    query: async (sql) => (/summary/i.test(sql) ? [] : []),
+    query: async (sql) => (/summary/i.test(sql)
+      ? [{ revenue: '0', profit: null, order_count: 0, average_check: null }]
+      : []),
   }), {
     method: 'GET',
     query: { from: '2026-01-01', to: '2026-01-01', groupBy: 'month' },
@@ -218,6 +240,8 @@ test('admin stats returns exact empty aggregates and reports database errors saf
     },
     totalRevenue: '0.00',
     totalProfit: null,
+    orderCount: 0,
+    averageCheck: null,
     points: [],
     topDishes: [],
   });
@@ -240,7 +264,9 @@ test('admin stats SQL keeps revenue independent while profit handles partial and
     authorize: authorized,
     query: async (sql, values) => {
       calls.push({ sql, values });
-      if (/summary/i.test(sql)) return [{ revenue: '40.00', profit: null }];
+      if (/summary/i.test(sql)) {
+        return [{ revenue: '40.00', profit: null, order_count: 1, average_check: '40.00' }];
+      }
       return [];
     },
   });

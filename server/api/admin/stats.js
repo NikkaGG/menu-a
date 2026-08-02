@@ -92,7 +92,12 @@ function money(value) {
 const SUMMARY_SQL = `
 /* summary */
 WITH revenue_summary AS (
-  SELECT COALESCE(SUM(o.total), 0) AS revenue
+  SELECT COALESCE(SUM(o.total), 0) AS revenue,
+    COUNT(*)::integer AS order_count,
+    CASE
+      WHEN COUNT(*) = 0 THEN NULL
+      ELSE (SUM(o.total) / COUNT(*))::text
+    END AS average_check
   FROM orders o
   WHERE o.created_at >= $1::timestamptz
     AND o.created_at < $2::timestamptz
@@ -107,6 +112,8 @@ profit_summary AS (
     AND d.cost_price IS NOT NULL
 )
 SELECT revenue_summary.revenue::text AS revenue,
+  revenue_summary.order_count,
+  revenue_summary.average_check,
   profit_summary.profit::text AS profit
 FROM revenue_summary
 CROSS JOIN profit_summary`;
@@ -161,6 +168,8 @@ async function aggregate(query, range) {
   return {
     totalRevenue: money(summary.revenue ?? 0),
     totalProfit: summary.profit == null ? null : money(summary.profit),
+    orderCount: Number(summary.order_count ?? 0),
+    averageCheck: summary.average_check == null ? null : money(summary.average_check),
     points: pointRows.map((row) => ({
       date: String(row.date).slice(0, 10),
       revenue: money(row.revenue),
