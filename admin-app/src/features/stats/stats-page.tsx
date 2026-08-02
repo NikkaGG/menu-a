@@ -20,7 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
 import { AdminApiError, type AdminApi } from "@/lib/api";
 import { createConcurrencyGuard } from "@/lib/concurrency";
-import { ALMATY_TIME_ZONE, almatyDatePreset, formatMoney } from "@/lib/format";
+import {
+  ALMATY_TIME_ZONE,
+  almatyDatePreset,
+  formatInteger,
+  formatMoney,
+} from "@/lib/format";
 import type { Statistics } from "@/lib/types";
 import { StatsChart } from "./stats-chart";
 import { StatsFilters, type StatsQuery } from "./stats-filters";
@@ -187,8 +192,10 @@ export function StatsPage({ api }: { api: AdminApi }) {
 
       {data ? (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2" data-stats-kpis="true">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" data-stats-kpis="true">
             <KpiCard title="Общая выручка" value={formatMoney(data.totalRevenue)} />
+            <KpiCard title="Количество заказов" value={formatInteger(data.orderCount)} />
+            <KpiCard title="Средний чек" value={data.averageCheck === null ? "—" : formatMoney(data.averageCheck)} />
             {showProfit ? <KpiCard title="Общая прибыль" value={formatMoney(data.totalProfit ?? "0")} /> : null}
           </div>
 

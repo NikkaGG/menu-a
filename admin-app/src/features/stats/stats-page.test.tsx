@@ -68,6 +68,8 @@ function statistics(overrides: Partial<Statistics> = {}): Statistics {
     },
     totalRevenue: "12500.505",
     totalProfit: "3500.255",
+    orderCount: 1234,
+    averageCheck: "100.005",
     points: [
       { date: "2026-03-31", revenue: "10000.50", profit: "3000.25" },
       { date: "2026-04-01", revenue: "2500.005", profit: "500.005" },
@@ -283,6 +285,74 @@ describe("StatsPage", () => {
     expect(screen.getByRole("link", { name: "Указать себестоимость блюд" })).toHaveAttribute("href", "/admin/menu");
     expect(screen.getByRole("img", { name: "График выручки" })).toBeInTheDocument();
     expect(document.querySelector('[data-chart-series="profit"]')).not.toBeInTheDocument();
+  });
+
+  it("renders responsive order KPIs in the required card order with localized values", async () => {
+    const { container } = render(<StatsPage api={mockApi()} />);
+
+    expect(await screen.findByText("Количество заказов")).toBeInTheDocument();
+    expect(screen.getByText("Средний чек")).toBeInTheDocument();
+    const kpis = container.querySelector('[data-stats-kpis="true"]');
+    expect(kpis).toHaveClass("grid", "grid-cols-1", "gap-4", "sm:grid-cols-2", "xl:grid-cols-4");
+    expect(Array.from(kpis?.children ?? []).map((card) => card.textContent)).toEqual([
+      expect.stringContaining("Общая выручка"),
+      expect.stringContaining("Количество заказов"),
+      expect.stringContaining("Средний чек"),
+      expect.stringContaining("Общая прибыль"),
+    ]);
+    expect(screen.getByText("Количество заказов").closest('[data-slot="card"]')?.querySelector("p")?.textContent)
+      .toMatch(/^1[\u00a0\u202f]234$/);
+    expect(screen.getByText(/^100,01\s?₸$/)).toBeInTheDocument();
+  });
+
+  it("renders zero orders and an em dash for an unavailable average check", async () => {
+    render(<StatsPage api={mockApi(statistics({
+      totalRevenue: "0",
+      totalProfit: null,
+      orderCount: 0,
+      averageCheck: null,
+      points: [],
+      topDishes: [],
+    }))} />);
+
+    const countHeading = await screen.findByText("Количество заказов");
+    const averageHeading = screen.getByText("Средний чек");
+    const countCard = countHeading.closest('[data-slot="card"]');
+    const averageCard = averageHeading.closest('[data-slot="card"]');
+    expect(countCard).toHaveTextContent(/^Количество заказовЗа выбранный период0$/);
+    expect(averageCard).toHaveTextContent(/^Средний чекЗа выбранный период—$/);
+    expect(averageCard).not.toHaveTextContent(/0(?:,00)?\s?₸|NaN/);
+  });
+
+  it("refreshes revenue, order count, and average check together for a selected preset", async () => {
+    const refreshed = deferred<Statistics>();
+    const api = mockApi();
+    vi.mocked(api.stats)
+      .mockResolvedValueOnce(statistics({
+        totalRevenue: "100.00",
+        orderCount: 1,
+        averageCheck: "100.00",
+      }))
+      .mockReturnValueOnce(refreshed.promise);
+    const user = userEvent.setup();
+    render(<StatsPage api={api} />);
+    const revenueHeading = await screen.findByText("Общая выручка");
+    expect(revenueHeading.closest('[data-slot="card"]')).toHaveTextContent(/100,00\s?₸/);
+    expect(screen.getByText("Количество заказов").closest('[data-slot="card"]')).toHaveTextContent(/1$/);
+    expect(screen.getByText("Средний чек").closest('[data-slot="card"]')).toHaveTextContent(/100,00\s?₸/);
+
+    await user.click(screen.getByRole("button", { name: "Последние 30 дней" }));
+    refreshed.resolve(statistics({
+      totalRevenue: "999.99",
+      orderCount: 1234,
+      averageCheck: "12.345",
+    }));
+
+    expect(await screen.findByText(/^999,99\s?₸$/)).toBeInTheDocument();
+    expect(screen.getByText("Количество заказов").closest('[data-slot="card"]')?.querySelector("p")?.textContent)
+      .toMatch(/^1[\u00a0\u202f]234$/);
+    expect(screen.getByText("Средний чек").closest('[data-slot="card"]')).toHaveTextContent(/12,35\s?₸/);
+    expect(screen.queryByText(/^100,00\s?₸$/)).not.toBeInTheDocument();
   });
 
   it("keeps the accessible point table exactly equivalent to chart data", async () => {
