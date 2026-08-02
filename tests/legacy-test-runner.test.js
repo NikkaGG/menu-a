@@ -16,7 +16,7 @@ test('root package defines separate legacy and unit test commands', () => {
 });
 
 test('Node version and generated admin output are pinned', () => {
-  assert.equal(fs.readFileSync(path.join(root, '.nvmrc'), 'utf8'), '20.19.0\n');
+  assert.equal(fs.readFileSync(path.join(root, '.nvmrc'), 'utf8').trim(), '20.19.0');
   const ignored = fs.readFileSync(path.join(root, '.gitignore'), 'utf8').split(/\r?\n/);
   assert.ok(ignored.includes('admin-dist/'));
 });
