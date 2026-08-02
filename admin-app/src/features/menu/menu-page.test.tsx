@@ -1,11 +1,13 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { axe } from "vitest-axe";
+import { toast } from "sonner";
 
 import { AdminApiError } from "@/lib/api";
 import type { AdminApi } from "@/lib/api";
 import type { Category, Dish } from "@/lib/types";
+import * as menuState from "./menu-state";
 import { MenuPage } from "./menu-page";
 
 const category = (id: string, name: string, sortOrder = 0): Category => ({ id, name, sortOrder });
@@ -51,6 +53,10 @@ function mockApi(categories: Category[] = [], dishes: Dish[] = []) {
 }
 
 describe("MenuPage", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(() => {
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
@@ -85,6 +91,83 @@ describe("MenuPage", () => {
     dishes.resolve([]);
     expect(await screen.findByText("Категорий пока нет")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Добавить категорию" })).not.toHaveLength(0);
+  });
+
+  it.each(["resolve", "reject"] as const)("invalidates deferred loads and ignores their late %s after unmount", async (outcome) => {
+    const categories = deferred<Category[]>();
+    const dishes = deferred<Dish[]>();
+    const api = mockApi();
+    vi.mocked(api.categories.list).mockReturnValue(categories.promise);
+    vi.mocked(api.dishes.list).mockReturnValue(dishes.promise);
+    const invalidate = vi.spyOn(menuState, "invalidateMenuState");
+    const unmountedUpdate = vi.spyOn(console, "error").mockImplementation(() => {});
+    const view = render(<MenuPage api={api} />);
+
+    expect(api.categories.list).toHaveBeenCalledOnce();
+    expect(api.dishes.list).toHaveBeenCalledOnce();
+    view.unmount();
+    expect(invalidate).toHaveBeenCalledOnce();
+    await act(async () => {
+      if (outcome === "resolve") {
+        categories.resolve([category("late", "Поздняя категория")]);
+        dishes.resolve([dish("late", "late", "Позднее блюдо")]);
+      } else {
+        categories.reject(new Error("late category failure"));
+        dishes.reject(new Error("late dish failure"));
+      }
+      await Promise.allSettled([categories.promise, dishes.promise]);
+    });
+
+    expect(unmountedUpdate).not.toHaveBeenCalled();
+    expect(document.body).not.toHaveTextContent(/Поздняя|late .* failure/);
+    unmountedUpdate.mockRestore();
+  });
+
+  it("invalidates a deferred create and suppresses its late toast after unmount", async () => {
+    const api = mockApi();
+    const creation = deferred<Category>();
+    vi.mocked(api.categories.create).mockReturnValue(creation.promise);
+    const success = vi.spyOn(toast, "success");
+    const user = userEvent.setup();
+    const view = render(<MenuPage api={api} />);
+    await screen.findByText("Категорий пока нет");
+    await user.click(screen.getAllByRole("button", { name: "Добавить категорию" })[0]);
+    await user.type(screen.getByLabelText("Название категории"), "Поздняя");
+    await user.click(screen.getByRole("button", { name: "Создать категорию" }));
+
+    view.unmount();
+    await act(async () => {
+      creation.resolve(category("late", "Поздняя"));
+      await creation.promise;
+    });
+
+    expect(success).not.toHaveBeenCalledWith("Категория создана.");
+    success.mockRestore();
+  });
+
+  it("invalidates deferred availability and delete work without late notifications after unmount", async () => {
+    const api = mockApi([category("c1", "Роллы")], [dish("d1", "c1", "Ролл")]);
+    const availability = deferred<Dish>();
+    const deletion = deferred<void>();
+    vi.mocked(api.dishes.setAvailability).mockReturnValue(availability.promise);
+    vi.mocked(api.dishes.delete).mockReturnValue(deletion.promise);
+    const success = vi.spyOn(toast, "success");
+    const user = userEvent.setup();
+    const view = render(<MenuPage api={api} />);
+    await user.click(await screen.findByRole("switch", { name: "Скрыть блюдо «Ролл»" }));
+    await user.click(screen.getByRole("button", { name: "Удалить блюдо «Ролл»" }));
+    await user.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Удалить блюдо" }));
+
+    view.unmount();
+    await act(async () => {
+      availability.resolve(dish("d1", "c1", "Ролл", { isAvailable: false }));
+      deletion.resolve();
+      await Promise.all([availability.promise, deletion.promise]);
+    });
+
+    expect(success).not.toHaveBeenCalledWith("Блюдо скрыто из меню.");
+    expect(success).not.toHaveBeenCalledWith("Блюдо удалено.");
+    success.mockRestore();
   });
 
   it("shows a persistent localized load error and retries both resources", async () => {

@@ -111,7 +111,7 @@ function assetPaths(content) {
 }
 
 async function verifyShell(request) {
-  const routes = ['/admin-next', '/admin-next/menu', '/admin-next/tables', '/admin-next/stats'];
+  const routes = ['/admin', '/admin/menu', '/admin/tables', '/stats'];
   let shell;
   for (const route of routes) {
     const response = await request(route);

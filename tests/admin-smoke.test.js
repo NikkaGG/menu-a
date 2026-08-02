@@ -42,7 +42,7 @@ function successfulFetch(calls, overrides = {}) {
     }
     if (pathname === '/api/admin/logout') return response(200, { ok: true });
     if (overrides[`${method} ${pathname}`]) return overrides[`${method} ${pathname}`](url, init);
-    if (pathname.startsWith('/admin-next')) {
+    if (['/admin', '/admin/menu', '/admin/tables', '/stats'].includes(pathname)) {
       return response(200, '<link rel="stylesheet" href="/admin-dist/assets/app-Ab12cd34.css"><script src="/admin-dist/assets/app-Xy98kl76.js"></script>', { 'content-type': 'text/html' });
     }
     if (pathname.startsWith('/admin-dist/assets/')) return response(200, 'asset');
@@ -58,7 +58,7 @@ function successfulFetch(calls, overrides = {}) {
   };
 }
 
-test('read-only mode verifies shell, assets, APIs, and QR without mutations', async () => {
+test('read-only production mode verifies only canonical shells, assets, APIs, and QR without mutations', async () => {
   const { runAdminSmoke } = require(smokePath);
   const calls = [];
   const result = await runAdminSmoke({ env: baseEnv(), fetchImpl: successfulFetch(calls), logger: { log() {}, error() {} } });
@@ -68,9 +68,10 @@ test('read-only mode verifies shell, assets, APIs, and QR without mutations', as
     ['POST', '/api/admin/login'],
     ['POST', '/api/admin/logout'],
   ]);
-  for (const route of ['/admin-next', '/admin-next/menu', '/admin-next/tables', '/admin-next/stats']) {
+  for (const route of ['/admin', '/admin/menu', '/admin/tables', '/stats']) {
     assert.ok(calls.some(({ pathname }) => pathname === route), route);
   }
+  assert.ok(calls.every(({ pathname }) => !pathname.startsWith('/admin-next')));
   assert.ok(calls.some(({ pathname }) => pathname === '/api/admin/tables/existing-table/qr'));
   const authenticated = calls.filter(({ pathname }) => pathname !== '/api/admin/login');
   assert.ok(authenticated.every(({ init }) => init.headers.Cookie === 'admin_session=private-cookie'));
@@ -101,6 +102,12 @@ test('preview mode creates, verifies, and cleans table, dish, category in order'
   });
 
   assert.deepEqual(result, { mode: 'preview', tableId: 'table-created' });
+  assert.deepEqual(
+    calls.filter(({ pathname }) => ['/admin', '/admin/menu', '/admin/tables', '/stats'].includes(pathname))
+      .map(({ pathname }) => pathname),
+    ['/admin', '/admin/menu', '/admin/tables', '/stats'],
+  );
+  assert.ok(calls.every(({ pathname }) => !pathname.startsWith('/admin-next')));
   assert.deepEqual(calls.filter(({ method }) => method === 'DELETE').map(({ pathname }) => pathname), [
     '/api/admin/tables/table-created',
     '/api/admin/dishes/dish-created',

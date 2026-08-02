@@ -27,6 +27,7 @@ import {
   createMenuState,
   failLoad,
   failMutation,
+  invalidateMenuState,
   settleDelete,
   type MenuState,
 } from "./menu-state";
@@ -37,6 +38,7 @@ type DeleteResult = { ok: true } | { ok: false; message: string };
 export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
   const [api] = useState(() => injectedApi ?? createAdminApi());
   const stateRef = useRef<MenuState>(createMenuState());
+  const mountedRef = useRef(true);
   const [state, setRenderedState] = useState(stateRef.current);
   const [loadError, setLoadError] = useState(false);
   const [categoryEditor, setCategoryEditor] = useState<DialogEditor<Category> | null>(null);
@@ -49,7 +51,7 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
   const commit = useCallback((next: MenuState | ((current: MenuState) => MenuState)) => {
     const value = typeof next === "function" ? next(stateRef.current) : next;
     stateRef.current = value;
-    setRenderedState(value);
+    if (mountedRef.current) setRenderedState(value);
     return value;
   }, []);
 
@@ -81,11 +83,16 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
       commit(next);
       failed ||= next !== before;
     }
-    if (failed) setLoadError(true);
+    if (failed && mountedRef.current) setLoadError(true);
   }, [api, commit]);
 
   useEffect(() => {
+    mountedRef.current = true;
     void load();
+    return () => {
+      mountedRef.current = false;
+      stateRef.current = invalidateMenuState(stateRef.current);
+    };
   }, [load]);
 
   const openCategory = (category: Category | null) => {
@@ -103,7 +110,8 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
   };
 
   const dialogIsCurrent = (key: "category" | "dish", editor: DialogEditor<unknown>) =>
-    editor.token.generation === stateRef.current.generation
+    mountedRef.current
+    && editor.token.generation === stateRef.current.generation
     && stateRef.current.dialogs[key] === editor.token.revision;
 
   const submitCategory = async (input: CategoryInput) => {
@@ -112,6 +120,7 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
     const id = editor.entity?.id ?? `new-category-${editor.token.revision}`;
     const mutation = beginMutation(stateRef.current, "categories", id);
     commit(mutation.state);
+    const isCurrent = () => mountedRef.current && stateRef.current.generation === mutation.token.generation;
     try {
       const result = editor.entity
         ? await api.categories.update(editor.entity.id, input)
@@ -125,6 +134,7 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
       return currentAfter;
     } catch (error) {
       commit((current) => failMutation(current, mutation.token, error));
+      if (!isCurrent()) return false;
       throw error;
     }
   };
@@ -135,6 +145,7 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
     const id = editor.entity?.id ?? `new-dish-${editor.token.revision}`;
     const mutation = beginMutation(stateRef.current, "dishes", id);
     commit(mutation.state);
+    const isCurrent = () => mountedRef.current && stateRef.current.generation === mutation.token.generation;
     try {
       const result = editor.entity
         ? await api.dishes.update(editor.entity.id, input)
@@ -148,12 +159,14 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
       return currentAfter;
     } catch (error) {
       commit((current) => failMutation(current, mutation.token, error));
+      if (!isCurrent()) return false;
       throw error;
     }
   };
 
   const toggleAvailability = async (dish: Dish, next: boolean) => {
     const mutation = beginMutation(stateRef.current, "dishes", dish.id);
+    const isCurrent = () => mountedRef.current && stateRef.current.generation === mutation.token.generation;
     const optimistic = {
       ...mutation.state,
       dishes: mutation.state.dishes.map((item) => item.id === dish.id ? { ...item, isAvailable: next } : item),
@@ -166,7 +179,8 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
       const result = await api.dishes.setAvailability(dish.id, next);
       commit((current) => completeMutation(current, mutation.token, result));
       if (
-        availabilityRevisions.current.get(dish.id) === mutation.token.revision
+        isCurrent()
+        && availabilityRevisions.current.get(dish.id) === mutation.token.revision
         && stateRef.current.mutations[`dishes:${dish.id}`] === mutation.token.revision
       ) {
         toast.success(next ? "Блюдо показано в меню." : "Блюдо скрыто из меню.");
@@ -183,7 +197,7 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
         toast.error("Не удалось изменить доступность блюда.");
       }
     } finally {
-      if (availabilityRevisions.current.get(dish.id) === mutation.token.revision) {
+      if (isCurrent() && availabilityRevisions.current.get(dish.id) === mutation.token.revision) {
         availabilityRevisions.current.delete(dish.id);
         setPendingAvailability((current) => {
           const nextPending = new Set(current);
@@ -197,13 +211,16 @@ export function MenuPage({ api: injectedApi }: { api?: AdminApi }) {
   const deleteEntity = async (resource: "categories" | "dishes", id: string): Promise<DeleteResult> => {
     const deletion = beginDelete(stateRef.current, resource, id);
     commit(deletion.state);
+    const isCurrent = () => mountedRef.current && stateRef.current.generation === deletion.token.generation;
     try {
       if (resource === "categories") await api.categories.delete(id);
       else await api.dishes.delete(id);
+      if (!isCurrent()) return { ok: false, message: "" };
       commit((current) => completeDelete(current, deletion.token));
       toast.success(resource === "categories" ? "Категория удалена." : "Блюдо удалено.");
       return { ok: true };
     } catch (error) {
+      if (!isCurrent()) return { ok: false, message: "" };
       commit((current) => settleDelete(current, deletion.token, "failure"));
       return {
         ok: false,
