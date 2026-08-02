@@ -60,7 +60,11 @@ In the same RED edit, add every semantic/edge assertion:
 
 - one semantic table, one header row, one body row, three column headers, and
   exactly three body cells for the one-table fixture;
-- number/date cells have accessible names from connected labels and values;
+- the three column headers have stable IDs
+  `tables-number-heading`/`tables-created-heading`/`tables-actions-heading`,
+  and each body cell's `headers` attribute points to its matching header;
+- visible phone labels remain visible but have `aria-hidden="true"`, no body
+  cell has `aria-labelledby`, and the number/date values remain intact;
 - exactly one QR/delete action per row;
 - a 100-character name and long QR error remain contained with
   `whitespace-normal` and `[overflow-wrap:anywhere]`;
@@ -131,7 +135,9 @@ In `TablesPage`, keep the existing `Table` component and state mapping, but use:
 ```
 
 Do not create a second mobile list or duplicate controls. Keep the desktop
-minimum width only at `md`.
+minimum width only at `md`. Give the three `TableHead` elements stable IDs:
+`tables-number-heading`, `tables-created-heading`, and
+`tables-actions-heading`.
 
 - [ ] **Step 4: Implement one responsive row**
 
@@ -159,19 +165,21 @@ className="block min-w-0 whitespace-nowrap p-3 text-right md:table-cell md:p-2 m
 Each contains a `md:hidden` label with muted small text:
 
 ```tsx
-<span className="block text-xs text-muted-foreground md:hidden">Стол</span>
+<span aria-hidden="true" className="block text-xs text-muted-foreground md:hidden">Стол</span>
 ```
 
 and:
 
 ```tsx
-<span className="block text-xs text-muted-foreground md:hidden">Создан</span>
+<span aria-hidden="true" className="block text-xs text-muted-foreground md:hidden">Создан</span>
 ```
 
-Use `useId()` to give each mobile label and value a unique ID. Connect each
-cell to both elements through `aria-labelledby`, so its accessible name is
-“Стол [number]” or “Создан [date]” rather than relying on visual proximity.
-Give the values stable `data-table-number` and `data-table-created` selectors.
+Set each cell's `headers` attribute to the matching stable column-header ID:
+`tables-number-heading`, `tables-created-heading`, or
+`tables-actions-heading`. Keep the visible phone label spans
+`aria-hidden="true"` to avoid duplicate announcements from the native table
+association, and do not add `aria-labelledby`. Give the values stable
+`data-table-number` and `data-table-created` selectors.
 
 The action cell spans both mobile columns:
 
