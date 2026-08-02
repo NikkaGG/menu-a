@@ -2,6 +2,7 @@ export type DatePreset = "today" | "7d" | "30d";
 
 const ALMATY_TIME_ZONE = "Asia/Almaty";
 const NBSP = "\u00a0";
+const INTEGER_FORMATTER = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
 
 function almatyDate(date: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -43,6 +44,10 @@ export function formatMoney(value: string | number): string {
   const magnitudeIsZero = integer === "0" && cents === 0;
   const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
   return `${sign === "-" && !magnitudeIsZero ? "-" : ""}${grouped},${String(cents).padStart(2, "0")}${NBSP}₸`;
+}
+
+export function formatInteger(value: number): string {
+  return INTEGER_FORMATTER.format(Number.isFinite(value) ? Math.trunc(value) : 0);
 }
 
 export function normalizePhotoUrl(value: string | null | undefined): string | null {

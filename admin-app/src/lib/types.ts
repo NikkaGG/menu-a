@@ -31,6 +31,8 @@ export type Statistics = {
   };
   totalRevenue: string;
   totalProfit: string | null;
+  orderCount: number;
+  averageCheck: string | null;
   points: Array<{ date: string; revenue: string; profit: string | null }>;
   topDishes: Array<{ dishName: string; quantity: number }>;
 };

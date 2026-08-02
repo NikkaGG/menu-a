@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   almatyDatePreset,
+  formatInteger,
   formatMoney,
   normalizePhotoUrl,
   pluralizeRussian,
@@ -28,6 +29,18 @@ describe("admin formatting", () => {
     expect(formatMoney("-0")).toBe("0,00 ₸");
     expect(formatMoney("-1.995")).toBe("-2,00 ₸");
     expect(formatMoney("1.994")).toBe("1,99 ₸");
+  });
+
+  it("formats truncated integers with Russian grouping", () => {
+    expect(formatInteger(0)).toBe("0");
+    expect(formatInteger(12)).toBe("12");
+    expect(formatInteger(1234.9)).toMatch(/^1[\u00a0\u202f]234$/);
+    expect(formatInteger(-12.9)).toBe("-12");
+  });
+
+  it("formats non-finite integers as zero", () => {
+    expect(formatInteger(Number.NaN)).toBe("0");
+    expect(formatInteger(Number.POSITIVE_INFINITY)).toBe("0");
   });
 
   it("normalizes only safe photo URLs", () => {

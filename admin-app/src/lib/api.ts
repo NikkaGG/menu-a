@@ -79,6 +79,13 @@ function nullableText(value: unknown): string | null {
   return value == null ? null : text(value);
 }
 
+function nonNegativeSafeInteger(value: unknown): number {
+  if (typeof value !== "number" && typeof value !== "string") return 0;
+  if (typeof value === "string" && value.trim() === "") return 0;
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number >= 0 ? number : 0;
+}
+
 function moneyNumber(value: string | number): number {
   const number = typeof value === "string" && value.trim() === "" ? Number.NaN : Number(value);
   if (!Number.isFinite(number)) throw new AdminApiError(FALLBACK_MESSAGE);
@@ -134,6 +141,8 @@ function statistics(value: unknown): Statistics {
     },
     totalRevenue: text(raw.totalRevenue ?? raw.total_revenue),
     totalProfit: nullableText(raw.totalProfit ?? raw.total_profit),
+    orderCount: nonNegativeSafeInteger(raw.orderCount ?? raw.order_count),
+    averageCheck: nullableText(raw.averageCheck ?? raw.average_check),
     points: (Array.isArray(raw.points) ? raw.points : []).map((value) => {
       const point = record(value);
       return { date: text(point.date), revenue: text(point.revenue), profit: nullableText(point.profit) };

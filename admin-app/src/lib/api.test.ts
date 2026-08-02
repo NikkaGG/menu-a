@@ -51,6 +51,54 @@ describe("typed admin API", () => {
     expect(stats).toMatchObject({ totalRevenue: "1200.50", totalProfit: null, topDishes: [{ dishName: "Ролл", quantity: 2 }] });
   });
 
+  it("normalizes snake_case statistics order metrics without changing average-check precision", async () => {
+    fetchMock.mockResolvedValueOnce(createMockResponse({
+      stats: {
+        order_count: "1234",
+        average_check: "100.005",
+      },
+    }));
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+
+    const stats = await api.stats({ from: "2026-01-01", to: "2026-01-02", groupBy: "day" });
+
+    expect(stats.orderCount).toBe(1234);
+    expect(stats.averageCheck).toBe("100.005");
+  });
+
+  it("normalizes camelCase statistics order metrics and preserves null average checks", async () => {
+    fetchMock
+      .mockResolvedValueOnce(createMockResponse({ stats: { orderCount: 42, averageCheck: "75.50" } }))
+      .mockResolvedValueOnce(createMockResponse({ stats: { orderCount: 0, averageCheck: null } }));
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+
+    const camelCase = await api.stats({ from: "2026-01-01", to: "2026-01-02", groupBy: "day" });
+    const nullAverage = await api.stats({ from: "2026-01-01", to: "2026-01-02", groupBy: "day" });
+
+    expect(camelCase).toMatchObject({ orderCount: 42, averageCheck: "75.50" });
+    expect(nullAverage.averageCheck).toBeNull();
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["malformed", "not-a-number"],
+    ["NaN-like", Number.NaN],
+    ["negative number", -1],
+    ["negative numeric string", "-1"],
+    ["fractional number", 1.5],
+    ["fractional numeric string", "1.5"],
+    ["unsafe number", Number.MAX_SAFE_INTEGER + 1],
+    ["unsafe numeric string", "9007199254740992"],
+  ])("normalizes %s statistics order counts to zero", async (_label, orderCount) => {
+    fetchMock.mockResolvedValueOnce(createMockResponse({ stats: { order_count: orderCount } }));
+    const api = createAdminApi({ fetchImpl: fetchMock, onUnauthorized });
+
+    const stats = await api.stats({ from: "2026-01-01", to: "2026-01-02", groupBy: "day" });
+
+    expect(stats.orderCount).toBe(0);
+    expect(Number.isNaN(stats.orderCount)).toBe(false);
+  });
+
   it("passes an optional stats abort signal through to fetch and keeps abort errors quiet", async () => {
     const controller = new AbortController();
     const abortError = Object.assign(new Error("aborted"), { name: "AbortError" });
