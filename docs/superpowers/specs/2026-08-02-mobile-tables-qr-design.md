@@ -89,11 +89,25 @@ At 320px and 390px:
 - controls are at least 44px high;
 - rows render as separate compact cards with bounded spacing;
 - long table names remain contained.
+- long QR and delete errors remain inside their card without overlapping values
+  or actions;
+- pending controls and a two-button action row remain contained when actions
+  wrap;
+- each row exposes exactly one QR action and one delete action;
+- table, row, and cell roles remain available to the accessibility tree, with
+  mobile labels connected to their values.
 
 At 768px, 1024px, and 1440px:
 
 - the standard table header and three-column layout are restored;
 - existing QR, delete, dialog, and horizontal containment workflows pass.
+- each row still exposes exactly one QR action and one delete action, with the
+  normal table, row, column-header, and cell roles.
+
+The current browser assertion that requires mobile horizontal overflow and
+sideways scrolling must be replaced. Horizontal-scroll behavior remains tested
+only as a desktop defensive fallback for exceptionally wide content. Phone
+tests instead require zero list overflow and immediate action visibility.
 
 ## Non-goals
 
