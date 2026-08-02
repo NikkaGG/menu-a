@@ -14,3 +14,5 @@ audit-*.png
 stage*-*.png
 payment-method-*.png
 pickup-time-*.png
+.vercel/
+.env.local
