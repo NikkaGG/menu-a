@@ -227,6 +227,75 @@ test("mobile sheet traps focus, closes with Escape and restores its trigger", as
   await expectOverlayKeyboardContract(page, sheet, trigger);
 });
 
+test("dish summaries wrap inside their first cell without painting into adjacent columns", async ({ page }) => {
+  await page.goto("/admin/menu");
+  const rows = page.locator(".menu-dish-row:visible");
+  await expect(rows).toHaveCount(1);
+
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  const violations = await rows.evaluateAll((elements, width) => elements.flatMap((row, rowIndex) => {
+    const summaryCell = row.querySelector<HTMLElement>('[data-dish-cell="summary"]');
+    const priceCell = row.querySelector<HTMLElement>('[data-dish-cell="price"]');
+    const statusCell = row.querySelector<HTMLElement>('[data-dish-cell="status"]');
+    const summary = row.querySelector<HTMLElement>('[data-dish-summary="true"]');
+    const contents = [
+      row.querySelector<HTMLElement>('[data-dish-name="true"]'),
+      row.querySelector<HTMLElement>('[data-dish-description="true"]'),
+    ].filter((element): element is HTMLElement => element !== null);
+    if (!summaryCell || !priceCell || !statusCell || !summary) return [{ rowIndex, reason: "missing markers" }];
+
+    const cellBox = summaryCell.getBoundingClientRect();
+    const summaryBox = summary.getBoundingClientRect();
+    const adjacentLeft = Math.min(priceCell.getBoundingClientRect().left, statusCell.getBoundingClientRect().left);
+    const result: Array<Record<string, string | number | boolean>> = [];
+    if (
+      summaryBox.left < cellBox.left - 1
+      || summaryBox.right > cellBox.right + 1
+      || summary.scrollWidth > summary.clientWidth + 1
+    ) {
+      result.push({
+        rowIndex,
+        reason: "summary overflow",
+        summaryRight: summaryBox.right,
+        cellRight: cellBox.right,
+        scrollWidth: summary.scrollWidth,
+        clientWidth: summary.clientWidth,
+      });
+    }
+
+    for (const content of contents) {
+      const range = document.createRange();
+      range.selectNodeContents(content);
+      const textBox = range.getBoundingClientRect();
+      const style = getComputedStyle(content);
+      const paintsPastCell = textBox.left < cellBox.left - 1 || textBox.right > cellBox.right + 1;
+      const paintsIntoAdjacentColumn = width >= 640 && textBox.right > adjacentLeft + 1;
+      if (
+        style.whiteSpace === "nowrap"
+        || content.scrollWidth > content.clientWidth + 1
+        || paintsPastCell
+        || paintsIntoAdjacentColumn
+      ) {
+        result.push({
+          rowIndex,
+          reason: content.dataset.dishName ? "name overflow" : "description overflow",
+          whiteSpace: style.whiteSpace,
+          textRight: textBox.right,
+          cellRight: cellBox.right,
+          adjacentLeft,
+          scrollWidth: content.scrollWidth,
+          clientWidth: content.clientWidth,
+          paintsPastCell,
+          paintsIntoAdjacentColumn,
+        });
+      }
+    }
+    return result;
+  }), viewportWidth);
+
+  expect(violations).toEqual([]);
+});
+
 test("menu CRUD, confirmations, availability and dialog keyboard contracts", async ({ page, apiState }) => {
   await page.goto("/admin/menu");
   await expect(page.locator("[data-table-scroll]")).toHaveCount(0);

@@ -58,21 +58,21 @@ export function DishRow({
 
   return (
     <TableRow className="menu-dish-row">
-      <TableCell className="menu-dish-cell min-w-0">
-        <div className="flex min-w-0 gap-3">
+      <TableCell data-dish-cell="summary" className="menu-dish-cell min-w-0 whitespace-normal [overflow-wrap:anywhere]">
+        <div data-dish-summary="true" className="flex min-w-0 gap-3">
           <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted" aria-hidden="true">
             {photoUrl && !imageFailed
               ? <img src={photoUrl} alt="" className="size-full object-cover" onError={() => setImageFailed(true)} />
               : <ImageOff />}
           </div>
           <div className="min-w-0 [overflow-wrap:anywhere]">
-            <p className="min-w-0 font-medium [overflow-wrap:anywhere]">{dish.name}</p>
-            {dish.description && <p className="text-sm text-muted-foreground">{dish.description}</p>}
+            <p data-dish-name="true" className="min-w-0 font-medium [overflow-wrap:anywhere]">{dish.name}</p>
+            {dish.description && <p data-dish-description="true" className="min-w-0 text-sm text-muted-foreground [overflow-wrap:anywhere]">{dish.description}</p>}
           </div>
         </div>
       </TableCell>
-      <TableCell className="menu-dish-cell whitespace-nowrap">{formatMoney(dish.price)}</TableCell>
-      <TableCell className="menu-dish-cell">
+      <TableCell data-dish-cell="price" className="menu-dish-cell whitespace-nowrap">{formatMoney(dish.price)}</TableCell>
+      <TableCell data-dish-cell="status" className="menu-dish-cell">
         <Badge variant={dish.isAvailable ? "secondary" : "outline"}>
           {dish.isAvailable ? "Доступно" : "Скрыто"}
         </Badge>
