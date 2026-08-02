@@ -487,15 +487,67 @@ test("table form, delete confirmation, QR and explicit horizontal scroll region"
   await expect(page.getByText("Стол удалён.", { exact: true })).toBeVisible();
 });
 
-test("statistics filters, chart fallback table, wrapping and reduced motion are accessible", async ({ page }) => {
+test("statistics metrics, responsive chart disclosure and reduced motion are accessible", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/stats");
+
+  const kpis = page.locator("[data-stats-kpis]");
+  await expect(kpis).toBeVisible();
+  const revenueCard = page.locator('[data-slot="card"]').filter({
+    has: page.getByText("Общая выручка", { exact: true }),
+  });
+  const orderCountCard = page.locator('[data-slot="card"]').filter({
+    has: page.getByText("Количество заказов", { exact: true }),
+  });
+  const averageCheckCard = page.locator('[data-slot="card"]').filter({
+    has: page.getByText("Средний чек", { exact: true }),
+  });
+  const profitCard = page.locator('[data-slot="card"]').filter({
+    has: page.getByText("Общая прибыль", { exact: true }),
+  });
+  await expect(revenueCard.locator("p")).toHaveText(/123[\s\u00a0\u202f]?456,78\s*₸/);
+  await expect(orderCountCard).toContainText("Количество заказов");
+  await expect(orderCountCard.locator("p")).toHaveText("42");
+  await expect(averageCheckCard).toContainText("Средний чек");
+  await expect(averageCheckCard.locator("p")).toHaveText(/2[\s\u00a0\u202f]?939,45\s*₸/);
+  await expect(profitCard.locator("p")).toHaveText(/45[\s\u00a0\u202f]?678,90\s*₸/);
+
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  const expectedColumns = viewportWidth < 640 ? 1 : viewportWidth >= 1440 ? 4 : 2;
+  const rowSizes = await kpis.locator(":scope > *").evaluateAll((cards) => {
+    const rows: number[][] = [];
+    for (const card of cards) {
+      const top = card.getBoundingClientRect().top;
+      const row = rows.find((entry) => Math.abs(entry[0] - top) <= 1);
+      if (row) row.push(top);
+      else rows.push([top]);
+    }
+    return rows.map((row) => row.length);
+  });
+  expect(rowSizes).toEqual(Array.from({ length: 4 / expectedColumns }, () => expectedColumns));
+
   await expect(page.getByRole("img", { name: "График выручки и прибыли" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Данные графика" })).toBeVisible();
+  const chart = page.locator('[data-slot="chart"]');
+  const chartHeight = await chart.evaluate((element) => element.getBoundingClientRect().height);
+  expect(chartHeight).toBeGreaterThanOrEqual(250);
+  expect(chartHeight).toBeLessThanOrEqual(320);
+
+  const collapse = page.getByTestId("statistics-chart-collapse");
+  const region = page.locator("#statistics-chart-region");
+  const toggle = page.getByRole("button", { name: "Свернуть график" });
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  const toggleBox = await toggle.boundingBox();
+  expect(toggleBox).not.toBeNull();
+  expect(toggleBox!.width).toBeGreaterThanOrEqual(44);
+  expect(toggleBox!.height).toBeGreaterThanOrEqual(44);
+  await expect(region).toHaveAttribute("aria-hidden", "false");
+  await expect(region).not.toHaveAttribute("inert");
+
   const statsScroll = page.locator('[data-table-scroll][aria-label="Таблица данных графика"]');
   await expect(statsScroll).toHaveCount(1);
   await expect(statsScroll).toHaveAttribute("tabindex", "0");
-  if ((page.viewportSize()?.width ?? 0) <= 390) {
+  if (viewportWidth <= 390) {
     const sizes = await statsScroll.evaluate((element) => ({
       scrollWidth: element.scrollWidth,
       clientWidth: element.clientWidth,
@@ -509,6 +561,38 @@ test("statistics filters, chart fallback table, wrapping and reduced motion are 
   await expectNoIntersections(statsScroll.locator("tbody tr:visible"));
   await expectNoIntersections(statsScroll.locator("th:visible, td:visible"));
   await expectNoIntersections(statsPage.locator("button:visible"));
+
+  const expandedCollapseHeight = await collapse.evaluate((element) => element.getBoundingClientRect().height);
+  const expandedTableTop = await statsScroll.evaluate((element) => element.getBoundingClientRect().top);
+  const reducedDurations = await collapse.evaluate((element) => getComputedStyle(element).transitionDuration);
+  expect(reducedDurations.split(",").every((duration) => Number.parseFloat(duration) <= 0.001)).toBe(true);
+
+  await toggle.click();
+  const expandToggle = page.getByRole("button", { name: "Развернуть график" });
+  await expect(expandToggle).toHaveAttribute("aria-expanded", "false");
+  await expect(region).toHaveAttribute("aria-hidden", "true");
+  await expect(region).toHaveAttribute("inert", "");
+  await expect(page.getByRole("img", { name: "График выручки и прибыли" })).toHaveCount(0);
+  await expect.poll(() => collapse.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
+  const collapsedTableTop = await statsScroll.evaluate((element) => element.getBoundingClientRect().top);
+  expect(collapsedTableTop).toBeLessThan(expandedTableTop - expandedCollapseHeight / 2);
+  const collapsedGap = await statsScroll.evaluate((table) => {
+    const chartCard = document.querySelector('[data-testid="statistics-chart-collapse"]')?.closest('[data-slot="card"]');
+    const tableCard = table.closest('[data-slot="card"]');
+    return chartCard && tableCard
+      ? tableCard.getBoundingClientRect().top - chartCard.getBoundingClientRect().bottom
+      : Number.POSITIVE_INFINITY;
+  });
+  expect(collapsedGap).toBeLessThanOrEqual(20);
+  await expectNoPageOverflow(page);
+
+  await expandToggle.click();
+  await expect(page.getByRole("button", { name: "Свернуть график" })).toHaveAttribute("aria-expanded", "true");
+  await expect(region).toHaveAttribute("aria-hidden", "false");
+  await expect(region).not.toHaveAttribute("inert");
+  await expect(page.getByRole("img", { name: "График выручки и прибыли" })).toBeVisible();
+  await expect.poll(() => collapse.evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(250);
+
   await page.getByLabel("Дата начала").fill("2026-08-10");
   await page.getByLabel("Дата окончания").fill("2026-08-01");
   await page.getByRole("button", { name: "Показать статистику" }).click();
@@ -518,6 +602,44 @@ test("statistics filters, chart fallback table, wrapping and reduced motion are 
   expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
   await expectReducedMotion(page);
   await expectNoPageOverflow(page);
+});
+
+test("statistics chart collapse animates for normal motion", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "1440px", "normal-motion animation runs once at the controlled wide viewport");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/stats");
+
+  const collapse = page.getByTestId("statistics-chart-collapse");
+  const toggle = page.getByRole("button", { name: "Свернуть график" });
+  await expect(collapse).toBeVisible();
+  const transition = await collapse.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const toMilliseconds = (duration: string) => duration.endsWith("ms")
+      ? Number.parseFloat(duration)
+      : Number.parseFloat(duration) * 1000;
+    return {
+      properties: style.transitionProperty.split(",").map((property) => property.trim()),
+      durations: style.transitionDuration.split(",").map((duration) => toMilliseconds(duration.trim())),
+    };
+  });
+  expect(transition.properties).toEqual(expect.arrayContaining(["grid-template-rows", "opacity"]));
+  for (const duration of transition.durations) {
+    expect(duration).toBeGreaterThanOrEqual(250);
+    expect(duration).toBeLessThanOrEqual(350);
+  }
+
+  const expandedHeight = await collapse.evaluate((element) => element.getBoundingClientRect().height);
+  expect(expandedHeight).toBeGreaterThanOrEqual(250);
+  await toggle.click();
+  await collapse.evaluate(async () => {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+  await expect.poll(async () => {
+    await collapse.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+    const height = await collapse.evaluate((element) => element.getBoundingClientRect().height);
+    return height > 1 && height < expandedHeight - 1;
+  }, { intervals: [10, 10, 10, 10, 10, 10, 10, 10] }).toBe(true);
+  await expect.poll(() => collapse.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
 });
 
 test("reduced motion applies to the page and open overlays", async ({ page }) => {

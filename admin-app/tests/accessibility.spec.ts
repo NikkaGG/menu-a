@@ -22,6 +22,33 @@ test("admin pages have no axe violations in light and dark themes", async ({ pag
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expectNoAxeViolations(page, `${theme} ${path}`);
+      if (path === "/stats") {
+        const collapse = page.getByTestId("statistics-chart-collapse");
+        const region = page.locator("#statistics-chart-region");
+        const collapseToggle = page.getByRole("button", { name: "Свернуть график" });
+        await expect(collapseToggle).toHaveAttribute("aria-expanded", "true");
+        const toggleBox = await collapseToggle.boundingBox();
+        expect(toggleBox).not.toBeNull();
+        expect(toggleBox!.width).toBeGreaterThanOrEqual(44);
+        expect(toggleBox!.height).toBeGreaterThanOrEqual(44);
+        await expect(region).toHaveAttribute("aria-hidden", "false");
+        await expect(region).not.toHaveAttribute("inert");
+
+        await collapseToggle.click();
+        const expandToggle = page.getByRole("button", { name: "Развернуть график" });
+        await expect(expandToggle).toHaveAttribute("aria-expanded", "false");
+        await expect(region).toHaveAttribute("aria-hidden", "true");
+        await expect(region).toHaveAttribute("inert", "");
+        await expect(page.getByRole("img", { name: "График выручки и прибыли" })).toHaveCount(0);
+        await expect.poll(() => collapse.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
+        await expectNoAxeViolations(page, `${theme} ${path} collapsed`);
+
+        await expandToggle.click();
+        await expect(page.getByRole("button", { name: "Свернуть график" })).toHaveAttribute("aria-expanded", "true");
+        await expect(region).toHaveAttribute("aria-hidden", "false");
+        await expect(region).not.toHaveAttribute("inert");
+        await expect(page.getByRole("img", { name: "График выручки и прибыли" })).toBeVisible();
+      }
     }
   }
 });

@@ -143,6 +143,8 @@ async function installAdminApi(page: Page, state: ApiState) {
         range: { from: url.searchParams.get("from"), to: url.searchParams.get("to"), group_by: url.searchParams.get("groupBy"), time_zone: "Asia/Almaty" },
         total_revenue: "123456.78",
         total_profit: "45678.90",
+        order_count: 42,
+        average_check: "2939.447142857",
         points: [
           { date: "2026-07-28", revenue: "50000.12", profit: "18000.34" },
           { date: "2026-07-29", revenue: "73456.66", profit: "27678.56" },
