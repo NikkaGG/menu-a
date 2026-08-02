@@ -27,7 +27,7 @@ export function TableRow({ table, deleting, downloading, deleteError, downloadEr
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      {downloadError && <p role="alert" className="mt-2 min-w-0 text-destructive text-sm [overflow-wrap:anywhere]">{downloadError}</p>}
+      {downloadError && <p role="alert" className="mt-2 min-w-0 whitespace-normal text-destructive text-sm [overflow-wrap:anywhere]">{downloadError}</p>}
     </TableCell>
   </UiTableRow>;
 }

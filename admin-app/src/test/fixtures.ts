@@ -3,9 +3,38 @@ import { expect, test as base, type Page, type Route } from "@playwright/test";
 export const LONG_RUSSIAN = "Очень длинное русское название категории для проверки адаптивной вёрстки панели управления";
 export const UNBROKEN = "СверхдлиннаяСтрокаБезПробелов".repeat(8).slice(0, 200);
 
+export type RouteGate = {
+  entered: Promise<void>;
+  wait: () => Promise<void>;
+  release: () => void;
+};
+
+export function createRouteGate(): RouteGate {
+  let markEntered!: () => void;
+  let release!: () => void;
+  const entered = new Promise<void>((resolve) => {
+    markEntered = resolve;
+  });
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  return {
+    entered,
+    wait: async () => {
+      markEntered();
+      await blocked;
+    },
+    release,
+  };
+}
+
 type ApiState = {
   authenticated: boolean;
   logoutFailures: number;
+  tableQrError: string | null;
+  tableDeleteError: string | null;
+  tableQrGate: RouteGate | null;
+  tableDeleteGate: RouteGate | null;
   categories: Array<Record<string, unknown>>;
   dishes: Array<Record<string, unknown>>;
   tables: Array<Record<string, unknown>>;
@@ -125,6 +154,8 @@ async function installAdminApi(page: Page, state: ApiState) {
     }
     if (path.match(/^\/api\/admin\/tables\/[^/]+\/qr$/)) {
       if (method !== "GET") return json(route, { error: "Method not allowed" }, 405);
+      await state.tableQrGate?.wait();
+      if (state.tableQrError) return json(route, { error: state.tableQrError }, 409);
       return route.fulfill({
         status: 200,
         headers: { "Content-Type": "image/png", "Content-Disposition": 'attachment; filename="table-qr.png"' },
@@ -134,6 +165,8 @@ async function installAdminApi(page: Page, state: ApiState) {
     const tableMatch = path.match(/^\/api\/admin\/tables\/([^/]+)$/);
     if (tableMatch) {
       if (method !== "DELETE") return json(route, { error: "Method not allowed" }, 405);
+      await state.tableDeleteGate?.wait();
+      if (state.tableDeleteError) return json(route, { error: state.tableDeleteError }, 409);
       state.tables = state.tables.filter((item) => item.id !== tableMatch[1]);
       return json(route, { ok: true });
     }
@@ -161,6 +194,10 @@ export const test = base.extend<{ apiState: ApiState; mockAdminApi: void }>({
     const state: ApiState = {
       authenticated: true,
       logoutFailures: 0,
+      tableQrError: null,
+      tableDeleteError: null,
+      tableQrGate: null,
+      tableDeleteGate: null,
       categories: [{ id: "category-1", name: LONG_RUSSIAN, sort_order: 1 }],
       dishes: [{
         id: "dish-1", category_id: "category-1", name: UNBROKEN,

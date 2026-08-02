@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 
-import { expect, LONG_RUSSIAN, test, UNBROKEN } from "../src/test/fixtures";
+import { createRouteGate, expect, LONG_RUSSIAN, test, UNBROKEN } from "../src/test/fixtures";
 
 async function expectNoPageOverflow(page: Page) {
   const metrics = await page.evaluate(() => ({
@@ -37,6 +37,29 @@ async function expectNoIntersections(locator: Locator) {
       expect(intersects, `controls ${first} and ${second} intersect`).toBe(false);
     }
   }
+}
+
+async function expectWrappedInside(inner: Locator, outer: Locator) {
+  const geometry = await inner.evaluate((element, container) => {
+    const box = element.getBoundingClientRect();
+    const containerBox = (container as Element).getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const lines = [...range.getClientRects()].filter((rect) => rect.width > 0 && rect.height > 0);
+    return {
+      inner: { left: box.left, right: box.right, top: box.top, bottom: box.bottom },
+      outer: { left: containerBox.left, right: containerBox.right, top: containerBox.top, bottom: containerBox.bottom },
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+      lines: lines.length,
+    };
+  }, await outer.elementHandle());
+  expect(geometry.inner.left).toBeGreaterThanOrEqual(geometry.outer.left - 1);
+  expect(geometry.inner.right).toBeLessThanOrEqual(geometry.outer.right + 1);
+  expect(geometry.inner.top).toBeGreaterThanOrEqual(geometry.outer.top - 1);
+  expect(geometry.inner.bottom).toBeLessThanOrEqual(geometry.outer.bottom + 1);
+  expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
+  expect(geometry.lines).toBeGreaterThan(1);
 }
 
 async function expectMinimumTargets(scope: Locator, context: string) {
@@ -642,6 +665,70 @@ test("table form, responsive cards, delete confirmation and QR download", async 
     body: null,
   }));
   await expect(page.getByText("Стол удалён.", { exact: true })).toBeVisible();
+});
+
+test("table card pending and error geometry", async ({ page, apiState }, testInfo) => {
+  test.skip(testInfo.project.name !== "390px", "mobile card stress runs at the controlled phone viewport");
+  await page.goto("/admin/tables");
+
+  const row = page.locator("[data-table-card-row]").filter({ hasText: UNBROKEN });
+  const actions = row.locator("[data-table-actions] > div");
+  const qr = row.getByRole("button", { name: new RegExp(`Скачать QR-код стола «${UNBROKEN}`) });
+  const remove = row.getByRole("button", { name: new RegExp(`Удалить стол «${UNBROKEN}`) });
+  await expect(row).toHaveCount(1);
+  await expect(qr).toHaveCount(1);
+  await expect(remove).toHaveCount(1);
+
+  const qrGate = createRouteGate();
+  apiState.tableQrGate = qrGate;
+  apiState.tableQrError = "Unable to generate QR code";
+  await qr.click();
+  await qrGate.entered;
+  await expect(qr).toBeDisabled();
+  await expectNoIntersections(actions.locator("button:visible"));
+  await expectWrappedInside(actions, row);
+  await expectNoPageOverflow(page);
+
+  qrGate.release();
+  const qrAlert = row.getByRole("alert");
+  await expect(qrAlert).toHaveText("Не удалось создать QR-код.");
+  await qrAlert.evaluate((element) => {
+    element.textContent = "Не удалось подготовить QR-код для этого стола: безопасно повторите попытку немного позже, когда соединение с сервером восстановится.";
+  });
+  await expectWrappedInside(qrAlert, row);
+  const alertTop = await qrAlert.evaluate((element) => element.getBoundingClientRect().top);
+  const actionBottom = await actions.evaluate((element) => element.getBoundingClientRect().bottom);
+  const buttonBottom = await actions.locator("button").evaluateAll((buttons) => Math.max(
+    ...buttons.map((button) => button.getBoundingClientRect().bottom),
+  ));
+  const informationBottom = await row.locator("[data-table-number], [data-table-created]").evaluateAll((cells) => Math.max(
+    ...cells.map((cell) => cell.getBoundingClientRect().bottom),
+  ));
+  expect(alertTop).toBeGreaterThanOrEqual(Math.max(actionBottom, buttonBottom) - 1);
+  expect(alertTop).toBeGreaterThanOrEqual(informationBottom - 1);
+  await expectNoPageOverflow(page);
+  await expect(qr).toHaveCount(1);
+  await expect(remove).toHaveCount(1);
+
+  const deleteGate = createRouteGate();
+  apiState.tableDeleteGate = deleteGate;
+  apiState.tableDeleteError = "Table has session history and cannot be deleted";
+  await remove.click();
+  const dialog = page.getByRole("alertdialog", { name: /Удалить стол/ });
+  const confirm = dialog.getByRole("button", { name: "Удалить стол" });
+  await confirm.click();
+  await deleteGate.entered;
+  await expect(confirm).toBeDisabled();
+
+  deleteGate.release();
+  const deleteAlert = dialog.getByRole("alert");
+  await expect(deleteAlert).toHaveText("Стол с историей заказов удалить нельзя.");
+  await deleteAlert.evaluate((element) => {
+    element.textContent = "Этот стол нельзя удалить, потому что с ним связана сохранённая история заказов; закройте окно и выберите другой стол для продолжения работы.";
+  });
+  await expectWrappedInside(deleteAlert, dialog);
+  await expectInsideViewportAndNoControlIntersections(page, dialog);
+  await expectNoPageOverflow(page);
 });
 
 test("statistics metrics, responsive chart disclosure and reduced motion are accessible", async ({ page }) => {

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 
-import { expect, test } from "../src/test/fixtures";
+import { expect, test, UNBROKEN } from "../src/test/fixtures";
 
 const pages = ["/admin/menu", "/admin/tables", "/stats"] as const;
 
@@ -22,6 +22,58 @@ test("admin pages have no axe violations in light and dark themes", async ({ pag
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expectNoAxeViolations(page, `${theme} ${path}`);
+      if (path === "/admin/tables") {
+        const tables = page.getByRole("table");
+        await expect(tables).toHaveCount(1);
+        const table = tables.first();
+        const headers = table.getByRole("columnheader", { includeHidden: true });
+        await expect(headers).toHaveCount(3);
+        await expect(headers).toHaveText(["Стол", "Создан", "Действия"]);
+        for (const [index, id] of [
+          "tables-number-heading",
+          "tables-created-heading",
+          "tables-actions-heading",
+        ].entries()) {
+          await expect(headers.nth(index)).toHaveAttribute("id", id);
+        }
+
+        const rows = table.locator("[data-table-card-row]");
+        await expect(rows).toHaveCount(1);
+        for (const row of await rows.all()) {
+          const cells = row.getByRole("cell");
+          await expect(cells).toHaveCount(3);
+          await expect(cells.nth(0)).toHaveAttribute("headers", "tables-number-heading");
+          await expect(cells.nth(1)).toHaveAttribute("headers", "tables-created-heading");
+          await expect(cells.nth(2)).toHaveAttribute("headers", "tables-actions-heading");
+          const mobileLabels = row.locator('[aria-hidden="true"]').filter({ hasText: /^(Стол|Создан)$/ });
+          await expect(mobileLabels).toHaveCount(2);
+          if ((page.viewportSize()?.width ?? 0) < 768) {
+            for (const label of await mobileLabels.all()) {
+              await expect(label).toBeVisible();
+            }
+          }
+          const qr = row.getByRole("button", { name: /Скачать QR-код стола/ });
+          const remove = row.getByRole("button", { name: /Удалить стол/ });
+          await expect(qr).toHaveCount(1);
+          await expect(remove).toHaveCount(1);
+          if ((page.viewportSize()?.width ?? 0) < 768) {
+            for (const action of [qr, remove]) {
+              const box = await action.boundingBox();
+              expect(box).not.toBeNull();
+              expect(box!.width).toBeGreaterThanOrEqual(44);
+              expect(box!.height).toBeGreaterThanOrEqual(44);
+            }
+          }
+        }
+
+        const remove = table.getByRole("button", { name: new RegExp(`Удалить стол «${UNBROKEN}`) });
+        await remove.click();
+        const alert = page.getByRole("alertdialog", { name: /Удалить стол/ });
+        await expect(alert).toBeVisible();
+        await expectNoAxeViolations(page, `${theme} ${path} table AlertDialog`);
+        await page.keyboard.press("Escape");
+        await expect(alert).toBeHidden();
+      }
       if (path === "/stats") {
         const collapse = page.getByTestId("statistics-chart-collapse");
         const region = page.locator("#statistics-chart-region");
