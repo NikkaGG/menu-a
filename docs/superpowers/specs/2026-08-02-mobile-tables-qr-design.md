@@ -28,7 +28,8 @@ markup and behavior, but CSS presents each body row as a compact card:
 - the actions may share one row when they fit, but must not create horizontal
   page overflow;
 - long table names wrap inside the card without covering the date or actions;
-- per-row QR and delete errors remain adjacent to the relevant action area.
+- per-row QR errors remain adjacent to the card action area;
+- delete errors remain inside the existing confirmation dialog.
 
 The mobile list must not require horizontal scrolling. The card should use only
 the vertical space needed by its content, with no inherited oversized table-row
@@ -78,7 +79,8 @@ unchanged.
 - row cells expose mobile labels;
 - download and delete handlers, pending states, errors, and dialogs remain
   covered;
-- long names still wrap and the page remains axe-clean.
+- long names still wrap and the page remains axe-clean in both light and dark
+  themes.
 
 ### Browser geometry
 
@@ -86,11 +88,12 @@ At 320px and 390px:
 
 - document and table list have no horizontal overflow;
 - QR download and delete controls are visible without scrolling sideways;
-- controls are at least 44px high;
+- controls are at least 44px high and 44px wide;
 - rows render as separate compact cards with bounded spacing;
 - long table names remain contained.
-- long QR and delete errors remain inside their card without overlapping values
-  or actions;
+- long QR errors remain inside their card without overlapping values or
+  actions;
+- long delete errors remain contained inside the confirmation dialog;
 - pending controls and a two-button action row remain contained when actions
   wrap;
 - each row exposes exactly one QR action and one delete action;
