@@ -6,6 +6,14 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
 
+test('preview publishes the repository root as its static output', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
+
+  assert.equal(config.outputDirectory, '.');
+  assert.notEqual(config.outputDirectory, 'dist');
+  assert.notEqual(config.outputDirectory, 'admin-dist');
+});
+
 test('preview rewrites preserve the API router and production admin routes', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 
