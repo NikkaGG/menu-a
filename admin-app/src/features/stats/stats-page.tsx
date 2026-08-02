@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { RefreshCwIcon } from "lucide-react";
+import { ChevronUpIcon, RefreshCwIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -27,6 +28,7 @@ import {
   formatMoney,
 } from "@/lib/format";
 import type { Statistics } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { StatsChart } from "./stats-chart";
 import { StatsFilters, type StatsQuery } from "./stats-filters";
 import { StatsTable, TopDishes } from "./stats-table";
@@ -90,6 +92,7 @@ export function StatsPage({ api }: { api: AdminApi }) {
   const [submittedQuery, setSubmittedQuery] = useState<StatsQuery>({ ...initial, groupBy: "day" });
   const [data, setData] = useState<Statistics | null>(null);
   const [dataRevision, setDataRevision] = useState(0);
+  const [chartExpanded, setChartExpanded] = useState(true);
   const [pending, setPending] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Partial<Record<"from" | "to" | "range", string>>>({});
@@ -221,10 +224,47 @@ export function StatsPage({ api }: { api: AdminApi }) {
                 <CardHeader>
                   <CardTitle>Динамика заказов</CardTitle>
                   <CardDescription>Выручка{showProfit ? " и прибыль" : ""} по выбранной группировке.</CardDescription>
+                  <CardAction>
+                    <Button
+                      className="size-11"
+                      type="button"
+                      variant="ghost"
+                      aria-expanded={chartExpanded}
+                      aria-controls="statistics-chart-region"
+                      aria-label={chartExpanded ? "Свернуть график" : "Развернуть график"}
+                      onClick={() => setChartExpanded((expanded) => !expanded)}
+                    >
+                      <ChevronUpIcon
+                        className={cn(
+                          "transition-transform duration-300",
+                          !chartExpanded && "rotate-180",
+                        )}
+                        data-icon="inline-start"
+                      />
+                    </Button>
+                  </CardAction>
                 </CardHeader>
-                <CardContent className="min-w-0">
-                  <StatsChart key={chartKey} points={data.points} showProfit={showProfit} />
-                </CardContent>
+                <div
+                  className={cn(
+                    "grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-out",
+                    chartExpanded
+                      ? "grid-rows-[1fr] opacity-100"
+                      : "grid-rows-[0fr] opacity-0",
+                  )}
+                  data-testid="statistics-chart-collapse"
+                >
+                  <div
+                    id="statistics-chart-region"
+                    data-testid="statistics-chart-region"
+                    aria-hidden={!chartExpanded}
+                    inert={chartExpanded ? undefined : true}
+                    className="min-h-0 overflow-hidden"
+                  >
+                    <CardContent className="min-w-0">
+                      <StatsChart key={chartKey} points={data.points} showProfit={showProfit} />
+                    </CardContent>
+                  </div>
+                </div>
               </Card>
               <StatsTable points={data.points} showProfit={showProfit} />
               {data.topDishes.length ? <TopDishes dishes={data.topDishes} /> : null}

@@ -379,6 +379,57 @@ describe("StatsPage", () => {
     expect(screen.getByRole("table", { name: "Данные графика" })).toHaveTextContent(/1\s?234\s?567\s?890,12\s?₸/);
   });
 
+  it("collapses and expands the mounted chart with an accessible disclosure", async () => {
+    const user = userEvent.setup();
+    render(<StatsPage api={mockApi()} />);
+
+    const chart = await screen.findByRole("img", { name: "График выручки и прибыли" });
+    const button = screen.getByRole("button", { name: "Свернуть график" });
+    const collapse = screen.getByTestId("statistics-chart-collapse");
+    const region = screen.getByTestId("statistics-chart-region");
+    expect(button).toHaveAttribute("aria-expanded", "true");
+    expect(button).toHaveAttribute("aria-controls", "statistics-chart-region");
+    expect(button).toHaveClass("size-11");
+    expect(button.querySelector("svg")).toHaveAttribute("data-icon", "inline-start");
+    expect(collapse).toHaveClass(
+      "min-w-0",
+      "transition-[grid-template-rows,opacity]",
+      "duration-300",
+      "ease-out",
+      "grid-rows-[1fr]",
+      "opacity-100",
+    );
+    expect(region).toHaveAttribute("id", "statistics-chart-region");
+    expect(region).toHaveAttribute("aria-hidden", "false");
+    expect(region).not.toHaveAttribute("inert");
+    expect(chart).toBeInTheDocument();
+
+    await user.click(button);
+
+    expect(screen.getByRole("button", { name: "Развернуть график" })).toHaveAttribute("aria-expanded", "false");
+    expect(collapse).toHaveClass("grid-rows-[0fr]", "opacity-0");
+    expect(region).toHaveAttribute("aria-hidden", "true");
+    expect(region).toHaveAttribute("inert");
+    expect(screen.queryByRole("img", { name: "График выручки и прибыли" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("stats-chart")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Развернуть график" }));
+
+    expect(screen.getByRole("button", { name: "Свернуть график" })).toHaveAttribute("aria-expanded", "true");
+    expect(region).toHaveAttribute("aria-hidden", "false");
+    expect(region).not.toHaveAttribute("inert");
+    expect(screen.getByRole("img", { name: "График выручки и прибыли" })).toBeInTheDocument();
+  });
+
+  it("renders the actual chart container at the compact fixed height", async () => {
+    const { container } = render(<StatsPage api={mockApi()} />);
+    await screen.findByTestId("stats-chart");
+
+    const chart = container.querySelector('[data-slot="chart"]');
+    expect(chart).toHaveClass("h-[280px]", "min-h-0", "w-full", "aspect-auto");
+    expect(chart).not.toHaveClass("aspect-video", "min-h-64");
+  });
+
   it("labels profit tooltip rows from the chart series data key", async () => {
     render(<StatsPage api={mockApi()} />);
     await screen.findByTestId("stats-chart");
@@ -524,7 +575,9 @@ describe("StatsPage", () => {
     expect(container.querySelector('[data-stats-filters="true"]')?.className).toMatch(/grid-cols-1/);
     expect(container.querySelector('[data-stats-kpis="true"]')?.className).toMatch(/grid-cols-1/);
     expect(container.querySelector('[data-slot="table-container"]')?.className).toMatch(/overflow-x-auto/);
-    for (const control of screen.getAllByRole("button")) expect(control.className).toMatch(/min-h-11/);
+    for (const control of screen.getAllByRole("button")) {
+      expect(control.className).toMatch(/(?:min-h-11|size-11)/);
+    }
     for (const input of container.querySelectorAll('input[type="date"]')) expect(input.className).toMatch(/min-h-11/);
     expect(container.innerHTML).not.toMatch(/(?:bg|text)-(?:red|blue|green|gray)-\d+/);
     expect((await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations).toEqual([]);

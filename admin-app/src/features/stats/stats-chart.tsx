@@ -76,7 +76,7 @@ export const StatsChart = memo(function StatsChart({ points, showProfit }: Stats
   return (
     <ChartErrorBoundary>
       <ChartContainer
-        className="min-h-64 w-full"
+        className="h-[280px] min-h-0 w-full aspect-auto"
         config={chartConfig}
         role="img"
         aria-label={showProfit ? "График выручки и прибыли" : "График выручки"}
