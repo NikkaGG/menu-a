@@ -173,13 +173,133 @@ describe("TablesPage", () => {
     expect(download).toBeEnabled();
   });
 
-  it("keeps overflow inside the table region and passes axe", async () => {
+  it("contains a long QR error inside its responsive row", async () => {
+    const message = "Не удалось скачать QR-код, потому что сервер временно недоступен и не смог безопасно подготовить файл для этого стола. Повторите попытку через несколько минут.";
+    const injected = api([item("1", "1")]);
+    vi.mocked(injected.tables.downloadQr).mockRejectedValue(new AdminApiError(message));
+    const user = userEvent.setup();
+    const { container } = render(<TablesPage api={injected} />);
+    await screen.findByText("1 стол");
+    const row = container.querySelector("[data-table-card-row]");
+
+    await user.click(within(row as HTMLElement).getByRole("button", { name: "Скачать QR-код стола «1»" }));
+
+    const alert = await within(row as HTMLElement).findByRole("alert");
+    expect(alert).toHaveTextContent(message);
+    expect(alert.className).toContain("min-w-0");
+    expect(alert.className).toContain("[overflow-wrap:anywhere]");
+    expect(within(row as HTMLElement).getAllByRole("button")).toHaveLength(2);
+  });
+
+  it("renders one responsive semantic table with accessible card labels and actions", async () => {
     const long = "ОченьДлинныйСтол".repeat(10);
     const injected = api([item("1", long)]);
     const { container } = render(<TablesPage api={injected} />);
     await screen.findByText(long);
+    const table = screen.getByRole("table", { name: "Столы и QR-коды" });
     const region = container.querySelector("[data-table-scroll-region]");
-    expect(region?.className).toMatch(/overflow-x-auto/);
+    const header = within(table).getAllByRole("row")[0].parentElement;
+    const body = within(table).getAllByRole("row")[1].parentElement;
+    const row = container.querySelector("[data-table-card-row]");
+    const numberCell = container.querySelector("[data-table-number]");
+    const createdCell = container.querySelector("[data-table-created]");
+    const actionsCell = container.querySelector("[data-table-actions]");
+    const actions = actionsCell?.firstElementChild;
+
+    expect(table.className).toContain("min-w-0");
+    expect(table.className).toContain("md:min-w-[720px]");
+    expect(region?.className).toContain("overflow-x-visible");
+    expect(region?.className).toContain("rounded-none");
+    expect(region?.className).toContain("border-0");
+    expect(region?.className).toContain("md:overflow-x-auto");
+    expect(region?.className).toContain("md:rounded-lg");
+    expect(region?.className).toContain("md:border");
+    expect(region).toHaveAttribute("data-table-scroll", "true");
+    expect(region).toHaveAttribute("aria-label", "Таблица столов");
+    expect(region).toHaveAttribute("tabindex", "0");
+    expect(header?.className).toContain("sr-only");
+    expect(header?.className).toContain("md:not-sr-only");
+    expect(body?.className).toContain("grid");
+    expect(body?.className).toContain("gap-3");
+    expect(body?.className).toContain("md:table-row-group");
+    expect(body?.className).toContain("max-md:[&_tr:last-child]:border");
+    expect(body?.className).toContain("md:[&_tr:last-child]:border-b");
+    expect(row?.className).toContain("grid");
+    expect(row?.className).toContain("grid-cols-[minmax(0,1fr)_auto]");
+    expect(row?.className).toContain("rounded-lg");
+    expect(row?.className).toContain("border");
+    expect(row?.className).toContain("bg-card");
+    expect(row?.className).toContain("md:table-row");
+    expect(row?.className).toContain("md:rounded-none");
+    expect(row?.className).toContain("md:border-x-0");
+    expect(row?.className).toContain("md:border-t-0");
+    expect(row?.className).not.toContain("md:border-0");
+    expect(row?.className).toContain("md:bg-transparent");
+
+    expect(within(table).getAllByRole("row")).toHaveLength(2);
+    const columnHeaders = within(table).getAllByRole("columnheader");
+    expect(columnHeaders).toHaveLength(3);
+    expect(columnHeaders.map((heading) => heading.id)).toEqual([
+      "tables-number-heading",
+      "tables-created-heading",
+      "tables-actions-heading",
+    ]);
+    expect(within(table).getAllByRole("cell")).toHaveLength(3);
+    for (const [cell, headingId, labelText] of [
+      [numberCell, "tables-number-heading", "Стол"],
+      [createdCell, "tables-created-heading", "Создан"],
+    ] as const) {
+      expect(cell).toHaveAttribute("headers", headingId);
+      expect(cell).not.toHaveAttribute("aria-labelledby");
+      expect(document.getElementById(headingId)).toHaveTextContent(labelText);
+      const label = within(cell as HTMLElement).getByText(labelText, { exact: true });
+      expect(label).toHaveAttribute("aria-hidden", "true");
+      expect(label?.className).toContain("block");
+      expect(label?.className).toContain("text-xs");
+      expect(label?.className).toContain("text-muted-foreground");
+      expect(label?.className).toContain("md:hidden");
+      expect(label?.className).not.toContain("sr-only");
+    }
+    expect(actionsCell).toHaveAttribute("headers", "tables-actions-heading");
+    expect(actionsCell).not.toHaveAttribute("aria-labelledby");
+    expect(numberCell).toHaveTextContent(long);
+    expect(createdCell).toHaveTextContent(/30 июл.*2026/);
+    expect(numberCell?.className).toContain("block");
+    expect(numberCell?.className).toContain("min-w-0");
+    expect(numberCell?.className).toContain("whitespace-normal");
+    expect(numberCell?.className).toContain("p-3");
+    expect(numberCell?.className).toContain("[overflow-wrap:anywhere]");
+    expect(numberCell?.className).toContain("md:table-cell");
+    expect(numberCell?.className).toContain("md:max-w-64");
+    expect(numberCell?.className).toContain("md:p-2");
+    expect(createdCell?.className).toContain("block");
+    expect(createdCell?.className).toContain("min-w-0");
+    expect(createdCell?.className).toContain("whitespace-nowrap");
+    expect(createdCell?.className).toContain("p-3");
+    expect(createdCell?.className).toContain("text-right");
+    expect(createdCell?.className).toContain("md:table-cell");
+    expect(createdCell?.className).toContain("md:p-2");
+    expect(createdCell?.className).toContain("md:text-left");
+    expect(actionsCell?.className).toContain("col-span-2");
+    expect(actionsCell?.className).toContain("block");
+    expect(actionsCell?.className).toContain("min-w-0");
+    expect(actionsCell?.className).toContain("border-t");
+    expect(actionsCell?.className).toContain("p-2");
+    expect(actionsCell?.className).toContain("md:table-cell");
+    expect(actionsCell?.className).toContain("md:border-t-0");
+    expect(actions?.className).toContain("grid");
+    expect(actions?.className).toContain("grid-cols-2");
+    expect(actions?.className).toContain("md:flex");
+    expect(within(actionsCell as HTMLElement).getAllByRole("button")).toHaveLength(2);
+    for (const button of within(actionsCell as HTMLElement).getAllByRole("button")) {
+      expect(button.className).toContain("min-h-11");
+      expect(button.className).toContain("min-w-11");
+      expect(button.className).toContain("w-full");
+      expect(button.className).toContain("md:w-auto");
+    }
+    expect(within(actionsCell as HTMLElement).getByText("Скачать QR")).toHaveClass("md:hidden");
+    expect(within(actionsCell as HTMLElement).getByText("Скачать QR-код")).toHaveClass("hidden", "md:inline");
+
     expect(container.querySelector('[data-tables-page="true"]')?.className).toContain("min-w-0");
     expect((await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations).toEqual([]);
   });

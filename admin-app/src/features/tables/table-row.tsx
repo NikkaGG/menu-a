@@ -12,14 +12,14 @@ export function TableRow({ table, deleting, downloading, deleteError, downloadEr
   const createdLabel = Number.isNaN(createdAt.getTime())
     ? "Дата неизвестна"
     : new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeStyle: "short" }).format(createdAt);
-  return <UiTableRow>
-    <TableCell className="max-w-64 whitespace-normal font-medium [overflow-wrap:anywhere]">{table.number}</TableCell>
-    <TableCell className="whitespace-nowrap">{createdLabel}</TableCell>
-    <TableCell>
-      <div className="flex min-w-max flex-col items-start gap-2 sm:flex-row">
-        <Button type="button" variant="outline" className="min-h-11" disabled={downloading || deleting} aria-label={`Скачать QR-код стола «${table.number}»`} onClick={onDownload}><Download data-icon="inline-start" />Скачать QR-код</Button>
+  return <UiTableRow data-table-card-row className="grid grid-cols-[minmax(0,1fr)_auto] rounded-lg border bg-card md:table-row md:rounded-none md:border-x-0 md:border-t-0 md:bg-transparent">
+    <TableCell data-table-number headers="tables-number-heading" className="block min-w-0 whitespace-normal p-3 font-medium [overflow-wrap:anywhere] md:table-cell md:max-w-64 md:p-2"><span aria-hidden="true" className="block text-xs text-muted-foreground md:hidden">Стол</span><span>{table.number}</span></TableCell>
+    <TableCell data-table-created headers="tables-created-heading" className="block min-w-0 whitespace-nowrap p-3 text-right md:table-cell md:p-2 md:text-left"><span aria-hidden="true" className="block text-xs text-muted-foreground md:hidden">Создан</span><span>{createdLabel}</span></TableCell>
+    <TableCell data-table-actions headers="tables-actions-heading" className="col-span-2 block min-w-0 border-t p-2 md:table-cell md:border-t-0">
+      <div className="grid grid-cols-2 gap-2 md:flex md:min-w-max md:flex-row md:items-start">
+        <Button type="button" variant="outline" className="min-h-11 min-w-11 w-full md:w-auto" disabled={downloading || deleting} aria-label={`Скачать QR-код стола «${table.number}»`} onClick={onDownload}><Download data-icon="inline-start" /><span className="md:hidden">Скачать QR</span><span className="hidden md:inline">Скачать QR-код</span></Button>
         <AlertDialog>
-          <AlertDialogTrigger asChild><Button type="button" variant="outline" className="min-h-11" disabled={deleting || downloading} aria-label={`Удалить стол «${table.number}»`}><Trash2 data-icon="inline-start" />Удалить</Button></AlertDialogTrigger>
+          <AlertDialogTrigger asChild><Button type="button" variant="outline" className="min-h-11 min-w-11 w-full md:w-auto" disabled={deleting || downloading} aria-label={`Удалить стол «${table.number}»`}><Trash2 data-icon="inline-start" />Удалить</Button></AlertDialogTrigger>
           <AlertDialogContent className="min-w-0 [overflow-wrap:anywhere]">
             <AlertDialogHeader><AlertDialogTitle className="min-w-0 [overflow-wrap:anywhere]">Удалить стол «{table.number}»?</AlertDialogTitle><AlertDialogDescription>Действие нельзя отменить. Стол с активной сессией или историей заказов удалить нельзя.</AlertDialogDescription></AlertDialogHeader>
             {deleteError && <p role="alert" className="text-destructive text-sm [overflow-wrap:anywhere]">{deleteError}</p>}
@@ -27,7 +27,7 @@ export function TableRow({ table, deleting, downloading, deleteError, downloadEr
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      {downloadError && <p role="alert" className="mt-2 text-destructive text-sm [overflow-wrap:anywhere]">{downloadError}</p>}
+      {downloadError && <p role="alert" className="mt-2 min-w-0 text-destructive text-sm [overflow-wrap:anywhere]">{downloadError}</p>}
     </TableCell>
   </UiTableRow>;
 }

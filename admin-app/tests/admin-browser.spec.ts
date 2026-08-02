@@ -430,23 +430,144 @@ test("menu CRUD, confirmations, availability and dialog keyboard contracts", asy
   await expectNoPageOverflow(page);
 });
 
-test("table form, delete confirmation, QR and explicit horizontal scroll region", async ({ page, apiState }) => {
+test("table form, responsive cards, delete confirmation and QR download", async ({ page, apiState }) => {
   await page.goto("/admin/tables");
   const scrollRegion = page.locator("[data-table-scroll-region][data-table-scroll]");
+  const table = page.getByRole("table", { name: "Столы и QR-коды" });
+  const tableHeader = table.locator("thead");
+  const rows = table.locator("[data-table-card-row]");
+  const numberCell = rows.first().locator("[data-table-number]");
+  const createdCell = rows.first().locator("[data-table-created]");
+  const numberLabel = numberCell.getByText("Стол", { exact: true });
+  const createdLabel = createdCell.getByText("Создан", { exact: true });
+  const createdValue = createdCell.locator("span").last();
+  const viewportWidth = page.viewportSize()?.width ?? 0;
   await expect(scrollRegion).toHaveCount(1);
   await expect(page.locator("[data-table-scroll]")).toHaveCount(1);
   await expect(scrollRegion).toHaveAttribute("tabindex", "0");
   await expect(scrollRegion).toHaveAttribute("aria-label", "Таблица столов");
-  if ((page.viewportSize()?.width ?? 0) <= 390) {
-    const before = await scrollRegion.evaluate((element) => ({
-      left: element.scrollLeft,
+  await expect(table).toBeVisible();
+  await expect(table.getByRole("row", { includeHidden: true })).toHaveCount(2);
+  await expect(table.getByRole("columnheader", { includeHidden: true })).toHaveCount(3);
+  await expect(table.getByRole("cell")).toHaveCount(3);
+  for (const [cell, headingId, headingText] of [
+    [numberCell, "tables-number-heading", "Стол"],
+    [createdCell, "tables-created-heading", "Создан"],
+    [rows.first().locator("[data-table-actions]"), "tables-actions-heading", "Действия"],
+  ] as const) {
+    await expect(table.locator(`#${headingId}`)).toHaveText(headingText);
+    await expect(cell).toHaveAttribute("headers", headingId);
+    await expect(cell).not.toHaveAttribute("aria-labelledby", /.+/);
+  }
+  await expect(numberLabel).toHaveAttribute("aria-hidden", "true");
+  await expect(createdLabel).toHaveAttribute("aria-hidden", "true");
+  await expect(rows).toHaveCount(1);
+  await expect(numberCell).toContainText(UNBROKEN);
+
+  if (viewportWidth < 768) {
+    const lastCardBorders = await rows.last().evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        top: style.borderTopWidth,
+        right: style.borderRightWidth,
+        bottom: style.borderBottomWidth,
+        left: style.borderLeftWidth,
+      };
+    });
+    expect(lastCardBorders).toEqual({ top: "1px", right: "1px", bottom: "1px", left: "1px" });
+    const sizes = await scrollRegion.evaluate((element) => ({
       scrollWidth: element.scrollWidth,
       clientWidth: element.clientWidth,
     }));
-    expect(before.scrollWidth).toBeGreaterThan(before.clientWidth);
-    await scrollRegion.focus();
-    await scrollRegion.evaluate((element) => { element.scrollLeft = element.scrollWidth; });
-    await expect.poll(() => scrollRegion.evaluate((element) => element.scrollLeft)).toBeGreaterThan(before.left);
+    expect(sizes.scrollWidth).toBeLessThanOrEqual(sizes.clientWidth + 1);
+    const headerStyle = await tableHeader.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        position: style.position,
+        width: style.width,
+        height: style.height,
+        overflow: style.overflow,
+        whiteSpace: style.whiteSpace,
+        clipPath: style.clipPath,
+      };
+    });
+    expect(headerStyle).toEqual({
+      position: "absolute",
+      width: "1px",
+      height: "1px",
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+      clipPath: "inset(50%)",
+    });
+    await expect(createdCell).toHaveCSS("text-align", "right");
+    await expect(rows.first().getByRole("button", { name: new RegExp(`Скачать QR-код стола «${UNBROKEN}`) })).toBeVisible();
+    await expect(rows.first().getByRole("button", { name: new RegExp(`Удалить стол «${UNBROKEN}`) })).toBeVisible();
+    await expect(numberLabel).toBeVisible();
+    await expect(createdLabel).toBeVisible();
+    for (const label of [numberLabel, createdLabel]) {
+      await expect(label).toHaveCSS("display", "block");
+      await expect(label).toHaveCSS("font-size", "12px");
+      const box = await label.boundingBox();
+      expect(box?.width).toBeGreaterThan(1);
+      expect(box?.height).toBeGreaterThan(1);
+    }
+    const expectedCreated = await page.evaluate(() => new Intl.DateTimeFormat("ru-RU", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date("2026-07-29T10:00:00.000Z")));
+    await expect(createdValue).toHaveText(expectedCreated);
+    const createdValueSize = await createdValue.evaluate((element) => ({
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+    }));
+    expect(createdValueSize.scrollWidth).toBeLessThanOrEqual(createdValueSize.clientWidth);
+  } else {
+    const headerMetrics = await tableHeader.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      return {
+        position: style.position,
+        display: style.display,
+        overflow: style.overflow,
+        whiteSpace: style.whiteSpace,
+        width: box.width,
+        height: box.height,
+      };
+    });
+    expect(headerMetrics.position).toBe("static");
+    expect(headerMetrics.display).toBe("table-header-group");
+    expect(headerMetrics.overflow).toBe("visible");
+    expect(headerMetrics.whiteSpace).toBe("normal");
+    expect(headerMetrics.width).toBeGreaterThan(1);
+    expect(headerMetrics.height).toBeGreaterThan(1);
+    await expect(table.getByRole("columnheader", { name: "Стол" })).toBeVisible();
+    await expect(table.getByRole("columnheader", { name: "Создан" })).toBeVisible();
+    await expect(numberLabel).toBeHidden();
+    await expect(createdLabel).toBeHidden();
+    await expect(rows.first()).toHaveCSS("display", "table-row");
+    const rowBorders = await rows.first().evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        top: style.borderTopWidth,
+        right: style.borderRightWidth,
+        bottom: style.borderBottomWidth,
+        left: style.borderLeftWidth,
+      };
+    });
+    expect(await numberCell.evaluate((element) => element.getBoundingClientRect().width)).toBeLessThanOrEqual(257);
+    expect(rowBorders).toEqual({ top: "0px", right: "0px", bottom: "1px", left: "0px" });
+    await expect(createdCell).toHaveCSS("text-align", "left");
+    await expect(numberCell).toHaveCSS("max-width", "256px");
+    const containment = await scrollRegion.evaluate((element) => ({
+      left: element.getBoundingClientRect().left,
+      right: element.getBoundingClientRect().right,
+      viewport: document.documentElement.clientWidth,
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+    }));
+    expect(containment.left).toBeGreaterThanOrEqual(-1);
+    expect(containment.right).toBeLessThanOrEqual(containment.viewport + 1);
+    expect(containment.scrollWidth).toBeGreaterThanOrEqual(containment.clientWidth);
   }
   await expectNoPageOverflow(page);
 
@@ -460,8 +581,44 @@ test("table form, delete confirmation, QR and explicit horizontal scroll region"
   await input.fill("Стол браузерного теста");
   await page.getByRole("button", { name: "Создать стол" }).click();
   await expect(page.getByText("Стол браузерного теста", { exact: true })).toBeVisible();
-  await expectNoIntersections(scrollRegion.locator("tbody tr:visible"));
-  await expectNoIntersections(scrollRegion.locator("tbody tr button:visible"));
+  await expect(rows).toHaveCount(2);
+  await expectNoIntersections(rows);
+  await expectNoIntersections(rows.locator("button:visible"));
+  if (viewportWidth < 768) {
+    const geometry = await rows.evaluateAll((elements) => elements.map((row) => {
+      const rowBox = row.getBoundingClientRect();
+      const visibleContents = [...row.querySelectorAll<HTMLElement>("*")].filter((element) => {
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        return style.visibility !== "hidden" && style.display !== "none" && box.width > 0 && box.height > 0;
+      });
+      return {
+        row: { left: rowBox.left, right: rowBox.right, top: rowBox.top, bottom: rowBox.bottom },
+        contents: visibleContents.map((element) => {
+          const box = element.getBoundingClientRect();
+          return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+        }),
+        viewport: document.documentElement.clientWidth,
+      };
+    }));
+    for (const card of geometry) {
+      expect(card.row.left).toBeGreaterThanOrEqual(-1);
+      expect(card.row.right).toBeLessThanOrEqual(card.viewport + 1);
+      for (const content of card.contents) {
+        expect(content.left).toBeGreaterThanOrEqual(card.row.left - 1);
+        expect(content.right).toBeLessThanOrEqual(card.row.right + 1);
+        expect(content.top).toBeGreaterThanOrEqual(card.row.top - 1);
+        expect(content.bottom).toBeLessThanOrEqual(card.row.bottom + 1);
+        expect(content.left).toBeGreaterThanOrEqual(-1);
+        expect(content.right).toBeLessThanOrEqual(card.viewport + 1);
+      }
+    }
+    for (const row of await rows.all()) {
+      await expect(row.getByRole("button", { name: /Скачать QR-код стола/ })).toHaveCount(1);
+      await expect(row.getByRole("button", { name: /Удалить стол/ })).toHaveCount(1);
+      await expectMinimumTargets(row, "table card action targets");
+    }
+  }
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: new RegExp(`Скачать QR-код стола «${UNBROKEN}`) }).click();

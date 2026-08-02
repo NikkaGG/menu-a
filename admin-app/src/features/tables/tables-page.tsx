@@ -108,15 +108,16 @@ export function TablesPage({ api: injectedApi }: { api?: AdminApi }) {
       : initialLoading ? <Card><CardHeader><CardTitle><Skeleton className="h-6 w-40" /></CardTitle></CardHeader><CardContent><Skeleton className="h-14 w-full" /><Skeleton className="mt-3 h-14 w-full" /></CardContent></Card>
       : state.tables.length === 0 ? <Empty className="min-h-64 border"><EmptyHeader><EmptyMedia variant="icon"><QrCode /></EmptyMedia><EmptyTitle>Столов пока нет</EmptyTitle><EmptyDescription>Создайте стол, чтобы скачать QR-код.</EmptyDescription></EmptyHeader><EmptyContent><Button type="button" className="min-h-11" onClick={openCreate}><Plus data-icon="inline-start" />Добавить стол</Button></EmptyContent></Empty>
       : <Table
-          className="min-w-[720px]"
+          aria-label="Столы и QR-коды"
+          className="min-w-0 md:min-w-[720px]"
           containerProps={{
             "aria-label": "Таблица столов",
             "data-table-scroll": "true",
             "data-table-scroll-region": "true",
             tabIndex: 0,
-            className: "min-w-0 max-w-full rounded-lg border",
+            className: "min-w-0 max-w-full overflow-x-visible rounded-none border-0 md:overflow-x-auto md:rounded-lg md:border",
           } as React.ComponentProps<"div">}
-        ><TableHeader><TableRow><TableHead>Стол</TableHead><TableHead>Создан</TableHead><TableHead>Действия</TableHead></TableRow></TableHeader><TableBody>{state.tables.map((table) => <ManagedTableRow key={table.id} table={table} deleting={pendingDeletes.has(table.id)} downloading={pendingQr.has(table.id)} deleteError={actionErrors[table.id]} downloadError={actionErrors[`qr:${table.id}`]} onDelete={() => remove(table)} onDownload={() => void download(table)} />)}</TableBody></Table>}
+        ><colgroup><col className="md:w-64" /><col /><col /></colgroup><TableHeader className="sr-only md:not-sr-only"><TableRow><TableHead id="tables-number-heading">Стол</TableHead><TableHead id="tables-created-heading">Создан</TableHead><TableHead id="tables-actions-heading">Действия</TableHead></TableRow></TableHeader><TableBody className="grid gap-3 max-md:[&_tr:last-child]:border md:table-row-group md:[&_tr:last-child]:border-b">{state.tables.map((table) => <ManagedTableRow key={table.id} table={table} deleting={pendingDeletes.has(table.id)} downloading={pendingQr.has(table.id)} deleteError={actionErrors[table.id]} downloadError={actionErrors[`qr:${table.id}`]} onDelete={() => remove(table)} onDownload={() => void download(table)} />)}</TableBody></Table>}
     <TableDialog table={editor?.table ?? null} existingNumbers={numbers} open={Boolean(editor)} onOpenChange={(open) => {
       if (!open) {
         setEditor(null);
