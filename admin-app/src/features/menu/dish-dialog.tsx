@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ImageOff, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AdminApiError } from "@/lib/api";
 import { normalizePhotoUrl, sortByMenuOrder } from "@/lib/format";
 import type { Category, Dish, DishInput } from "@/lib/types";
+import { useAsyncRevision } from "./use-async-revision";
 
 type Errors = Partial<Record<"name" | "category" | "price" | "costPrice" | "photoUrl" | "sortOrder" | "form", string>>;
 const MAX_SORT_ORDER = 2147483647;
@@ -56,11 +57,11 @@ export function DishDialog({
   const [previewFailed, setPreviewFailed] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [pending, setPending] = useState(false);
-  const submissionRevision = useRef(0);
+  const { begin, invalidate, isCurrent } = useAsyncRevision();
 
   useEffect(() => {
+    invalidate();
     if (!open) return;
-    submissionRevision.current += 1;
     setName(dish?.name ?? "");
     setDescription(dish?.description ?? "");
     setPrice(dish?.price ?? "");
@@ -72,7 +73,7 @@ export function DishDialog({
     setPreviewFailed(false);
     setErrors({});
     setPending(false);
-  }, [categories, dish, initialCategoryId, open]);
+  }, [categories, dish, initialCategoryId, invalidate, open]);
 
   const safePhotoUrl = normalizePhotoUrl(photoUrl);
   const submit = async (event: React.FormEvent) => {
@@ -95,7 +96,7 @@ export function DishDialog({
       setErrors(nextErrors);
       return;
     }
-    const revision = ++submissionRevision.current;
+    const revision = begin();
     setPending(true);
     setErrors({});
     try {
@@ -109,9 +110,9 @@ export function DishDialog({
         is_available: isAvailable,
         sort_order: Number(sortOrder),
       });
-      if (revision === submissionRevision.current && success) onOpenChange(false);
+      if (isCurrent(revision) && success) onOpenChange(false);
     } catch (error) {
-      if (revision === submissionRevision.current) {
+      if (isCurrent(revision)) {
         setErrors({
           form: error instanceof AdminApiError
             ? error.message
@@ -119,7 +120,7 @@ export function DishDialog({
         });
       }
     } finally {
-      if (revision === submissionRevision.current) setPending(false);
+      if (isCurrent(revision)) setPending(false);
     }
   };
 

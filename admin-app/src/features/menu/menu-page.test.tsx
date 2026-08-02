@@ -439,6 +439,27 @@ describe("MenuPage", () => {
     });
   });
 
+  it("keeps a newer dish editor open when an older submit completes late", async () => {
+    const api = mockApi(
+      [category("c1", "Роллы")],
+      [dish("d1", "c1", "Первый"), dish("d2", "c1", "Второй")],
+    );
+    const late = deferred<Dish>();
+    vi.mocked(api.dishes.update).mockReturnValueOnce(late.promise);
+    const user = userEvent.setup();
+    render(<MenuPage api={api} />);
+    await screen.findByText("Первый");
+
+    await user.click(screen.getByRole("button", { name: "Изменить блюдо «Первый»" }));
+    await user.click(screen.getByRole("button", { name: "Сохранить блюдо" }));
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Изменить блюдо «Второй»" }));
+    late.resolve(dish("d1", "c1", "Первый"));
+
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+    expect(screen.getByDisplayValue("Второй")).toBeInTheDocument();
+  });
+
   it("preserves mapped dish save and delete errors", async () => {
     const api = mockApi([category("c1", "Роллы")], [dish("d1", "c1", "Ролл")]);
     vi.mocked(api.dishes.update).mockRejectedValue(new AdminApiError("Блюдо не найдено."));

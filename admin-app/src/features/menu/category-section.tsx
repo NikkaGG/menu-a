@@ -20,6 +20,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components
 import { sortByMenuOrder } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 import { DishRow } from "./dish-row";
+import { useAsyncRevision } from "./use-async-revision";
 
 type DeleteResult = { ok: true } | { ok: false; message: string };
 
@@ -47,18 +48,25 @@ export function CategorySection({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deletion = useAsyncRevision();
 
   const removeCategory = async (event: React.MouseEvent) => {
     event.preventDefault();
     if (deleting) return;
     setDeleting(true);
     setDeleteError(null);
+    const revision = deletion.begin();
     try {
       const result = await onDeleteCategory();
+      if (!deletion.isCurrent(revision)) return;
       if (result.ok) setDeleteOpen(false);
       else setDeleteError(result.message);
+    } catch {
+      if (deletion.isCurrent(revision)) {
+        setDeleteError("Не удалось удалить категорию. Попробуйте ещё раз.");
+      }
     } finally {
-      setDeleting(false);
+      if (deletion.isCurrent(revision)) setDeleting(false);
     }
   };
 

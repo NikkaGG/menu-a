@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatMoney, normalizePhotoUrl } from "@/lib/format";
 import type { Dish } from "@/lib/types";
+import { useAsyncRevision } from "./use-async-revision";
 
 type DeleteResult = { ok: true } | { ok: false; message: string };
 
@@ -39,6 +40,7 @@ export function DishRow({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [imageFailed, setImageFailed] = useState(false);
+  const deletion = useAsyncRevision();
   const photoUrl = normalizePhotoUrl(dish.photoUrl);
   const availabilityId = `dish-availability-${dish.id}`;
 
@@ -47,12 +49,18 @@ export function DishRow({
     if (deleting) return;
     setDeleting(true);
     setDeleteError(null);
+    const revision = deletion.begin();
     try {
       const result = await onDelete();
+      if (!deletion.isCurrent(revision)) return;
       if (result.ok) setDeleteOpen(false);
       else setDeleteError(result.message);
+    } catch {
+      if (deletion.isCurrent(revision)) {
+        setDeleteError("Не удалось удалить блюдо. Попробуйте ещё раз.");
+      }
     } finally {
-      setDeleting(false);
+      if (deletion.isCurrent(revision)) setDeleting(false);
     }
   };
 

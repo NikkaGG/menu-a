@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { AdminApiError } from "@/lib/api";
 import type { Category, CategoryInput } from "@/lib/types";
+import { useAsyncRevision } from "./use-async-revision";
 
 const MAX_SORT_ORDER = 2147483647;
 const SORT_ORDER_ERROR = `Порядок сортировки должен быть целым числом от 0 до ${MAX_SORT_ORDER}.`;
@@ -40,16 +41,16 @@ export function CategoryDialog({
   const [sortOrder, setSortOrder] = useState("0");
   const [errors, setErrors] = useState<{ name?: string; sortOrder?: string; form?: string }>({});
   const [pending, setPending] = useState(false);
-  const submissionRevision = useRef(0);
+  const { begin, invalidate, isCurrent } = useAsyncRevision();
 
   useEffect(() => {
+    invalidate();
     if (!open) return;
-    submissionRevision.current += 1;
     setName(category?.name ?? "");
     setSortOrder(String(category?.sortOrder ?? 0));
     setErrors({});
     setPending(false);
-  }, [category, open]);
+  }, [category, invalidate, open]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -61,14 +62,14 @@ export function CategoryDialog({
       setErrors(nextErrors);
       return;
     }
-    const revision = ++submissionRevision.current;
+    const revision = begin();
     setPending(true);
     setErrors({});
     try {
       const success = await onSubmit({ name: name.trim(), sort_order: Number(sortOrder) });
-      if (revision === submissionRevision.current && success) onOpenChange(false);
+      if (isCurrent(revision) && success) onOpenChange(false);
     } catch (error) {
-      if (revision === submissionRevision.current) {
+      if (isCurrent(revision)) {
         setErrors({
           form: error instanceof AdminApiError
             ? error.message
@@ -76,7 +77,7 @@ export function CategoryDialog({
         });
       }
     } finally {
-      if (revision === submissionRevision.current) setPending(false);
+      if (isCurrent(revision)) setPending(false);
     }
   };
 
