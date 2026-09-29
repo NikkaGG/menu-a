@@ -14,6 +14,7 @@ const categoryId = '10000000-0000-4000-8000-000000000008';
 const sushiId = '20000000-0000-4000-8000-000000000008';
 const teaId = '20000000-0000-4000-8000-000000000009';
 const tableToken = 'stage08-fixed-token';
+const firstRequestId = '60000000-0000-4000-8000-000000000008';
 const kitchenMessageId = 808001;
 const waiterMessageId = 808002;
 const secondKitchenMessageId = 808003;
@@ -463,6 +464,7 @@ test('Stage08 stateful restaurant flow crosses production handler boundaries', a
     method: 'POST',
     body: {
       session_id: oldSessionId,
+      request_id: firstRequestId,
       items: [{ dish_id: sushiId, quantity: 2 }],
     },
   });
@@ -482,6 +484,15 @@ test('Stage08 stateful restaurant flow crosses production handler boundaries', a
   });
   assert.deepEqual(firstOrderBody.excludedDishIds, []);
   assert.deepEqual(notifications, [{ order: firstOrder }]);
+
+  const replay = expectStatus(await invoke(orderHandler, {
+    method: 'POST',
+    body: { session_id: oldSessionId, request_id: firstRequestId,
+      items: [{ dish_id: sushiId, quantity: 2 }] },
+  }), 200);
+  assert.deepEqual(replay.order, firstOrder);
+  assert.equal(notifications.length, 1);
+  assert.deepEqual(await query('SELECT count(*)::integer AS count FROM orders'), [{ count: 1 }]);
 
   const bridge = await startBotBridge(query);
   t.after(() => bridge.close());
@@ -678,6 +689,23 @@ test('Stage08 stateful restaurant flow crosses production handler boundaries', a
     error: 'No requested dishes are available',
     excludedDishIds: [teaId],
   });
+
+  const partlyUnavailable = expectStatus(await invoke(orderHandler, {
+    method: 'POST', body: { session_id: newSessionId,
+      items: [{ dish_id: sushiId, quantity: 1 }, { dish_id: teaId, quantity: 1 }] },
+  }), 409);
+  assert.deepEqual(partlyUnavailable, {
+    error: 'Requested dishes changed', excludedDishIds: [teaId],
+  });
+  assert.equal(notifications.length, 2);
+  assert.deepEqual(await query('SELECT count(*)::integer AS count FROM orders'), [{ count: 2 }]);
+
+  const changedPrice = expectStatus(await invoke(orderHandler, {
+    method: 'POST', body: { session_id: newSessionId, expected_total: '0.01',
+      items: [{ dish_id: sushiId, quantity: 1 }] },
+  }), 409);
+  assert.deepEqual(changedPrice, { error: 'Menu prices changed' });
+  assert.deepEqual(await query('SELECT count(*)::integer AS count FROM orders'), [{ count: 2 }]);
 
   await database.query(
     `UPDATE orders

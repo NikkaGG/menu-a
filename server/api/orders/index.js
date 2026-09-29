@@ -32,11 +32,14 @@ calculated AS (
   FROM available
 ),
 inserted_order AS (
-  INSERT INTO orders (session_id, status, total)
-  SELECT $1::uuid, 'new', calculated.total
+  INSERT INTO orders (id, session_id, status, total)
+  SELECT COALESCE($3::uuid, gen_random_uuid()), $1::uuid, 'new', calculated.total
   FROM calculated
   JOIN session_info session ON session.status = 'open'
-  WHERE calculated.item_count > 0
+  CROSS JOIN excluded
+  WHERE calculated.item_count > 0 AND jsonb_array_length(excluded.dish_ids) = 0
+    AND ($4::numeric IS NULL OR calculated.total = $4::numeric)
+  ON CONFLICT (id) DO NOTHING
   RETURNING id, session_id, status, total, created_at
 ),
 inserted_items AS (
@@ -60,11 +63,28 @@ serialized_items AS (
 )
 SELECT o.id AS order_id, o.session_id, o.status, o.total, o.created_at,
        serialized_items.items, excluded.dish_ids AS excluded_dish_ids,
+       (SELECT item_count FROM calculated) AS available_count,
+       (SELECT total FROM calculated) AS calculated_total,
        (SELECT status FROM session_info) AS session_status,
        (SELECT table_number FROM session_info) AS table_number
 FROM excluded
 CROSS JOIN serialized_items
 LEFT JOIN inserted_order o ON TRUE`;
+
+const EXISTING_ORDER_SQL = `
+SELECT o.id AS order_id, o.session_id, o.status, o.total, o.created_at,
+       t.number AS table_number,
+       COALESCE(jsonb_agg(jsonb_build_object(
+         'dishId', i.dish_id, 'dishName', i.dish_name,
+         'dishPrice', i.dish_price, 'quantity', i.quantity,
+         'subtotal', i.subtotal
+       ) ORDER BY i.id) FILTER (WHERE i.id IS NOT NULL), '[]'::jsonb) AS items
+FROM orders o
+JOIN table_sessions s ON s.id = o.session_id
+JOIN restaurant_tables t ON t.id = s.table_id
+LEFT JOIN order_items i ON i.order_id = o.id
+WHERE o.session_id = $1::uuid AND o.id = $2::uuid
+GROUP BY o.id, t.number`;
 
 function notifyWithoutFailing(notify, order, timeoutMs, logger) {
   return new Promise((resolve) => {
@@ -102,9 +122,14 @@ function createOrderHandler({
     if (request.method !== 'POST') return methodNotAllowed(response, ['POST']);
     if (!validOrderBody(request.body)) return json(response, 400, { error: 'Invalid order' });
     try {
-      const values = [request.body.session_id, JSON.stringify(request.body.items)];
+      const values = [request.body.session_id, JSON.stringify(request.body.items),
+        request.body.request_id || null, request.body.expected_total || null];
       const rows = await query(CREATE_ORDER_SQL, values);
       const row = rows[0];
+      if (request.body.request_id && !row?.order_id) {
+        const existing = await query(EXISTING_ORDER_SQL, [request.body.session_id, request.body.request_id]);
+        if (existing.length) return json(response, 200, { order: mapOrder(existing[0]), excludedDishIds: [] });
+      }
       const excludedDishIds = row?.excluded_dish_ids || [];
       if (!row?.session_status) {
         return json(response, 404, { error: 'Session not found' });
@@ -112,9 +137,15 @@ function createOrderHandler({
       if (row.session_status !== 'open') {
         return json(response, 409, { error: 'Session is not open' });
       }
+      if (!row.order_id && !excludedDishIds.length && request.body.expected_total
+        && Number(row.calculated_total) !== Number(request.body.expected_total)) {
+        return json(response, 409, { error: 'Menu prices changed' });
+      }
       if (!row?.order_id) {
         return json(response, 409, {
-          error: 'No requested dishes are available',
+          error: Number(row.available_count) > 0
+            ? 'Requested dishes changed'
+            : 'No requested dishes are available',
           excludedDishIds,
         });
       }
@@ -135,4 +166,5 @@ module.exports = Object.assign(handler, {
   handler,
   createOrderHandler,
   CREATE_ORDER_SQL,
+  EXISTING_ORDER_SQL,
 });

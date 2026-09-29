@@ -125,6 +125,16 @@ describe("typed admin API", () => {
     expect(onUnauthorized).not.toHaveBeenCalled();
   });
 
+  it("ends a stalled admin load so the page can show retry", async () => {
+    fetchMock.mockImplementation((_path: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener("abort", () => reject(new DOMException("Timed out", "TimeoutError")), { once: true });
+    }));
+    const api = createAdminApi({ fetchImpl: fetchMock, timeoutMs: 5 });
+    await expect(api.categories.list()).rejects.toMatchObject({
+      message: "Не удалось выполнить действие. Попробуйте ещё раз.",
+    });
+  });
+
   it("sends exact snake_case mutation contracts and URL-encodes IDs", async () => {
     fetchMock
       .mockResolvedValueOnce(createMockResponse({ dish: {} }))

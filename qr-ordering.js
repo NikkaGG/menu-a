@@ -95,6 +95,10 @@
       || typeof value.sessionStatus !== 'string'
       || (value.openedAt !== undefined && value.openedAt !== null && typeof value.openedAt !== 'string')
       || !validCart(value.cart)
+      || (value.pendingAttempt !== undefined && value.pendingAttempt !== null
+        && (!isUuid(value.pendingAttempt.id)
+          || !isUuid(value.pendingAttempt.sessionId)
+          || typeof value.pendingAttempt.cartSignature !== 'string'))
       || (value.activeOrderId !== null && value.activeOrderId !== undefined
         && !isUuid(value.activeOrderId))) return null;
     return value;
@@ -113,13 +117,13 @@
     return validateContext(memoryContexts.get(token), token);
   }
 
-  function writeContext(storage, context) {
+  function writeContext(storage, context, { setCurrent = true } = {}) {
     const validated = validateContext(context);
     if (!validated) return false;
-    memoryPointer = validated.token;
+    if (setCurrent) memoryPointer = validated.token;
     memoryContexts.set(validated.token, validated);
     const serialized = JSON.stringify(validated);
-    safeSet(storage, STORAGE_POINTER_KEY, validated.token);
+    if (setCurrent) safeSet(storage, STORAGE_POINTER_KEY, validated.token);
     safeSet(storage, contextStorageKey(validated.token), serialized);
     return true;
   }
@@ -146,6 +150,7 @@
       sessionStatus: response.session.status,
       openedAt: response.session.openedAt,
       cart: sessionChanged ? {} : (previous?.cart || {}),
+      pendingAttempt: sessionChanged ? null : (previous?.pendingAttempt || null),
       activeOrderId: sessionChanged ? null : (previous?.activeOrderId || null),
     };
     writeContext(storage, context);
@@ -230,12 +235,38 @@
   function buildOrderBody(sessionId, cart, dishes) {
     if (!isUuid(sessionId)) throw new Error('Session ID must be a UUID');
     const allowed = new Set((dishes || []).map((dish) => dish.id).filter(isUuid));
+    const prices = new Map((dishes || []).map((dish) => [dish.id, Number(dish.price)]));
     const items = Object.entries(cart || {})
       .filter(([dishId, quantity]) => allowed.has(dishId)
         && Number.isInteger(quantity) && quantity >= 1 && quantity <= 99)
       .map(([dishId, quantity]) => ({ dish_id: dishId, quantity }));
     if (!items.length) throw new Error('Cart has no orderable dishes');
-    return { session_id: sessionId, items };
+    const body = { session_id: sessionId, items };
+    if (items.every((item) => Number.isFinite(prices.get(item.dish_id)))) {
+      const cents = items.reduce((total, item) => total
+        + Math.round(prices.get(item.dish_id) * 100) * item.quantity, 0);
+      body.expected_total = (cents / 100).toFixed(2);
+    }
+    return body;
+  }
+
+  function cartSignature(cart) {
+    return JSON.stringify(Object.entries(cart || {}).sort(([a], [b]) => a.localeCompare(b)));
+  }
+
+  function getOrderRequestId(storage, context, cart, createId) {
+    const signature = cartSignature(cart);
+    const persisted = readContext(storage, context.token);
+    const previous = persisted?.sessionId === context.sessionId ? persisted.pendingAttempt : context.pendingAttempt;
+    if (previous?.sessionId === context.sessionId && previous.cartSignature === signature) {
+      context.pendingAttempt = previous;
+      return previous.id;
+    }
+    const id = createId();
+    if (!isUuid(id)) throw new Error('Unable to prepare order request');
+    context.pendingAttempt = { id, sessionId: context.sessionId, cartSignature: signature };
+    writeContext(storage, context);
+    return id;
   }
 
   function sanitizeCart(cart, dishes) {
@@ -252,12 +283,19 @@
     const availableIds = new Set((refreshedDishes || []).map((dish) => dish.id));
     const previousNames = new Map((previousDishes || []).map((dish) => [dish.id, dish.name]));
     const unavailableDishIds = Object.keys(cart || {}).filter((dishId) => !availableIds.has(dishId));
+    const previousPrices = new Map((previousDishes || []).map((dish) => [dish.id, Number(dish.price)]));
+    const changedPriceNames = (refreshedDishes || [])
+      .filter((dish) => Object.hasOwn(cart || {}, dish.id)
+        && previousPrices.has(dish.id)
+        && previousPrices.get(dish.id) !== Number(dish.price))
+      .map((dish) => dish.name);
     return {
       cart: sanitizeCart(cart, refreshedDishes),
       unavailableDishIds,
       unavailableNames: unavailableDishIds.map((dishId) => (
         previousNames.get(dishId) || 'Недоступное блюдо'
       )),
+      changedPriceNames,
     };
   }
 
@@ -269,13 +307,14 @@
   }) {
     const menu = normalizeMenu(await loadMenu(), { allowEmpty: true });
     const review = reviewCartAvailability(cart, dishes, menu.dishes);
-    if (review.unavailableDishIds.length) {
+    if (review.unavailableDishIds.length || review.changedPriceNames.length) {
       return {
         kind: 'review-required',
         menu,
         cart: review.cart,
         unavailableDishIds: review.unavailableDishIds,
         unavailableNames: review.unavailableNames,
+        changedPriceNames: review.changedPriceNames,
         allUnavailable: Object.keys(review.cart).length === 0,
       };
     }
@@ -306,14 +345,18 @@
     cart,
     dishes,
     resolveTable,
+    requestId,
   }) {
-    let sessionId = context.sessionId;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    const sessionId = context.sessionId;
+    {
       const body = buildOrderBody(sessionId, cart, dishes);
+      if (requestId) body.request_id = requestId;
       const response = await fetchImpl('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+          ? AbortSignal.timeout(15000) : undefined,
       });
       const data = await responseJson(response);
       if (response.ok) {
@@ -328,19 +371,23 @@
       if (response.status === 409 && data.error === 'No requested dishes are available') {
         return { kind: 'all-unavailable', excludedDishIds };
       }
+      if (response.status === 409 && data.error === 'Requested dishes changed') {
+        return { kind: 'availability-changed', excludedDishIds };
+      }
+      if (response.status === 409 && data.error === 'Menu prices changed') {
+        return { kind: 'price-changed' };
+      }
       const staleSession = response.status === 404
         || (response.status === 409 && data.error === 'Session is not open');
-      if (staleSession && attempt === 0) {
+      if (staleSession) {
         const resolved = await resolveTable(token);
         if (!isUuid(resolved?.session?.id)) throw new Error('Unable to refresh table session');
-        sessionId = resolved.session.id;
-        continue;
+        if (resolved.session.id !== sessionId) return { kind: 'session-changed' };
       }
-      const error = new Error(data.error || 'Unable to create order');
+      const error = new Error('Не удалось оформить заказ. Проверьте соединение и повторите попытку.');
       error.status = response.status;
       throw error;
     }
-    throw new Error('Unable to create order');
   }
 
   function createOrderPoller({
@@ -356,6 +403,7 @@
     let complete = false;
     let destroyed = false;
     let generation = 0;
+    let inFlight = false;
 
     function stop() {
       if (timer !== null) {
@@ -365,7 +413,8 @@
     }
 
     async function poll() {
-      if (destroyed || complete || documentRef.hidden) return;
+      if (destroyed || complete || documentRef.hidden || inFlight) return;
+      inFlight = true;
       const pollGeneration = generation;
       try {
         const order = await fetchOrder(orderId);
@@ -378,6 +427,12 @@
       } catch (error) {
         if (destroyed || pollGeneration !== generation) return;
         onError(error);
+        if (error?.status === 404 || error?.status === 400) {
+          complete = true;
+          stop();
+        }
+      } finally {
+        inFlight = false;
       }
     }
 
@@ -418,6 +473,7 @@
     STATUS_LABELS,
     STORAGE_POINTER_KEY,
     buildOrderBody,
+    getOrderRequestId,
     contextStorageKey,
     createOrderPoller,
     escapeHtmlAttribute,

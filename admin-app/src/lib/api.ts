@@ -65,6 +65,7 @@ type Fetch = typeof fetch;
 export type AdminApiOptions = {
   fetchImpl?: Fetch;
   onUnauthorized?: (error: AdminApiError) => void;
+  timeoutMs?: number;
 };
 
 function record(value: unknown): RawRecord {
@@ -204,6 +205,7 @@ function qrFilename(disposition: string | null, tableNumber: string): string {
 
 export function createAdminApi(options: AdminApiOptions = {}) {
   const fetchImpl = options.fetchImpl ?? fetch;
+  const timeoutMs = options.timeoutMs ?? 15_000;
   let authTransitioned = false;
   let authGeneration = 0;
   let latestLoginRequest = 0;
@@ -215,6 +217,7 @@ export function createAdminApi(options: AdminApiOptions = {}) {
     try {
       response = await fetchImpl(path, {
         ...init,
+        signal: init.signal ?? AbortSignal.timeout(timeoutMs),
         credentials: "same-origin",
         headers: hasBody ? { "Content-Type": "application/json", ...init.headers } : init.headers,
       });
@@ -254,7 +257,9 @@ export function createAdminApi(options: AdminApiOptions = {}) {
     const requestGeneration = authGeneration;
     let response: Response;
     try {
-      response = await fetchImpl(`/api/admin/tables/${encodeURIComponent(id)}/qr`, { credentials: "same-origin" });
+      response = await fetchImpl(`/api/admin/tables/${encodeURIComponent(id)}/qr`, {
+        credentials: "same-origin", signal: AbortSignal.timeout(timeoutMs),
+      });
     } catch {
       throw new AdminApiError(FALLBACK_MESSAGE);
     }

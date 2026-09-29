@@ -5,7 +5,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sushi Crazy</title>
-<link rel="icon" href="data:,">
+<link rel="icon" type="image/png" href="/icons/app-192.png">
+<link rel="apple-touch-icon" href="/icons/app-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sushi Crazy">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1696,6 +1702,7 @@ body.client-catalog-ready .page{display:block}
     <div class="client-state-message" id="clientStateMessage">Для заказа отсканируйте QR-код на столе.</div>
     <div class="client-state-meta" id="clientStateMeta"></div>
     <button class="client-state-action" id="reorderBtn" type="button" onclick="reorderFromStatus()" hidden>Заказать ещё</button>
+    <button class="client-state-action" id="retryRouteBtn" type="button" onclick="initializeClientRoute()" hidden>Повторить</button>
   </div>
 </main>
 
@@ -1920,6 +1927,7 @@ let pendingOrderId=null;
 let currentQrContext=null;
 let catalogOrderable=false;
 let orderSubmitting=false;
+let routeRevision=0;
 let pendingSuccessfulOrder=null;
 let activeOrderPoller=null;
 let qrStorage=null;
@@ -2306,6 +2314,7 @@ function openProd(id,opener){
   openOv('prodOv',opener);
 }
 function addCart(id){
+  if(orderSubmitting)return;
   if(!catalogOrderable){showToast('Меню недоступно. Отсканируйте QR-код ещё раз.');return;}
   const previous=cart[id]||0;
   cart[id]=Math.min(99,previous+1);
@@ -2373,6 +2382,7 @@ function renderCart(){
   updateOrderState();
 }
 function chQ(id,d){
+  if(orderSubmitting)return;
   const previous=cart[id]||0;
   cart[id]=d>0?Math.min(99,previous+d):previous+d;
   if(cart[id]<=0)delete cart[id];
@@ -2385,7 +2395,7 @@ function chQ(id,d){
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
   else persistQrContext();
 }
-function clearCart(){cart={};pendingOrderId=null;resetAnalyticsCartLifecycle();persistQrContext();updatePill();syncCardState(null,true);renderCart();}
+function clearCart(){if(orderSubmitting)return;cart={};pendingOrderId=null;resetAnalyticsCartLifecycle();persistQrContext();updatePill();syncCardState(null,true);renderCart();}
 function setDel(m,btn){
   delMode=m;
   document.querySelectorAll('.dopt').forEach(b=>b.classList.remove('on'));
@@ -2505,29 +2515,54 @@ async function submitQrOrder(){
   if(!catalogOrderable||!currentQrContext){showToast('Для заказа отсканируйте QR-код на столе');return;}
   if(!Object.keys(cart).some(k=>cart[k]>0)){showToast('Корзина пуста');return;}
   orderSubmitting=true;
+  const submissionRevision=routeRevision;
+  const submissionContext=currentQrContext;
   updateOrderState();
   const warning=document.getElementById('cartWarning');
   if(warning)warning.hidden=true;
   try{
+    const token=submissionContext.token;
+    const tableData=await resolveTable(token);
+    if(submissionRevision!==routeRevision)return;
+    if(submissionContext.sessionId!==tableData.session.id){
+      currentQrContext=QrOrdering.updateTableContext(qrStorage,token,tableData);
+      cart={};
+      updatePill();
+      renderCart();
+      if(warning){warning.textContent='Сессия стола изменилась. Корзина очищена. Выберите блюда заново.';warning.hidden=false;}
+      return;
+    }
     const preflight=await QrOrdering.submitOrderWithMenuPreflight({
       cart,
       dishes:M,
       loadMenu:fetchApiMenuPayload,
-      submit:({cart:confirmedCart,dishes:confirmedDishes})=>QrOrdering.submitOrder({
+      submit:({cart:confirmedCart,dishes:confirmedDishes})=>{
+        if(submissionRevision!==routeRevision)return {kind:'cancelled'};
+        return QrOrdering.submitOrder({
         fetchImpl:fetch,
-        token:currentQrContext.token,
-        context:currentQrContext,
+        token,
+        context:submissionContext,
         cart:confirmedCart,
         dishes:confirmedDishes,
+        requestId:QrOrdering.getOrderRequestId(qrStorage,submissionContext,confirmedCart,()=>crypto.randomUUID()),
         resolveTable:async token=>{
           const response=await fetch('/api/tables/'+encodeURIComponent(token));
           const data=await response.json().catch(()=>({}));
           if(!response.ok)throw new Error(data.error||'Не удалось обновить сессию стола');
-          currentQrContext=QrOrdering.updateTableContext(qrStorage,token,data);
           return data;
         }
-      })
+        });
+      }
     });
+    if(submissionRevision!==routeRevision){
+      if(preflight.kind==='submitted'&&preflight.result.kind==='success'){
+        submissionContext.cart={};
+        submissionContext.pendingAttempt=null;
+        submissionContext.activeOrderId=preflight.result.order.id;
+        QrOrdering.writeContext(qrStorage,submissionContext,{setCurrent:false});
+      }
+      return;
+    }
     applyApiCatalog(preflight.menu);
     rebuildCats();
     popIndex=0;
@@ -2541,28 +2576,49 @@ async function submitQrOrder(){
       renderCart();
       if(warning){
         const names=preflight.unavailableNames.join(', ');
-        warning.textContent=preflight.allUnavailable
+        const priceWarning=preflight.changedPriceNames.length
+          ?'Изменилась цена: '+preflight.changedPriceNames.join(', ')+'. Проверьте новую сумму. '
+          :'';
+        warning.textContent=priceWarning+(preflight.unavailableNames.length ? (preflight.allUnavailable
           ?'Сейчас недоступны: '+names+'. Все блюда удалены из корзины. Выберите другие блюда.'
-          :'Сейчас недоступны: '+names+'. Блюда удалены из корзины. Проверьте заказ и нажмите «Оформить заказ» ещё раз.';
+          :'Сейчас недоступны: '+names+'. Блюда удалены из корзины. Проверьте заказ и нажмите «Оформить заказ» ещё раз.')
+          :'Нажмите «Оформить заказ» ещё раз, если согласны.');
         warning.hidden=false;
       }
       return;
     }
     const result=preflight.result;
+    if(result.kind==='session-changed'){
+      currentQrContext=QrOrdering.updateTableContext(qrStorage,token,await resolveTable(token));
+      cart={};
+      updatePill();
+      renderCart();
+      if(warning){warning.textContent='Сессия стола изменилась. Корзина очищена. Выберите блюда заново.';warning.hidden=false;}
+      return;
+    }
+    if(result.kind==='price-changed'){
+      await loadApiCatalog();
+      rebuildCats();renderPopular();render();updatePill();renderCart();
+      if(warning){warning.textContent='Цена блюда изменилась. Проверьте новую сумму и нажмите «Оформить заказ» ещё раз.';warning.hidden=false;}
+      return;
+    }
     const excluded=result.excludedDishIds||[];
     const excludedNames=QrOrdering.getUnavailableNames(excluded,M);
     excluded.forEach(id=>delete cart[id]);
-    if(result.kind==='all-unavailable'){
+    if(result.kind==='all-unavailable'||result.kind==='availability-changed'){
       persistQrContext();
+      updatePill();
+      syncCardState(null,true);
       renderCart();
       if(warning){
-        warning.textContent='Сейчас недоступны: '+excludedNames.join(', ')+'. Выберите другие блюда.';
+        warning.textContent='Сейчас недоступны: '+excludedNames.join(', ')+'. Проверьте корзину и оформите заказ ещё раз.';
         warning.hidden=false;
       }
       return;
     }
     currentQrContext.sessionId=result.sessionId;
     currentQrContext.cart={};
+    currentQrContext.pendingAttempt=null;
     currentQrContext.activeOrderId=result.order.id;
     cart={};
     QrOrdering.writeContext(qrStorage,currentQrContext);
@@ -3327,6 +3383,7 @@ function showClientState(title,message,meta=''){
   document.getElementById('clientStateMessage').textContent=message;
   document.getElementById('clientStateMeta').textContent=meta;
   document.getElementById('reorderBtn').hidden=true;
+  document.getElementById('retryRouteBtn').hidden=true;
 }
 function showQrRequired(){
   catalogOrderable=false;
@@ -3336,16 +3393,16 @@ function showQrRequired(){
   showClientState('Требуется QR-код','Для заказа отсканируйте QR-код на столе.');
 }
 async function resolveTable(token){
-  const response=await fetch('/api/tables/'+encodeURIComponent(token));
+  const response=await fetch('/api/tables/'+encodeURIComponent(token),{signal:AbortSignal.timeout(12000)});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||'Стол не найден');
   return data;
 }
 async function loadApiCatalog(){
-  applyApiCatalog(QrOrdering.normalizeMenu(await fetchApiMenuPayload()));
+  applyApiCatalog(QrOrdering.normalizeMenu(await fetchApiMenuPayload(),{allowEmpty:true}));
 }
 async function fetchApiMenuPayload(){
-  const response=await fetch('/api/menu');
+  const response=await fetch('/api/menu',{signal:AbortSignal.timeout(12000)});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||'Не удалось загрузить меню');
   return data;
@@ -3367,13 +3424,21 @@ function applyApiCatalog(menu){
   POPULAR_IDS.splice(0,POPULAR_IDS.length,...M.slice(0,Math.min(6,M.length)).map(item=>item.id));
 }
 async function initializeTable(token){
+  const revision=++routeRevision;
   showClientState('Загружаем меню','Проверяем стол и текущую сессию…');
   catalogOrderable=false;
   try{
     const tableData=await resolveTable(token);
+    if(revision!==routeRevision)return;
     currentQrContext=QrOrdering.updateTableContext(qrStorage,token,tableData);
     cart={...currentQrContext.cart};
     await loadApiCatalog();
+    if(revision!==routeRevision)return;
+    if(!M.length){
+      showClientState('Меню пока пусто','Доступные блюда скоро появятся. Попробуйте обновить меню позже.');
+      document.getElementById('retryRouteBtn').hidden=false;
+      return;
+    }
     cart=QrOrdering.sanitizeCart(cart,M);
     persistQrContext();
     catalogOrderable=true;
@@ -3386,16 +3451,21 @@ async function initializeTable(token){
     updatePill();
     syncCardState();
   }catch(error){
+    if(revision!==routeRevision)return;
     catalogOrderable=false;
-    cart={};
     updatePill();
     showClientState('Меню недоступно',error?.message||'Не удалось загрузить меню. Отсканируйте QR-код ещё раз.');
+    document.getElementById('retryRouteBtn').hidden=false;
   }
 }
 async function fetchOrderDetails(orderId){
-  const response=await fetch('/api/orders/'+encodeURIComponent(orderId));
+  const response=await fetch('/api/orders/'+encodeURIComponent(orderId),{signal:AbortSignal.timeout(12000)});
   const data=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(data.error||'Не удалось загрузить заказ');
+  if(!response.ok){
+    const error=new Error(response.status===404?'Заказ не найден. Проверьте ссылку.':'Не удалось загрузить заказ. Попробуйте позже.');
+    error.status=response.status;
+    throw error;
+  }
   return data.order;
 }
 function renderOrderStatus(order){
@@ -3404,16 +3474,14 @@ function renderOrderStatus(order){
   document.getElementById('clientStateMessage').textContent=order.status==='ready'
     ? 'Заказ готов. Приятного аппетита!'
     : 'Статус обновляется автоматически.';
-  document.getElementById('clientStateMeta').textContent='Стол '+currentQrContext.tableNumber+' · '+fmt(Number(order.total||0));
-  document.getElementById('reorderBtn').hidden=false;
+  const tableNumber=order.table?.number||currentQrContext?.tableNumber;
+  document.getElementById('clientStateMeta').textContent=(tableNumber?'Стол '+tableNumber+' · ':'')+fmt(Number(order.total||0));
+  document.getElementById('reorderBtn').hidden=!currentQrContext;
 }
 async function showOrderStatus(orderId){
+  ++routeRevision;
   const recovered=QrOrdering.recoverOrderContext(qrStorage,orderId);
-  if(!recovered){
-    showClientState('Требуется QR-код','Данные стола не найдены. Отсканируйте QR-код на столе ещё раз.');
-    return;
-  }
-  currentQrContext=recovered;
+  currentQrContext=recovered||null;
   catalogOrderable=false;
   showClientState('Загружаем заказ','Проверяем текущий статус…');
   activeOrderPoller=QrOrdering.createOrderPoller({
@@ -3422,6 +3490,7 @@ async function showOrderStatus(orderId){
     fetchOrder:fetchOrderDetails,
     onOrder:renderOrderStatus,
     onError:error=>{
+      document.getElementById('clientStateTitle').textContent=error?.status===404?'Заказ не найден':'Нет связи с сервером';
       document.getElementById('clientStateMessage').textContent=error?.message||'Не удалось обновить статус заказа.';
     }
   });
@@ -3450,9 +3519,17 @@ function initializeClientRoute(){
   const route=QrOrdering.parseRoute(location.pathname);
   if(route.type==='table')initializeTable(route.token);
   else if(route.type==='order')showOrderStatus(route.orderId);
-  else showQrRequired();
+  else {
+    const installed=window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone;
+    const recent=installed&&location.pathname==='/'?QrOrdering.readCurrentContext(qrStorage):null;
+    if(recent){history.replaceState({},'',`/t/${recent.token}`);initializeTable(recent.token);}
+    else {++routeRevision;showQrRequired();}
+  }
 }
 window.addEventListener('popstate',initializeClientRoute);
+if('serviceWorker' in navigator)window.addEventListener('load',()=>{
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+});
 initializeClientRoute();
 
 </script>

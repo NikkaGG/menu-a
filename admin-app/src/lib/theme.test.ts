@@ -42,6 +42,15 @@ describe("theme", () => {
     expect(readTheme()).toBe("system");
   });
 
+  it("still renders a theme when browser storage is denied", () => {
+    const get = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("denied"); });
+    const set = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("denied"); });
+    expect(readTheme()).toBe("system");
+    expect(() => applyTheme("dark")).not.toThrow();
+    expect(document.documentElement).toHaveClass("dark");
+    get.mockRestore(); set.mockRestore();
+  });
+
   it("observes system changes only in system mode and unsubscribes", () => {
     const media = mediaQuery(false);
     const controller = createThemeController(media as unknown as MediaQueryList);

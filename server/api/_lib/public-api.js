@@ -47,12 +47,17 @@ function mapOrder(row) {
 }
 
 function validOrderBody(body) {
-  if (!exactObject(body, ['session_id', 'items'])
+  if (!exactObject(body, ['session_id', 'items', 'request_id', 'expected_total'])
     || !isUuid(body.session_id)
+    || (body.request_id !== undefined && !isUuid(body.request_id))
+    || (body.expected_total !== undefined
+      && (typeof body.expected_total !== 'string'
+        || !/^\d{1,10}\.\d{2}$/.test(body.expected_total)))
     || !Array.isArray(body.items)
     || body.items.length < 1
     || body.items.length > 100) return false;
-  return body.items.every((item) => exactObject(item, ['dish_id', 'quantity'])
+  return new Set(body.items.map((item) => item?.dish_id)).size === body.items.length
+    && body.items.every((item) => exactObject(item, ['dish_id', 'quantity'])
     && isUuid(item.dish_id)
     && Number.isInteger(item.quantity)
     && item.quantity >= 1

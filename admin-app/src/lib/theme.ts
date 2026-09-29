@@ -7,7 +7,12 @@ function valid(value: string | null): value is Theme {
 }
 
 export function readTheme(): Theme {
-  return valid(localStorage.getItem(THEME_KEY)) ? localStorage.getItem(THEME_KEY) as Theme : "system";
+  try {
+    const value = localStorage.getItem(THEME_KEY);
+    return valid(value) ? value : "system";
+  } catch {
+    return "system";
+  }
 }
 
 function systemMedia(): MediaQueryList {
@@ -23,7 +28,9 @@ export function applyTheme(theme: Theme, persist = true, media?: MediaQueryList)
   const resolved = theme === "system" ? (prefersDark(media) ? "dark" : "light") : theme;
   document.documentElement.classList.toggle("dark", resolved === "dark");
   document.documentElement.dataset.theme = resolved;
-  if (persist) localStorage.setItem(THEME_KEY, theme);
+  if (persist) {
+    try { localStorage.setItem(THEME_KEY, theme); } catch { /* Private mode may deny storage. */ }
+  }
 }
 
 export function createThemeController(media = systemMedia()) {

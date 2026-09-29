@@ -1,4 +1,5 @@
 function json(response, statusCode, body, headers = {}) {
+  response.setHeader('Cache-Control', 'no-store');
   for (const [name, value] of Object.entries(headers)) {
     response.setHeader(name, String(value));
   }

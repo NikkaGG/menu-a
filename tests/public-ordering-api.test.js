@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const tableId = '11111111-1111-4111-8111-111111111111';
 const sessionId = '22222222-2222-4222-8222-222222222222';
 const orderId = '33333333-3333-4333-8333-333333333333';
+const requestId = '66666666-6666-4666-8666-666666666666';
 const dishId = '44444444-4444-4444-8444-444444444444';
 const unavailableId = '55555555-5555-4555-8555-555555555555';
 const authorize = async () => true;
@@ -149,7 +150,7 @@ test('order creation uses one atomic query and server-authoritative returned val
       table_number: '12',
       session_status: 'open',
       items: [{ dishId, dishName: 'Server name', dishPrice: '12.50', quantity: 2, subtotal: '25.00' }],
-      excluded_dish_ids: [unavailableId],
+      excluded_dish_ids: [],
     }];
   };
   const handler = createOrderHandler({
@@ -173,13 +174,43 @@ test('order creation uses one atomic query and server-authoritative returned val
   assert.deepEqual(calls[0].values, [
     sessionId,
     JSON.stringify([{ dish_id: dishId, quantity: 2 }, { dish_id: unavailableId, quantity: 1 }]),
+    null,
+    null,
   ]);
-  assert.deepEqual(response.body.excludedDishIds, [unavailableId]);
+  assert.deepEqual(response.body.excludedDishIds, []);
   assert.equal(response.body.order.total, '25.00');
   assert.deepEqual(response.body.order.table, { number: '12' });
   assert.equal(response.body.order.items[0].dishName, 'Server name');
   assert.equal(notifications.length, 1);
   assert.deepEqual(notifications[0], response.body.order);
+});
+
+test('replaying an order request returns the existing order without a second notification', async () => {
+  const { createOrderHandler, CREATE_ORDER_SQL, EXISTING_ORDER_SQL } = load('api/orders/index.js');
+  assert.match(CREATE_ORDER_SQL, /ON CONFLICT \(id\) DO NOTHING/i);
+  let notifications = 0;
+  let queries = 0;
+  const handler = createOrderHandler({
+    query: async (sql, values) => {
+      queries += 1;
+      if (sql === CREATE_ORDER_SQL) {
+        assert.equal(values[2], requestId);
+        return [{ order_id: null, session_status: 'closed', excluded_dish_ids: [] }];
+      }
+      assert.equal(sql, EXISTING_ORDER_SQL);
+      return [{ order_id: orderId, session_id: sessionId, status: 'new',
+        total: '12.50', table_number: '12', items: [] }];
+    },
+    notify: async () => { notifications += 1; },
+  });
+  const response = await invoke(handler, { method: 'POST', body: {
+    session_id: sessionId, request_id: requestId,
+    items: [{ dish_id: dishId, quantity: 1 }],
+  } });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.order.id, orderId);
+  assert.equal(queries, 2);
+  assert.equal(notifications, 0);
 });
 
 test('order creation rejects malformed bodies and does not create empty orders', async () => {
@@ -195,6 +226,7 @@ test('order creation rejects malformed bodies and does not create empty orders',
     { session_id: sessionId, items: [{ dish_id: dishId, quantity: 100 }] },
     { session_id: sessionId, items: [{ dish_id: dishId, quantity: 1, price: 0 }] },
     { session_id: sessionId, items: [{ dish_id: dishId, quantity: 1 }], total: 0 },
+    { session_id: sessionId, items: [{ dish_id: dishId, quantity: 1 }, { dish_id: dishId, quantity: 99 }] },
     { sessionId, items: [{ dishId, quantity: 1 }] },
   ];
   for (const body of invalidBodies) {

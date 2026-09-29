@@ -269,14 +269,27 @@ test('API menu text is centrally escaped and photo URLs reject active or breakin
 test('order body uses the exact snake_case API contract with UUID dish IDs', () => {
   const { buildOrderBody } = loadClient();
   assert.deepEqual(buildOrderBody(sessionA, { [dishA]: 2, [dishB]: 1 }, [
-    { id: dishA }, { id: dishB },
+    { id: dishA, price: 12.50 }, { id: dishB, price: 5 },
   ]), {
     session_id: sessionA,
+    expected_total: '30.00',
     items: [
       { dish_id: dishA, quantity: 2 },
       { dish_id: dishB, quantity: 1 },
     ],
   });
+});
+
+test('server price changes require a new menu confirmation', async () => {
+  const { submitOrder } = loadClient();
+  const result = await submitOrder({
+    fetchImpl: async () => ({ status: 409, ok: false,
+      json: async () => ({ error: 'Menu prices changed' }) }),
+    token: tokenA, context: { sessionId: sessionA },
+    cart: { [dishA]: 1 }, dishes: [{ id: dishA, price: 12.5 }],
+    resolveTable: async () => assert.fail('session unchanged'),
+  });
+  assert.deepEqual(result, { kind: 'price-changed' });
 });
 
 test('stored cart is pruned to the currently orderable API menu UUIDs', () => {
@@ -357,13 +370,10 @@ test('menu preflight reports an all-unavailable cart without submitting', async 
   assert.equal(posts, 0);
 });
 
-test('closed session resolves the token and retries order creation exactly once', async () => {
+test('closed session resolves the token but never moves the old cart into a new session', async () => {
   const { submitOrder } = loadClient();
   const calls = [];
-  const responses = [
-    { status: 409, ok: false, json: async () => ({ error: 'Session is not open' }) },
-    { status: 201, ok: true, json: async () => ({ order: { id: orderId, status: 'new' }, excludedDishIds: [] }) },
-  ];
+  const responses = [{ status: 409, ok: false, json: async () => ({ error: 'Session is not open' }) }];
   let resolves = 0;
   const result = await submitOrder({
     fetchImpl: async (url, options) => {
@@ -380,10 +390,38 @@ test('closed session resolves the token and retries order creation exactly once'
     },
   });
   assert.equal(resolves, 1);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 1);
   assert.equal(calls[0].body.session_id, sessionA);
-  assert.equal(calls[1].body.session_id, sessionB);
-  assert.equal(result.kind, 'success');
+  assert.equal(result.kind, 'session-changed');
+});
+
+test('the same cart reuses its persisted request ID after a lost response', () => {
+  const { getOrderRequestId, updateTableContext, readContext } = loadClient();
+  const { storage } = storageHarness();
+  const context = updateTableContext(storage, tokenA, {
+    table: { id: tableId, number: '7' },
+    session: { id: sessionA, status: 'open' },
+  });
+  const first = getOrderRequestId(storage, context, { [dishA]: 2 }, () => orderId);
+  const recovered = readContext(storage, tokenA);
+  const second = getOrderRequestId(storage, recovered, { [dishA]: 2 }, () => assert.fail('should reuse ID'));
+  assert.equal(first, second);
+  assert.equal(getOrderRequestId(storage, recovered, { [dishA]: 3 }, () => sessionB), sessionB);
+});
+
+test('menu price changes require a second explicit confirmation', async () => {
+  const { submitOrderWithMenuPreflight } = loadClient();
+  let posts = 0;
+  const result = await submitOrderWithMenuPreflight({
+    cart: { [dishA]: 1 }, dishes: [{ id: dishA, name: 'Ролл', price: 12 }],
+    loadMenu: async () => ({ categories: [{ id: tableId, name: 'Меню', dishes: [
+      { id: dishA, name: 'Ролл', price: '15.00' },
+    ] }] }),
+    submit: async () => { posts += 1; },
+  });
+  assert.equal(result.kind, 'review-required');
+  assert.deepEqual(result.changedPriceNames, ['Ролл']);
+  assert.equal(posts, 0);
 });
 
 test('unavailable dishes are named and all-unavailable stays an explicit cart result', async () => {
@@ -405,6 +443,20 @@ test('unavailable dishes are named and all-unavailable stays an explicit cart re
     resolveTable: async () => assert.fail('must not resolve a live session for unavailable dishes'),
   });
   assert.deepEqual(result, { kind: 'all-unavailable', excludedDishIds: [dishA] });
+});
+
+test('an availability race never silently creates a partial order', async () => {
+  const { submitOrder } = loadClient();
+  const result = await submitOrder({
+    fetchImpl: async () => ({ status: 409, ok: false, json: async () => ({
+      error: 'Requested dishes changed', excludedDishIds: [dishB],
+    }) }),
+    token: tokenA, context: { sessionId: sessionA },
+    cart: { [dishA]: 1, [dishB]: 1 },
+    dishes: [{ id: dishA }, { id: dishB }],
+    resolveTable: async () => assert.fail('session is unchanged'),
+  });
+  assert.deepEqual(result, { kind: 'availability-changed', excludedDishIds: [dishB] });
 });
 
 test('status labels are localized and visibility polling stops when ready', async () => {
@@ -492,6 +544,48 @@ test('destroyed poller ignores an in-flight success and failure', async () => {
     assert.deepEqual(errors, []);
     assert.equal(intervals, 0);
   }
+});
+
+test('slow status responses never create overlapping poll requests', async () => {
+  const { createOrderPoller } = loadClient();
+  let settle;
+  const pending = new Promise((resolve) => { settle = resolve; });
+  let requests = 0;
+  let tick;
+  const poller = createOrderPoller({
+    orderId,
+    documentRef: { hidden: false, addEventListener() {}, removeEventListener() {} },
+    fetchOrder: () => { requests += 1; return requests === 1 ? Promise.resolve({ status: 'cooking' }) : pending; },
+    onOrder() {},
+    setIntervalImpl(callback) { tick = callback; return 1; },
+    clearIntervalImpl() {},
+  });
+  await poller.start();
+  const first = tick();
+  await tick();
+  assert.equal(requests, 2);
+  settle({ status: 'ready' });
+  await first;
+  poller.destroy();
+});
+
+test('a permanently missing direct order stops polling after its first response', async () => {
+  const { createOrderPoller } = loadClient();
+  let intervals = 0;
+  const messages = [];
+  const poller = createOrderPoller({
+    orderId,
+    documentRef: { hidden: false, addEventListener() {}, removeEventListener() {} },
+    fetchOrder: async () => { throw Object.assign(new Error('Заказ не найден'), { status: 404 }); },
+    onOrder: () => assert.fail('order does not exist'),
+    onError: (error) => messages.push(error.message),
+    setIntervalImpl: () => { intervals += 1; return intervals; },
+    clearIntervalImpl() {},
+  });
+  await poller.start();
+  assert.deepEqual(messages, ['Заказ не найден']);
+  assert.equal(intervals, 0);
+  poller.destroy();
 });
 
 test('catalog, product, and cart HTML harness renders malicious API text inert', () => {

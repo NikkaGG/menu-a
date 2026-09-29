@@ -534,6 +534,7 @@ function cartMutationHarness(initialQuantity = 0) {
   const context = vm.createContext({
     cart: initialQuantity ? { 1: initialQuantity } : {},
     catalogOrderable: true,
+    orderSubmitting: false,
     currentQrContext: {},
     pendingOrderId: '00000000-0000-4000-8000-000000000099',
     document: {
@@ -1843,6 +1844,16 @@ test('cart additions cap quantity at 99 and do not emit invalid increments', () 
   assert.deepEqual(increment.events.map(({ quantityAdded, cartQuantity }) => (
     { quantityAdded, cartQuantity }
   )), [{ quantityAdded: 1, cartQuantity: 99 }]);
+});
+
+test('cart cannot change while an order request is in flight', () => {
+  const locked = cartMutationHarness(2);
+  locked.context.orderSubmitting = true;
+  locked.context.addCart(1);
+  locked.context.chQ('1', -1);
+  locked.context.clearCart();
+  assert.equal(locked.context.cart[1], 2);
+  assert.equal(locked.events.length, 0);
 });
 
 test('emptying or clearing a cart removes its pending order ID', () => {

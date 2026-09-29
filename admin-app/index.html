@@ -7,7 +7,8 @@
     <script>
       (() => {
         const key = "admin-theme";
-        const saved = localStorage.getItem(key);
+        let saved = null;
+        try { saved = localStorage.getItem(key); } catch { /* Storage may be denied. */ }
         const theme = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
         const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.classList.toggle("dark", dark);
