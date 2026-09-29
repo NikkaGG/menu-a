@@ -1629,6 +1629,14 @@ body.modal-lock .cart-pill-shell{
   margin:auto!important;
 }
 
+
+@media(min-width:720px){
+  .ps-img.detail-generated{
+    height:auto!important;
+    aspect-ratio:3/2!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2356,7 +2364,7 @@ function openProd(id,opener){
   const item=getItem(id);
   if(!item)return;
   document.getElementById('prodContent').innerHTML=`
-    <div class="ps-img">${(item.detailImg||item.img)?`<img class="product-img" src="${item.detailImg||item.img}" alt="${item.n}" decoding="async" fetchpriority="high">`:foodIcon(item.i)}</div>
+    <div class="ps-img${item.detailImg?' detail-generated':''}">${(item.detailImg||item.img)?`<img class="product-img" src="${item.detailImg||item.img}" alt="${item.n}" decoding="async" fetchpriority="high">`:foodIcon(item.i)}</div>
     <div class="ps-dot" aria-hidden="true"></div>
     <div class="ps-body">
       <div class="ps-name" id="prodTitle">${item.n}</div>
