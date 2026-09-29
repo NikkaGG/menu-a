@@ -1633,6 +1633,14 @@ body.modal-lock .cart-pill-shell{
 .ps-img.detail-generated{height:auto!important;aspect-ratio:16/10!important;background:#111!important}
 .ps-img.detail-generated .product-img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;object-position:center!important;margin:0!important}
 
+
+/* ── GLOBAL TAP HIGHLIGHT FIX ── */
+*{-webkit-tap-highlight-color:transparent!important}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible),
+.product-details-btn:focus:not(:focus-visible){outline:none!important}
+button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-user-select:none;user-select:none}
 </style>
 </head>
 <body>
