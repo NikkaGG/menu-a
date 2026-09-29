@@ -95,7 +95,8 @@
     "weight": "160 г (430 ккал)",
     "desc": "Состав: куриное филе в панировке Пищевая ценность на порцию: Б28 / Ж22 / У30",
     "price": 1280,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/11_stripsy__stripsy.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/11_stripsy__stripsy.webp",
+    "detailImg": "/assets/generated/stripsy.webp"
   },
   {
     "name": "Наггетсы (10 шт)",
@@ -103,7 +104,8 @@
     "weight": "200 г (520 ккал)",
     "desc": "Состав: куриное филе в панировке Пищевая ценность на порцию: Б30 / Ж28 / У38",
     "price": 1380,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/12_naggetsy_10_sht__naggetsy-10-sht.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/12_naggetsy_10_sht__naggetsy-10-sht.webp",
+    "detailImg": "/assets/generated/naggetsy-10-sht.webp"
   },
   {
     "name": "Картошка по деревенски",
@@ -111,7 +113,8 @@
     "weight": "180 г (420 ккал)",
     "desc": "Состав: картофельные дольки, специи, соль Пищевая ценность на порцию: Б6 / Ж16 / У62",
     "price": 920,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/13_kartoshka_po_derevenski__kartoshka-po-derevenski.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/13_kartoshka_po_derevenski__kartoshka-po-derevenski.webp",
+    "detailImg": "/assets/generated/kartoshka-po-derevenski.webp"
   },
   {
     "name": "Картошка фри",
@@ -119,7 +122,8 @@
     "weight": "150 г (470 ккал)",
     "desc": "Состав: картофель, соль Пищевая ценность на порцию: Б5 / Ж22 / У60",
     "price": 830,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/14_kartoshka_fri__kartoshka-fri.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/14_kartoshka_fri__kartoshka-fri.webp",
+    "detailImg": "/assets/generated/kartoshka-fri.webp"
   },
   {
     "name": "Крылышки (3 шт)",
@@ -127,7 +131,8 @@
     "weight": "180 г (520 ккал)",
     "desc": "Состав: куриные крылышки в панировке/маринаде, специи Пищевая ценность на порцию: Б28 / Ж35 / У18",
     "price": 980,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/15_krylyshki_3_sht__krylyshki-3-sht.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/15_krylyshki_3_sht__krylyshki-3-sht.webp",
+    "detailImg": "/assets/generated/krylyshki-3-sht.webp"
   },
   {
     "name": "Крылышки (6 шт)",
@@ -135,7 +140,8 @@
     "weight": "360 г (1040 ккал)",
     "desc": "Состав: куриные крылышки в панировке/маринаде, специи Пищевая ценность на порцию: Б56 / Ж70 / У36",
     "price": 1770,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/16_krylyshki_6_sht__krylyshki-6-sht.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/16_krylyshki_6_sht__krylyshki-6-sht.webp",
+    "detailImg": "/assets/generated/krylyshki-6-sht.webp"
   },
   {
     "name": "Бизнес Ланч",
@@ -143,7 +149,8 @@
     "weight": "430 г (1020 ккал)",
     "desc": "Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105",
     "price": 1830,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/17_biznes_lanch__biznes-lanch.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/17_biznes_lanch__biznes-lanch.webp",
+    "detailImg": "/assets/generated/biznes-lanch.webp"
   },
   {
     "name": "Калифорния с крабом",
@@ -151,7 +158,8 @@
     "weight": "240 г (420 ккал)",
     "desc": "Состав: рис, нори, краб, тобико, огурец, майонез Пищевая ценность на порцию: Б13 / Ж13 / У60",
     "price": 1830,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/18_kaliforniya_s_krabom__kaliforniya-s-krabom.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/18_kaliforniya_s_krabom__kaliforniya-s-krabom.webp",
+    "detailImg": "/assets/generated/kaliforniya-s-krabom.webp"
   },
   {
     "name": "Калифорния с лососем",
@@ -159,7 +167,8 @@
     "weight": "240 г (430 ккал)",
     "desc": "Состав: рис, нори, лосось, тобико, огурец, майонез Пищевая ценность на порцию: Б16 / Ж14 / У58",
     "price": 2080,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/19_kaliforniya_s_lososem__kaliforniya-s-lososem.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/19_kaliforniya_s_lososem__kaliforniya-s-lososem.webp",
+    "detailImg": "/assets/generated/kaliforniya-s-lososem.webp"
   },
   {
     "name": "Филадельфия",
@@ -167,7 +176,8 @@
     "weight": "250 г (480 ккал)",
     "desc": "Состав: рис, нори, лосось, огурец, сыр Пищевая ценность на порцию: Б20 / Ж18 / У58",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/20_filadelfiya__filadelfiya.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/20_filadelfiya__filadelfiya.webp",
+    "detailImg": "/assets/generated/filadelfiya.webp"
   },
   {
     "name": "Ролл нежный",
@@ -175,7 +185,8 @@
     "weight": "260 г (520 ккал)",
     "desc": "Состав: рис, нори, краб, огурец, сыр, карамельный соус, соус спайси, унаги соус Пищевая ценность на порцию: Б16 / Ж22 / У64",
     "price": 1830,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/21_roll_nezhnyj__roll-nezhnyj.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/21_roll_nezhnyj__roll-nezhnyj.webp",
+    "detailImg": "/assets/generated/roll-nezhnyj.webp"
   },
   {
     "name": "Эби маки",
@@ -183,7 +194,8 @@
     "weight": "120 г (190 ккал)",
     "desc": "Состав: рис, нори, креветка Пищевая ценность на порцию: Б9 / Ж2 / У34",
     "price": 1160,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/22_ebi_maki__ebi-maki.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/22_ebi_maki__ebi-maki.webp",
+    "detailImg": "/assets/generated/ebi-maki.webp"
   },
   {
     "name": "Бешенный лосось",
@@ -191,7 +203,8 @@
     "weight": "260 г (540 ккал)",
     "desc": "Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62",
     "price": 2140,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/23_beshennyj_losos__beshennyj-losos.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/23_beshennyj_losos__beshennyj-losos.webp",
+    "detailImg": "/assets/generated/beshennyj-losos.webp"
   },
   {
     "name": "Горячий шик",
@@ -199,7 +212,8 @@
     "weight": "270 г (560 ккал)",
     "desc": "Состав: рис, нори, лосось, огурец, сыр, кляр, карамель, унаги соус Пищевая ценность на порцию: Б20 / Ж26 / У62",
     "price": 2140,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/24_goryachij_shik__goryachij-shik.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/24_goryachij_shik__goryachij-shik.webp",
+    "detailImg": "/assets/generated/goryachij-shik.webp"
   },
   {
     "name": "Сяки темпура",
@@ -207,7 +221,8 @@
     "weight": "270 г (590 ккал)",
     "desc": "Состав: рис, нори, лосось, огурец, сыр, кляр, сухари, унаги соус Пищевая ценность на порцию: Б21 / Ж28 / У63",
     "price": 2080,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/25_syaki_tempura__syaki-tempura.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/25_syaki_tempura__syaki-tempura.webp",
+    "detailImg": "/assets/generated/syaki-tempura.webp"
   },
   {
     "name": "Ролл крэйзи",
@@ -215,7 +230,8 @@
     "weight": "250 г (500 ккал)",
     "desc": "Состав: рис, нори, лосось, огурец, сыр, унаги соус, тобико Пищевая ценность на порцию: Б19 / Ж20 / У58",
     "price": 2020,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/26_roll_krejzi__roll-krejzi.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/26_roll_krejzi__roll-krejzi.webp",
+    "detailImg": "/assets/generated/roll-krejzi.webp"
   },
   {
     "name": "Эби темпура",
@@ -223,7 +239,8 @@
     "weight": "270 г (610 ккал)",
     "desc": "Состав: рис, нори, огурец, сыр, креветка, кляр, сухари, унаги соус Пищевая ценность на порцию: Б20 / Ж30 / У65",
     "price": 2080,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/27_ebi_tempura__ebi-tempura.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/27_ebi_tempura__ebi-tempura.webp",
+    "detailImg": "/assets/generated/ebi-tempura.webp"
   },
   {
     "name": "Кани темпура",
@@ -231,7 +248,8 @@
     "weight": "270 г (620 ккал)",
     "desc": "Состав: рис, нори, краб, сыр, огурец, унаги соус, кляр, сухари Пищевая ценность на порцию: Б18 / Ж32 / У66",
     "price": 1830,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/28_kani_tempura__kani-tempura.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/28_kani_tempura__kani-tempura.webp",
+    "detailImg": "/assets/generated/kani-tempura.webp"
   },
   {
     "name": "Тори темпура",
@@ -239,7 +257,8 @@
     "weight": "280 г (640 ккал)",
     "desc": "Состав: рис, нори, огурец, сыр, кляр, курица, унаги соус, сухари Пищевая ценность на порцию: Б23 / Ж31 / У66",
     "price": 1830,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/29_tori_tempura__tori-tempura.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/29_tori_tempura__tori-tempura.webp",
+    "detailImg": "/assets/generated/tori-tempura.webp"
   },
   {
     "name": "Цунами",
@@ -247,7 +266,8 @@
     "weight": "260 г (520 ккал)",
     "desc": "Состав: рис, нори, лосось, огурец, майонез, краб, соус спайси Пищевая ценность на порцию: Б18 / Ж22 / У60",
     "price": 2020,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/30_cunami__cunami.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/30_cunami__cunami.webp",
+    "detailImg": "/assets/generated/cunami.webp"
   },
   {
     "name": "Сакура",
@@ -255,7 +275,8 @@
     "weight": "250 г (470 ккал)",
     "desc": "Состав: рис, нори, лосось, огурец, сыр, тобико Пищевая ценность на порцию: Б18 / Ж16 / У60",
     "price": 2020,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/31_sakura__sakura.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/31_sakura__sakura.webp",
+    "detailImg": "/assets/generated/sakura.webp"
   },
   {
     "name": "Калифорния с креветкой",
@@ -263,7 +284,8 @@
     "weight": "240 г (410 ккал)",
     "desc": "Состав: рис, нори, майонез, огурец, креветка, тобико Пищевая ценность на порцию: Б14 / Ж12 / У60",
     "price": 2080,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/32_kaliforniya_s_krevetkoj__kaliforniya-s-krevetkoj.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/32_kaliforniya_s_krevetkoj__kaliforniya-s-krevetkoj.webp",
+    "detailImg": "/assets/generated/kaliforniya-s-krevetkoj.webp"
   },
   {
     "name": "Каппа маки",
@@ -271,7 +293,8 @@
     "weight": "120 г (170 ккал)",
     "desc": "Состав: рис, нори, огурец Пищевая ценность на порцию: Б4 / Ж1 / У36",
     "price": 860,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/33_kappa_maki__kappa-maki.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/33_kappa_maki__kappa-maki.webp",
+    "detailImg": "/assets/generated/kappa-maki.webp"
   },
   {
     "name": "Кани маки",
@@ -279,7 +302,8 @@
     "weight": "120 г (180 ккал)",
     "desc": "Состав: рис, нори, краб Пищевая ценность на порцию: Б6 / Ж2 / У34",
     "price": 920,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/34_kani_maki__kani-maki.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/34_kani_maki__kani-maki.webp",
+    "detailImg": "/assets/generated/kani-maki.webp"
   },
   {
     "name": "Сяки маки",
@@ -287,7 +311,8 @@
     "weight": "120 г (200 ккал)",
     "desc": "Состав: рис, нори, лосось Пищевая ценность на порцию: Б12 / Ж4 / У32",
     "price": 1160,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/35_syaki_maki__syaki-maki.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/35_syaki_maki__syaki-maki.webp",
+    "detailImg": "/assets/generated/syaki-maki.webp"
   },
   {
     "name": "Ойси",
@@ -295,7 +320,8 @@
     "weight": "270 г (560 ккал)",
     "desc": "Состав: рис, нори, лосось, огурец, сыр, тобико, креветка, соус спайси, унаги соус Пищевая ценность на порцию: Б22 / Ж24 / У62",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/36_ojsi__ojsi.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/36_ojsi__ojsi.webp",
+    "detailImg": "/assets/generated/ojsi.webp"
   },
   {
     "name": "Креветки в кляре",
@@ -303,7 +329,8 @@
     "weight": "180 г (460 ккал)",
     "desc": "Состав: креветки, кляр Пищевая ценность на порцию: Б26 / Ж22 / У38",
     "price": 2320,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/37_krevetki_v_klyare__krevetki-v-klyare.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/37_krevetki_v_klyare__krevetki-v-klyare.webp",
+    "detailImg": "/assets/generated/krevetki-v-klyare.webp"
   },
   {
     "name": "Ролл сендвич",
@@ -311,7 +338,8 @@
     "weight": "150 г (200 ккал)",
     "desc": "Состав: рис,нори,творожный сыр,масаго,лосось,кляр,сухари,унаги соус",
     "price": 2140,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/38_roll_sendvich__roll-sendvich.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/38_roll_sendvich__roll-sendvich.webp",
+    "detailImg": "/assets/generated/roll-sendvich.webp"
   },
   {
     "name": "Гудзон(запеченный ролл)",
@@ -319,7 +347,8 @@
     "weight": "220 г (540 калл)",
     "desc": "Состав: рис, сыр, Масаго, огурец, нори, лосось, спайси соус",
     "price": 2260,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/39_gudzon_zapechennyj_roll__gudzonzapechennyj-roll.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/39_gudzon_zapechennyj_roll__gudzonzapechennyj-roll.webp",
+    "detailImg": "/assets/generated/gudzonzapechennyj-roll.webp"
   },
   {
     "name": "Запеченная Филодельфия",
@@ -327,7 +356,8 @@
     "weight": "250 г (480 ккал)",
     "desc": "Состав: рис, сыр, огурцы, нори, лосось, спайси соус",
     "price": 2570,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/40_zapechennaya_filodelfiya__zapechennaya-filodelfiya.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/40_zapechennaya_filodelfiya__zapechennaya-filodelfiya.webp",
+    "detailImg": "/assets/generated/zapechennaya-filodelfiya.webp"
   },
   {
     "name": "Сет классик",
@@ -335,7 +365,8 @@
     "weight": "1020г (2000ккал)",
     "desc": "Калифорния с крабом Филадельфия Бешенный лосось Горячий шик",
     "price": 7340,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/41_set_klassik__set-klassik.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/41_set_klassik__set-klassik.webp",
+    "detailImg": "/assets/generated/set-klassik.webp"
   },
   {
     "name": "Сет Микс",
@@ -343,7 +374,8 @@
     "weight": "1060г (2200ккал)",
     "desc": "2 бешеный лосось 2 горячий шик",
     "price": 7640,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/42_set_miks__set-miks.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/42_set_miks__set-miks.webp",
+    "detailImg": "/assets/generated/set-miks.webp"
   },
   {
     "name": "Торт из 5 порций",
@@ -351,7 +383,8 @@
     "weight": "1270г (2250ккал)",
     "desc": "2 бешеный 1 горячий 1 Калифорния с крабом 1 тори темпура",
     "price": 9170,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/43_tort_iz_5_porcij__tort-iz-5-porcij.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/43_tort_iz_5_porcij__tort-iz-5-porcij.webp",
+    "detailImg": "/assets/generated/tort-iz-5-porcij.webp"
   },
   {
     "name": "Торт из 7 порций",
@@ -359,7 +392,8 @@
     "weight": "1700г (2750ккал)",
     "desc": "2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура",
     "price": 12840,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/44_tort_iz_7_porcij__tort-iz-7-porcij.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/44_tort_iz_7_porcij__tort-iz-7-porcij.webp",
+    "detailImg": "/assets/generated/tort-iz-7-porcij.webp"
   },
   {
     "name": "Маргарита",
@@ -367,7 +401,8 @@
     "weight": "450 г (980 ккал)",
     "desc": "Состав: пицца соус, томаты, сыр моцарелла Пищевая ценность на порцию: Б38 / Ж34 / У120",
     "price": 2260,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/45_margarita__margarita.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/45_margarita__margarita.webp",
+    "detailImg": "/assets/generated/margarita.webp"
   },
   {
     "name": "Грибная",
@@ -375,7 +410,8 @@
     "weight": "470 г (1050 ккал)",
     "desc": "Состав: пицца соус, сыр моцарелла, грибы, помидор Пищевая ценность на порцию: Б42 / Ж40 / У125",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/46_gribnaya__gribnaya.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/46_gribnaya__gribnaya.webp",
+    "detailImg": "/assets/generated/gribnaya.webp"
   },
   {
     "name": "Мясная",
@@ -383,7 +419,8 @@
     "weight": "500 г (1200 ккал)",
     "desc": "Состав: пицца соус, сыр моцарелла, мясо, помидор Пищевая ценность на порцию: Б55 / Ж55 / У120",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/47_myasnaya__myasnaya.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/47_myasnaya__myasnaya.webp",
+    "detailImg": "/assets/generated/myasnaya.webp"
   },
   {
     "name": "Пепперони",
@@ -391,7 +428,8 @@
     "weight": "480 г (1250 ккал)",
     "desc": "Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/48_pepperoni__pepperoni.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/48_pepperoni__pepperoni.webp",
+    "detailImg": "/assets/generated/pepperoni.webp"
   },
   {
     "name": "4 сезона",
@@ -399,7 +437,8 @@
     "weight": "520 г (1280 ккал)",
     "desc": "Состав: мясо, кур филе, грибы, сыр моцарелла, колбаса, пицца соус Пищевая ценность на порцию: Б58 / Ж58 / У125",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/49_4_sezona__4-sezona.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/49_4_sezona__4-sezona.webp",
+    "detailImg": "/assets/generated/4-sezona.webp"
   },
   {
     "name": "Сырная",
@@ -407,7 +446,8 @@
     "weight": "470 г (1150 ккал)",
     "desc": "Состав: сырный соус, сыр моцарелла, кунжут Пищевая ценность на порцию: Б45 / Ж55 / У120",
     "price": 2260,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/50_syrnaya__syrnaya.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/50_syrnaya__syrnaya.webp",
+    "detailImg": "/assets/generated/syrnaya.webp"
   },
   {
     "name": "Ассорти",
@@ -415,7 +455,8 @@
     "weight": "520 г (1230 ккал)",
     "desc": "Состав: мясо, кур филе, томаты, оливки, грибы, сыр моцарелла, помидор Пищевая ценность на порцию: Б56 / Ж52 / У130",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/51_assorti__assorti.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/51_assorti__assorti.webp",
+    "detailImg": "/assets/generated/assorti.webp"
   },
   {
     "name": "Куриная",
@@ -423,7 +464,8 @@
     "weight": "500 г (1180 ккал)",
     "desc": "Состав: чесночный соус, кур филе, сыр моцарелла, помидор Пищевая ценность на порцию: Б60 / Ж50 / У120",
     "price": 2450,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/52_kurinaya__kurinaya.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/52_kurinaya__kurinaya.webp",
+    "detailImg": "/assets/generated/kurinaya.webp"
   },
   {
     "name": "Чесночный соус",
@@ -431,7 +473,8 @@
     "weight": "25 г (80 ккал)",
     "desc": "Состав: йогурт/сметана, чеснок, огурец, укроп, соль, специи Пищевая ценность на порцию: Б1 / Ж7 / У5",
     "price": 210,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/53_chesnochnyj_sous__chesnochnyj-sous.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/53_chesnochnyj_sous__chesnochnyj-sous.webp",
+    "detailImg": "/assets/generated/chesnochnyj-sous.webp"
   },
   {
     "name": "Сырный соус",
@@ -439,7 +482,8 @@
     "weight": "25 г (110 ккал)",
     "desc": "Состав: сырный соус (на основе сыра), сливки/молоко, масло, специи, соль Пищевая ценность на порцию: Б2 / Ж10 / У4",
     "price": 210,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/54_syrnyj_sous__syrnyj-sous.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/54_syrnyj_sous__syrnyj-sous.webp",
+    "detailImg": "/assets/generated/syrnyj-sous.webp"
   },
   {
     "name": "Томатный кетчуп",
@@ -447,7 +491,8 @@
     "weight": "25 г (95 ккал)",
     "desc": "Состав: вода питьевая,, паста томатная, сахар, уксус натуральный, соль, ароматизатор натуральный (содержит сельдерей) Пищевая ценность на порцию: Б 0.9 / Ж 0.7/ У 25.0",
     "price": 210,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/55_tomatnyj_ketchup__tomatnyj-ketchup.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/55_tomatnyj_ketchup__tomatnyj-ketchup.webp",
+    "detailImg": "/assets/generated/tomatnyj-ketchup.webp"
   },
   {
     "name": "Кисло-сладкий",
@@ -455,7 +500,8 @@
     "weight": "25 г( 110 ккал)",
     "desc": "Состав: сахар, вода, пюре абрикосовое концентрированное (содержит антиокислитель аскорбиновую кислоту), уксус натуральный, крахмал кукурузный, соль",
     "price": 210,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/56_kislo_sladkij__kislo-sladkij.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/56_kislo_sladkij__kislo-sladkij.webp",
+    "detailImg": "/assets/generated/kislo-sladkij.webp"
   },
   {
     "name": "Добрый cola",
@@ -463,7 +509,8 @@
     "weight": "330 мл (140 ккал)",
     "desc": "Состав: газированный безалкогольный напиток (вода, сахар, краситель карамель, ароматизатор, регулятор кислотности, кофеин) Пищевая ценность на порцию: Б0 / Ж0 / У35",
     "price": 520,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/57_dobryj_cola__dobryj-cola.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/57_dobryj_cola__dobryj-cola.webp",
+    "detailImg": "/assets/generated/dobryj-cola.webp"
   },
   {
     "name": "ST.OM Black Ice Tea (персик)",
@@ -471,7 +518,8 @@
     "weight": "450 мл (180 ккал)",
     "desc": "Состав: чёрный чай, вода, сахар, ароматизатор «персик», регулятор кислотности, антиоксидант (в зависимости от партии) Пищевая ценность на порцию: Б0 / Ж0 / У45",
     "price": 610,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/58_st_om_black_ice_tea_persik__stom-black-ice-tea-persik.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/58_st_om_black_ice_tea_persik__stom-black-ice-tea-persik.webp",
+    "detailImg": "/assets/generated/stom-black-ice-tea-persik.webp"
   },
   {
     "name": "Зелтон (груша)",
@@ -479,7 +527,8 @@
     "weight": "500 мл (230 ккал)",
     "desc": "Состав: газированный безалкогольный напиток (вода, сахар, ароматизатор «груша», регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У58",
     "price": 490,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/59_zelton_grusha__zelton-grusha.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/59_zelton_grusha__zelton-grusha.webp",
+    "detailImg": "/assets/generated/zelton-grusha.webp"
   },
   {
     "name": "Мохито FRESH (ОЧАКОВО)",
@@ -487,7 +536,8 @@
     "weight": "450 мл",
     "desc": "Состав: газированный безалкогольный напиток (вода, сахар, лайм/лимон, мята, ароматизаторы, регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У45",
     "price": 550,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/60_mohito_fresh_ochakovo__mohito-fresh-ochakovo.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/60_mohito_fresh_ochakovo__mohito-fresh-ochakovo.webp",
+    "detailImg": "/assets/generated/mohito-fresh-ochakovo.webp"
   },
   {
     "name": "Kinza Orange",
@@ -495,6 +545,7 @@
     "weight": "330 мл (150 ккал)",
     "desc": "Состав: газированный безалкогольный напиток (вода, сахар, ароматизатор «апельсин», регулятор кислотности, углекислый газ) Пищевая ценность на порцию: Б0 / Ж0 / У38",
     "price": 670,
-    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/61_kinza_orange__kinza-orange.webp"
+    "img": "https://raw.githubusercontent.com/NikkaGG/menu-a/main/sushi_crazy_all_photos/photos/61_kinza_orange__kinza-orange.webp",
+    "detailImg": "/assets/generated/kinza-orange.webp"
   }
 ]
