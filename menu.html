@@ -2009,6 +2009,9 @@ function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
   if(!area)return;
   let down=false,startX=0,lastX=0,w=0,moved=false;
   area.addEventListener('pointerdown',e=>{
+    // Новый отдельный тап после свайпа должен срабатывать сразу.
+    // Флаг ниже нужен только для click, который браузер может породить в конце самого drag-жеста.
+    popularDidDrag=false;
     down=true;moved=false;startX=e.clientX;lastX=e.clientX;w=area.clientWidth||1;
     area.classList.add('grabbing','dragging');
     if(area.setPointerCapture)area.setPointerCapture(e.pointerId);
