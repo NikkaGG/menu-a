@@ -1614,6 +1614,21 @@ body.modal-lock .cart-pill-shell{
   #pickupTimeOv .pickup-time-panel{transition:none!important}
 }
 
+
+/* Detail photo: keep the generated source sharp and show the full frame. */
+.ps-img{overflow:hidden!important}
+.ps-img .product-img{
+  width:auto!important;
+  height:auto!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  image-rendering:auto!important;
+  transform:none!important;
+  filter:none!important;
+  margin:auto!important;
+}
+
 </style>
 </head>
 <body>
@@ -2027,7 +2042,7 @@ const POPULAR_IDS=[15,1,2,3,10,18];
 const REF_CAT_IDS={'Фаст-фуд':'f','Роллы':'r','Сеты':'s','Пицца':'z','Соусы':'a','Напитки':'d'};
 const REF_DESC={'Торт из 7 порций':'2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура','Бизнес Ланч':'Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105','Чизбургер (говяжий)':'Состав: булочка, говяжья котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б24 / Ж30 / У46','Гиро на тарелке':'Состав: курица (гиро), картофель фри, пита, помидор, огурец, лук, соус (чесночный/дзадзики) Пищевая ценность на порцию: Б38 / Ж45 / У105','Пепперони':'Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118','Бешенный лосось':'Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62'};
 function rebuildCats(){const el=document.getElementById('catsEl');if(!el)return;el.innerHTML='';CATS.forEach((c,idx)=>{const b=document.createElement('button');b.className='cat'+(idx===0?' on':'');b.textContent=c.l;b.onclick=()=>{document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(window.muteSpy)window.muteSpy(600);const sec=document.getElementById('sec-'+c.id);if(sec)window.scrollTo(0,Math.max(0,sec.offsetTop-92));};el.appendChild(b);});}
-fetch('ref-products-dom.json').then(r=>r.ok?r.json():null).then(data=>{if(!Array.isArray(data))return;M.splice(0,M.length,...data.map((x,i)=>({id:i+1,c:REF_CAT_IDS[x.cat]||'f',n:x.name,w:x.weight,d:x.desc||REF_DESC[x.name]||'',p:x.price,img:x.img,i:(REF_CAT_IDS[x.cat]||'f')})));CATS.splice(0,CATS.length,...['Фаст-фуд','Роллы','Сеты','Пицца','Соусы','Напитки'].map(x=>({id:REF_CAT_IDS[x],l:x})));POPULAR_IDS.splice(0,POPULAR_IDS.length,...['Торт из 7 порций','Бизнес Ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешенный лосось'].map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean));rebuildCats();renderPopular();render();}).catch(()=>{});
+fetch('ref-products-dom.json').then(r=>r.ok?r.json():null).then(data=>{if(!Array.isArray(data))return;M.splice(0,M.length,...data.map((x,i)=>({id:i+1,c:REF_CAT_IDS[x.cat]||'f',n:x.name,w:x.weight,d:x.desc||REF_DESC[x.name]||'',p:x.price,img:x.img,detailImg:x.detailImg||'',i:(REF_CAT_IDS[x.cat]||'f')})));CATS.splice(0,CATS.length,...['Фаст-фуд','Роллы','Сеты','Пицца','Соусы','Напитки'].map(x=>({id:REF_CAT_IDS[x],l:x})));POPULAR_IDS.splice(0,POPULAR_IDS.length,...['Торт из 7 порций','Бизнес Ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешенный лосось'].map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean));rebuildCats();renderPopular();render();}).catch(()=>{});
 function fmt(n){return n.toLocaleString('ru-RU')+' ₸'}
 function getItem(id){return M.find(i=>i.id===parseInt(id));}
 function priceText(n){return fmt(n).replace(' ₸','');}
@@ -2341,7 +2356,7 @@ function openProd(id,opener){
   const item=getItem(id);
   if(!item)return;
   document.getElementById('prodContent').innerHTML=`
-    <div class="ps-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
+    <div class="ps-img">${(item.detailImg||item.img)?`<img class="product-img" src="${item.detailImg||item.img}" alt="${item.n}" decoding="async" fetchpriority="high">`:foodIcon(item.i)}</div>
     <div class="ps-dot" aria-hidden="true"></div>
     <div class="ps-body">
       <div class="ps-name" id="prodTitle">${item.n}</div>
