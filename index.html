@@ -1688,6 +1688,31 @@ button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-u
   outline:none!important;
   box-shadow:none!important;
 }
+
+/* ── COMPACT CART SHEET ── */
+#cartOv .sheet{
+  width:min(660px, calc(100vw - 32px))!important;
+  max-width:660px!important;
+  height:auto!important;
+  max-height:min(88dvh, 780px)!important;
+  border-radius:18px 18px 0 0!important;
+}
+#cartOv .sheet-scroll{
+  height:auto!important;
+  max-height:min(88dvh, 780px)!important;
+  overflow-y:auto!important;
+}
+@media(max-width:520px){
+  #cartOv .sheet{
+    width:calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))!important;
+    max-width:none!important;
+    max-height:calc(90dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))!important;
+    border-radius:18px 18px 0 0!important;
+  }
+  #cartOv .sheet-scroll{
+    max-height:calc(90dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))!important;
+  }
+}
 </style>
 </head>
 <body>
