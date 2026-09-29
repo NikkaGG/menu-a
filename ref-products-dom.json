@@ -6,7 +6,7 @@
         "desc": "Состав: булочка, 2 куриные котлеты, сыр, салат, маринованный огурец, соус Пищевая ценность на порцию: Б42 / Ж45 / У58",
         "price": 1100,
         "img": "sushi_crazy_all_photos/photos/01_grandburger_kurinyj__grandburger-kurinyj.webp",
-        "detailImg": "/api/generated-image?kind=grandburger"
+        "detailImg": "/assets/generated/chicken-grandburger.webp"
     },
     {
         "name": "Грандбургер (говяжий)",
@@ -63,7 +63,7 @@
         "desc": "Состав: булочка, куриная котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б22 / Ж22 / У46",
         "price": 830,
         "img": "sushi_crazy_all_photos/photos/08_chizburger_kurinyj__chizburger-kurinyj.webp",
-        "detailImg": "/api/generated-image?kind=cheeseburger"
+        "detailImg": "/assets/generated/chicken-cheeseburger.webp"
     },
     {
         "name": "Чизбургер (говяжий)",
