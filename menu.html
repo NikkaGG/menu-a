@@ -2004,35 +2004,63 @@ let pendingOrderText='';
 let pendingOrderPayload=null;
 
 let popularDidDrag=false;
+let popularPointerOpenedAt=0;
 function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
   const area=document.getElementById(areaId);
   if(!area)return;
-  let down=false,startX=0,lastX=0,w=0,moved=false;
+  let down=false,startX=0,lastX=0,w=0,moved=false,downTarget=null,capturedPointerId=null;
   area.addEventListener('pointerdown',e=>{
-    // Новый отдельный тап после свайпа должен срабатывать сразу.
-    // Флаг ниже нужен только для click, который браузер может породить в конце самого drag-жеста.
     popularDidDrag=false;
     down=true;moved=false;startX=e.clientX;lastX=e.clientX;w=area.clientWidth||1;
+    downTarget=e.target;
+    capturedPointerId=null;
     area.classList.add('grabbing','dragging');
-    if(area.setPointerCapture)area.setPointerCapture(e.pointerId);
   });
   area.addEventListener('pointermove',e=>{
     if(!down)return;
     lastX=e.clientX;
     const dx=lastX-startX;
-    if(Math.abs(dx)>6)moved=true;
+    if(Math.abs(dx)>6&&!moved){
+      moved=true;
+      capturedPointerId=e.pointerId;
+      if(area.setPointerCapture){
+        try{area.setPointerCapture(e.pointerId);}catch(_){}
+      }
+    }
     onMove&&onMove(dx);
   });
-  function end(){
+  function end(e){
     if(!down)return;
     const dx=lastX-startX;
+    const wasMoved=moved;
+    const tapTarget=downTarget;
     down=false;
+    downTarget=null;
     area.classList.remove('grabbing','dragging');
-    if(moved)popularDidDrag=true;
+
+    if(capturedPointerId!==null&&area.hasPointerCapture?.(capturedPointerId)){
+      try{area.releasePointerCapture(capturedPointerId);}catch(_){}
+    }
+    capturedPointerId=null;
+
+    if(wasMoved)popularDidDrag=true;
     if(Math.abs(dx)>Math.min(90,w*.18)){
       dx<0?onLeft():onRight();
     }else{
       onReset&&onReset();
+    }
+
+    // Обычный тап открываем прямо на pointerup, не ждём синтетический click.
+    // Это делает карточку кликабельной сразу же после свайпа и во время анимации доводки.
+    if(!wasMoved&&e?.type==='pointerup'&&!tapTarget?.closest?.('.cart-add-btn')){
+      const detailBtn=tapTarget?.closest?.('.product-details-btn');
+      const id=Number(detailBtn?.dataset?.productId);
+      if(detailBtn&&Number.isFinite(id)){
+        popularDidDrag=false;
+        popularPointerOpenedAt=performance.now();
+        e.preventDefault();
+        openProd(id,detailBtn);
+      }
     }
   }
   area.addEventListener('pointerup',end);
@@ -2040,6 +2068,7 @@ function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
   area.addEventListener('lostpointercapture',end);
 }
 function openPopularItem(id,opener){
+  if(performance.now()-popularPointerOpenedAt<700)return;
   if(popularDidDrag){popularDidDrag=false;return;}
   openProd(id,opener);
 }
@@ -2281,7 +2310,7 @@ function renderPopular(){
     if(!item)return '';
     return `<div class="popular-slide">
       <div class="pop-card">
-        <button type="button" class="product-details-btn" onclick="openPopularItem(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
+        <button type="button" class="product-details-btn" data-product-id="${item.id}" onclick="openPopularItem(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
         <div class="pop-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
         ${cartAddButton(item.id,'add-sq pop-add-top')}
         <div class="pop-body">
