@@ -1641,6 +1641,30 @@ a:focus:not(:focus-visible),
 [role="button"]:focus:not(:focus-visible),
 .product-details-btn:focus:not(:focus-visible){outline:none!important}
 button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-user-select:none;user-select:none}
+
+/* ── PREVIEW IMAGE EDGE FILL FIX ── */
+.pop-img,
+#cartOv .ci.ci-card .ci-img{
+  overflow:hidden!important;
+  background:#111!important;
+}
+.pop-img .product-img,
+#cartOv .ci.ci-card .ci-img .product-img{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  display:block!important;
+}
+.pop-img .product-img{
+  transform:scale(1.16);
+  transform-origin:center center;
+}
+@media(max-width:719px){
+  .pop-img .product-img{transform:scale(1.18)}
+}
 </style>
 </head>
 <body>
