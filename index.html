@@ -2008,25 +2008,29 @@ let popularPointerOpenedAt=0;
 function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
   const area=document.getElementById(areaId);
   if(!area)return;
-  let down=false,startX=0,lastX=0,w=0,moved=false,downTarget=null,capturedPointerId=null;
+  let down=false,startX=0,lastX=0,w=0,moved=false,downTarget=null,pointerId=null;
   area.addEventListener('pointerdown',e=>{
     popularDidDrag=false;
-    down=true;moved=false;startX=e.clientX;lastX=e.clientX;w=area.clientWidth||1;
+    down=true;
+    moved=false;
+    startX=e.clientX;
+    lastX=e.clientX;
+    w=area.clientWidth||1;
     downTarget=e.target;
-    capturedPointerId=null;
+    pointerId=e.pointerId;
     area.classList.add('grabbing','dragging');
+
+    // Захватываем указатель сразу, как в исходной рабочей версии:
+    // это критично для плавного свайпа карточек пальцем на телефоне.
+    if(area.setPointerCapture){
+      try{area.setPointerCapture(e.pointerId);}catch(_){}
+    }
   });
   area.addEventListener('pointermove',e=>{
     if(!down)return;
     lastX=e.clientX;
     const dx=lastX-startX;
-    if(Math.abs(dx)>6&&!moved){
-      moved=true;
-      capturedPointerId=e.pointerId;
-      if(area.setPointerCapture){
-        try{area.setPointerCapture(e.pointerId);}catch(_){}
-      }
-    }
+    if(Math.abs(dx)>6)moved=true;
     onMove&&onMove(dx);
   });
   function end(e){
@@ -2038,20 +2042,21 @@ function initDragSlider(areaId,onLeft,onRight,onReset,onMove){
     downTarget=null;
     area.classList.remove('grabbing','dragging');
 
-    if(capturedPointerId!==null&&area.hasPointerCapture?.(capturedPointerId)){
-      try{area.releasePointerCapture(capturedPointerId);}catch(_){}
+    if(pointerId!==null&&area.hasPointerCapture?.(pointerId)){
+      try{area.releasePointerCapture(pointerId);}catch(_){}
     }
-    capturedPointerId=null;
+    pointerId=null;
 
     if(wasMoved)popularDidDrag=true;
+
     if(Math.abs(dx)>Math.min(90,w*.18)){
       dx<0?onLeft():onRight();
     }else{
       onReset&&onReset();
     }
 
-    // Обычный тап открываем прямо на pointerup, не ждём синтетический click.
-    // Это делает карточку кликабельной сразу же после свайпа и во время анимации доводки.
+    // Отдельный короткий тап открывает карточку прямо на pointerup.
+    // Свайп при этом не открывает товар, а следующий тап после свайпа работает сразу.
     if(!wasMoved&&e?.type==='pointerup'&&!tapTarget?.closest?.('.cart-add-btn')){
       const detailBtn=tapTarget?.closest?.('.product-details-btn');
       const id=Number(detailBtn?.dataset?.productId);
