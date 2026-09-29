@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sushi Crazy</title>
-<link rel="icon" href="data:,">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/app-192.png" type="image/png">
+<link rel="apple-touch-icon" href="/icons/app-192.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -2489,7 +2494,7 @@ function buildOrderText(payload=buildOrderPayload()){
   if(payload.orderMethod==='pickup'&&payload.pickupTime)lines.push(`Время самовывоза: ${payload.pickupTime}`);
   lines.push(`Оплата: ${PAYMENT_METHOD_LABELS[payload.paymentMethod]}`);
   if(payload.comment)lines.push(`Комментарий: ${payload.comment}`);
-  return lines.join('\\n');
+  return lines.join('\n');
 }
 function setSecondService(labelText='Напишите нам в сообщения'){
   const btn=document.getElementById('shareSecondBtn');
@@ -2602,7 +2607,8 @@ function finishOrder(){
 function shareVia(v){
   const text=pendingOrderText||'Sushi Crazy: '+SHOP_PHONE_TEXT;
   if(v==='wa'){
-    window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
+    const opened=window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
+    if(!opened){showToast('Разрешите открытие WhatsApp или скопируйте текст заказа');return;}
     finishOrder();
   }
   if(v==='sms'){
@@ -2624,12 +2630,14 @@ function copyOrder(){
   const isOrder=document.getElementById('shareOv')?.classList.contains('order-mode');
   const text=isOrder?pendingOrderText:location.href;
   if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована')).catch(()=>showToast('Скопируйте текст вручную'));
+    navigator.clipboard.writeText(text).then(()=>{
+      showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована');
+      if(isOrder)finishOrder();
+      runAfterMotion(()=>closeOv('shareOv'),400);
+    }).catch(()=>showToast('Не удалось скопировать — попробуйте другой способ отправки'));
   }else{
-    showToast('Скопируйте текст вручную');
+    showToast('Копирование недоступно — выберите другой способ отправки');
   }
-  finishOrder();
-  runAfterMotion(()=>closeOv('shareOv'),400);
 }
 let lockedScrollY=0;
 const dialogOpeners=new WeakMap();
@@ -3128,6 +3136,10 @@ function acceptCookies(){
   }catch(e){}
   syncShell();
 })();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
 
 </script>
 </body>

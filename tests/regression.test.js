@@ -1319,8 +1319,21 @@ test('failed copy reports failure without a success toast', async () => {
   sharing.context.copyOrder();
   await new Promise(setImmediate);
 
-  assert.deepEqual(sharing.toasts, ['Скопируйте текст вручную']);
+  assert.deepEqual(sharing.toasts, ['Не удалось скопировать — попробуйте другой способ отправки']);
   assert.deepEqual(sharing.context.cart, { 1: 2 });
+});
+
+test('failed order copy keeps the cart and pending order for another sending method', async () => {
+  const sharing = sharingHarness({ clipboardRejects: true });
+  sharing.context.pendingOrderText = 'Новый заказ № 42';
+  sharing.context.pendingOrderPayload = { order: 42 };
+  sharing.context.prepareServiceSheet('order');
+  sharing.context.copyOrder();
+  await new Promise(setImmediate);
+
+  assert.deepEqual(sharing.context.cart, { 1: 2 });
+  assert.equal(sharing.context.pendingOrderText, 'Новый заказ № 42');
+  assert.deepEqual(sharing.context.pendingOrderPayload, { order: 42 });
 });
 
 test('phone and address fields have static error descriptions and hidden errors', () => {
@@ -1588,6 +1601,8 @@ test('buildOrderText renders the readable payment label without a persons line',
 
   assert.match(text, /Оплата: Оплата картой/);
   assert.doesNotMatch(text, /Персон:/);
+  assert.match(text, /Новый заказ Sushi Crazy\n\n1\. Филадельфия/);
+  assert.doesNotMatch(text, /\\n/);
 });
 
 test('pickup schedule has one machine-readable source and the header renders from it', () => {
