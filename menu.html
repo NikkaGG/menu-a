@@ -1713,6 +1713,255 @@ button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-u
     max-height:calc(90dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))!important;
   }
 }
+
+/* ── CART UX REDESIGN V2 ── */
+#cartOv .sheet{
+  width:min(620px,calc(100vw - 28px))!important;
+  max-width:620px!important;
+  max-height:min(88dvh,780px)!important;
+  border-radius:20px 20px 0 0!important;
+}
+#cartOv .sheet-scroll{
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  max-height:min(88dvh,780px)!important;
+}
+#cartOv .cs-head{
+  flex:0 0 auto!important;
+  padding:7px 14px 9px!important;
+  min-height:48px!important;
+}
+#cartOv .cs-title{font-size:17px!important}
+#cartOv .cs-trash,#cartOv .cs-close{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+#cartOv .cs-body-scroll{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding-bottom:4px!important;
+}
+#cartOv #cartItems{padding:8px 10px 2px!important;gap:7px!important}
+#cartOv .ci.ci-card{
+  min-height:0!important;
+  padding:8px!important;
+  gap:10px!important;
+  border-radius:14px!important;
+  box-shadow:0 1px 7px rgba(0,0,0,.07)!important;
+}
+#cartOv .ci.ci-card .ci-img{
+  width:82px!important;
+  min-width:82px!important;
+  height:82px!important;
+  border-radius:10px!important;
+}
+#cartOv .ci.ci-card .ci-info{
+  gap:5px!important;
+  justify-content:center!important;
+}
+#cartOv .ci.ci-card .ci-name{
+  font-size:15px!important;
+  line-height:1.18!important;
+  margin:0!important;
+}
+#cartOv .ci.ci-card .ci-weight{
+  font-size:11.5px!important;
+  line-height:1.2!important;
+}
+#cartOv .ci-bottom-row{
+  margin-top:2px!important;
+  align-items:flex-end!important;
+}
+#cartOv .ci.ci-card .ci-price{
+  align-items:flex-start!important;
+  font-size:15px!important;
+  gap:1px!important;
+}
+#cartOv .ci.ci-card .ci-price span{font-size:10.5px!important}
+#cartOv .ci.ci-card .qty-row{
+  padding:2px 5px!important;
+  gap:4px!important;
+}
+#cartOv .ci.ci-card .qb{
+  width:36px!important;
+  height:36px!important;
+  min-width:36px!important;
+  min-height:36px!important;
+  border:0!important;
+  background:transparent!important;
+}
+#cartOv .ci.ci-card .qn{font-size:14px!important;min-width:22px!important}
+#cartOv .del-block{padding:6px 10px 12px!important}
+#cartOv .cart-step{
+  padding:10px 0!important;
+  border-bottom:1px solid #efeff2!important;
+  margin:0!important;
+}
+#cartOv .cart-step:last-child{border-bottom:0!important}
+#cartOv .cart-form-section{margin-top:0!important}
+#cartOv .del-label,#cartOv .cmnt-title{
+  font-size:14px!important;
+  line-height:1.25!important;
+  margin:0 0 7px!important;
+  font-weight:700!important;
+}
+#cartOv .del-row{
+  margin:0!important;
+  border:0!important;
+  background:#efeff4!important;
+  border-radius:999px!important;
+  padding:3px!important;
+}
+#cartOv .dopt{
+  min-height:40px!important;
+  border-radius:999px!important;
+  padding:8px 10px!important;
+  background:transparent!important;
+  color:#333!important;
+}
+#cartOv .dopt.on{background:#383838!important;color:#fff!important}
+#cartOv .order-grid{gap:7px!important;margin-top:7px!important}
+#cartOv .addr-inp{
+  min-height:42px!important;
+  padding:8px 11px!important;
+  font-size:13px!important;
+  border-radius:11px!important;
+}
+#cartOv .contact-grid{margin-top:0!important}
+#cartOv .payment-options{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+#cartOv .payment-opt{
+  min-height:42px!important;
+  border:1px solid #dedee3!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  color:#222!important;
+  font-size:13px!important;
+  font-weight:600!important;
+  cursor:pointer!important;
+}
+#cartOv .payment-opt.on{
+  background:#383838!important;
+  border-color:#383838!important;
+  color:#fff!important;
+}
+#cartOv .cart-secondary-toggle{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:34px!important;
+  margin-top:5px!important;
+  padding:2px 0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#666!important;
+  font-size:12.5px!important;
+  font-weight:600!important;
+  cursor:pointer!important;
+}
+#cartOv .cart-collapsible[hidden]{display:none!important}
+#cartOv #addressDetails{margin-top:2px!important}
+#cartOv .cart-comment-section{padding-bottom:2px!important}
+#cartOv .cart-comment-toggle{margin:0!important;color:#333!important}
+#cartOv .cmnt-ta{
+  height:62px!important;
+  min-height:62px!important;
+  margin-top:5px!important;
+  resize:none!important;
+}
+#cartOv .pickup-time-field{margin-top:8px!important}
+#cartOv .pickup-time-trigger{min-height:42px!important;font-size:13px!important}
+#cartOv .addr-err{margin:5px 0 0!important}
+#cartOv .cs-foot{
+  flex:0 0 auto!important;
+  position:relative!important;
+  z-index:4!important;
+  display:block!important;
+  padding:9px 10px calc(10px + env(safe-area-inset-bottom,0px))!important;
+  background:rgba(255,255,255,.98)!important;
+  border-top:1px solid #ededf0!important;
+  box-shadow:0 -5px 18px rgba(0,0,0,.06)!important;
+}
+#cartOv .order-hint{
+  min-height:16px!important;
+  margin:0 2px 6px!important;
+  color:#777!important;
+  font-size:11.5px!important;
+  line-height:1.25!important;
+}
+#cartOv .order-hint[hidden]{display:none!important}
+#cartOv .cs-foot-main{
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+#cartOv .cs-summary{
+  flex:0 0 auto!important;
+  min-width:108px!important;
+}
+#cartOv .cs-total-lbl{font-size:11px!important;color:#8e8e93!important}
+#cartOv .cs-total-amt{font-size:19px!important;line-height:1.1!important}
+#cartOv .order-btn{
+  flex:1!important;
+  width:auto!important;
+  height:48px!important;
+  min-height:48px!important;
+  border-radius:999px!important;
+}
+#cartOv.cart-empty .cart-checkout,
+#cartOv.cart-empty .cs-foot{display:none!important}
+#cartOv.cart-empty .cs-trash{visibility:hidden!important}
+#cartOv .empty-cs{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:300px!important;
+  padding:34px 24px!important;
+  color:#111!important;
+}
+#cartOv .empty-cs-icon{
+  width:52px!important;
+  height:52px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  background:#f2f2f4!important;
+  margin-bottom:12px!important;
+}
+#cartOv .empty-cs-icon .svg-icon{width:24px!important;height:24px!important}
+#cartOv .empty-cs-title{font-size:18px!important;font-weight:700!important;margin-bottom:5px!important}
+#cartOv .empty-cs-sub{font-size:13px!important;color:#777!important;text-align:center!important;max-width:260px!important}
+#cartOv .empty-cs-btn{
+  min-height:44px!important;
+  margin-top:18px!important;
+  padding:0 20px!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:#333!important;
+  color:#fff!important;
+  font-size:14px!important;
+  font-weight:600!important;
+}
+@media(max-width:520px){
+  #cartOv .sheet{
+    width:calc(100vw - 20px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))!important;
+    max-height:calc(89dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+  }
+  #cartOv .sheet-scroll{
+    max-height:calc(89dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+  }
+  #cartOv .contact-grid{grid-template-columns:1fr!important}
+  #cartOv .order-grid.four{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:360px){
+  #cartOv .ci.ci-card .ci-img{width:72px!important;min-width:72px!important;height:72px!important}
+  #cartOv .payment-options{grid-template-columns:1fr!important}
+}
 </style>
 </head>
 <body>
@@ -1849,61 +2098,80 @@ button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-u
     <div class="sheet-scroll">
       <div class="handle"></div>
       <div class="cs-head">
-        <button class="cs-trash" onclick="clearCart()" title="Очистить корзину" aria-label="Очистить корзину"><span class="ui-icon svg-slot" data-icon="trash"></span></button>
+        <button class="cs-trash" onclick="confirmClearCart()" title="Очистить корзину" aria-label="Очистить корзину"><span class="ui-icon svg-slot" data-icon="trash"></span></button>
         <div class="cs-title" id="cartTitle">Корзина</div>
         <button class="cs-close" onclick="closeOv('cartOv')" aria-label="Закрыть корзину" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="x"></span></button>
       </div>
+
       <div class="cs-body-scroll">
         <div id="cartItems"></div>
-        <div class="del-block">
-        <div class="del-label">Способ заказа</div>
-        <div class="del-row">
-          <button class="dopt on" onclick="setDel('d',this)">Доставка</button>
-          <button class="dopt" onclick="setDel('p',this)">Самовывоз</button>
-        </div>
-        <div class="cart-form-section">
-          <div class="cmnt-title">Контакты</div>
-          <div class="order-grid two">
-            <input class="addr-inp" type="text" id="nameInp" placeholder="Имя" oninput="updateOrderState()">
-            <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+7 999 123 45 67" aria-describedby="phoneErr" oninput="updateOrderState()">
+
+        <div class="del-block cart-checkout">
+          <div class="cart-step">
+            <div class="del-label">Способ получения</div>
+            <div class="del-row">
+              <button class="dopt on" onclick="setDel('d',this)">Доставка</button>
+              <button class="dopt" onclick="setDel('p',this)">Самовывоз</button>
+            </div>
+
+            <div class="pickup-time-field" id="pickupTimeBlock" hidden>
+              <label class="cmnt-title pickup-time-label" for="pickupTimeTrigger">Время самовывоза</label>
+              <button class="pickup-time-trigger" type="button" id="pickupTimeTrigger" aria-haspopup="dialog" aria-controls="pickupTimeOv" aria-expanded="false" aria-describedby="pickupTimeErr" onclick="openPickupTimePicker(this)">Выберите время</button>
+              <div class="addr-err" id="pickupTimeErr" hidden>Выберите доступное время самовывоза.</div>
+            </div>
           </div>
-          <div class="addr-err" id="phoneErr" hidden>Укажите корректный номер для связи.</div>
-        </div>
-        <div id="addrBlock" class="cart-form-section">
-          <div class="cmnt-title">Укажите адрес доставки</div>
-          <input class="addr-inp" type="text" id="addrInp" placeholder="Улица, дом" aria-describedby="addrErr" oninput="updateOrderState()">
-          <div class="order-grid four">
-            <input class="addr-inp" type="text" id="entranceInp" placeholder="Подъезд">
-            <input class="addr-inp" type="text" id="floorInp" placeholder="Этаж">
-            <input class="addr-inp" type="text" id="flatInp" placeholder="Кв./офис">
-            <input class="addr-inp" type="text" id="intercomInp" placeholder="Домофон">
+
+          <div class="cart-step cart-form-section">
+            <div class="cmnt-title">Контакты</div>
+            <div class="order-grid two contact-grid">
+              <input class="addr-inp" type="text" id="nameInp" placeholder="Имя (необязательно)" oninput="updateOrderState()">
+              <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+7 999 123 45 67" aria-describedby="phoneErr" oninput="updateOrderState()">
+            </div>
+            <div class="addr-err" id="phoneErr" hidden>Укажите корректный номер для связи.</div>
           </div>
-          <div class="addr-err" id="addrErr" hidden>Укажите адрес доставки.</div>
-        </div>
-        <div class="cart-form-section">
-          <label class="cmnt-title" for="paymentMethodInp">Способ оплаты</label>
-          <select class="addr-inp" id="paymentMethodInp" required aria-describedby="paymentMethodErr" onchange="updateOrderState()">
-            <option value="" disabled selected>Способ оплаты</option>
-            <option value="kaspi_invoice">Выставить счёт на оплату Kaspi</option>
-            <option value="card">Оплата картой</option>
-            <option value="cash">Оплата наличными</option>
-          </select>
-          <div class="addr-err" id="paymentMethodErr" hidden>Выберите способ оплаты.</div>
-          <div class="cmnt-title">Уточнения</div>
-          <textarea class="cmnt-ta" id="commentTa" placeholder="Комментарий: без лука, соус отдельно, приборы на 2 персоны, доставка к 19:00."></textarea>
-          <div class="pickup-time-field" id="pickupTimeBlock" hidden>
-            <label class="cmnt-title pickup-time-label" for="pickupTimeTrigger">Время самовывоза</label>
-            <button class="pickup-time-trigger" type="button" id="pickupTimeTrigger" aria-haspopup="dialog" aria-controls="pickupTimeOv" aria-expanded="false" aria-describedby="pickupTimeErr" onclick="openPickupTimePicker(this)">Выберите время</button>
-            <div class="addr-err" id="pickupTimeErr" hidden>Выберите доступное время самовывоза.</div>
+
+          <div id="addrBlock" class="cart-step cart-form-section">
+            <div class="cmnt-title">Адрес доставки</div>
+            <input class="addr-inp" type="text" id="addrInp" placeholder="Улица, дом" aria-describedby="addrErr" oninput="updateOrderState()">
+            <button class="cart-secondary-toggle" type="button" id="addressDetailsToggle" aria-expanded="false" onclick="toggleAddressDetails(this)">+ Добавить детали адреса</button>
+            <div class="order-grid four cart-collapsible" id="addressDetails" hidden>
+              <input class="addr-inp" type="text" id="entranceInp" placeholder="Подъезд">
+              <input class="addr-inp" type="text" id="floorInp" placeholder="Этаж">
+              <input class="addr-inp" type="text" id="flatInp" placeholder="Кв./офис">
+              <input class="addr-inp" type="text" id="intercomInp" placeholder="Домофон">
+            </div>
+            <div class="addr-err" id="addrErr" hidden>Укажите адрес доставки.</div>
+          </div>
+
+          <div class="cart-step cart-form-section">
+            <div class="cmnt-title">Способ оплаты</div>
+            <input type="hidden" id="paymentMethodInp" value="">
+            <div class="payment-options" role="group" aria-label="Способ оплаты">
+              <button class="payment-opt" type="button" data-payment="kaspi_invoice" aria-pressed="false" onclick="setPayment('kaspi_invoice',this)">Kaspi</button>
+              <button class="payment-opt" type="button" data-payment="card" aria-pressed="false" onclick="setPayment('card',this)">Карта</button>
+              <button class="payment-opt" type="button" data-payment="cash" aria-pressed="false" onclick="setPayment('cash',this)">Наличные</button>
+            </div>
+            <div class="addr-err" id="paymentMethodErr" hidden>Выберите способ оплаты.</div>
+          </div>
+
+          <div class="cart-step cart-form-section cart-comment-section">
+            <button class="cart-secondary-toggle cart-comment-toggle" type="button" id="commentToggle" aria-expanded="false" onclick="toggleCartComment(this)">+ Добавить комментарий</button>
+            <div class="cart-collapsible" id="commentBlock" hidden>
+              <textarea class="cmnt-ta" id="commentTa" placeholder="Например: без лука, соус отдельно, приборы на 2 персоны."></textarea>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="cs-foot">
-        <div>
-          <div class="cs-total-lbl">Заказ на сумму</div>
-          <div class="cs-total-amt" id="csTotal">0 ₸</div>
+        <div class="order-hint" id="orderHint" aria-live="polite"></div>
+        <div class="cs-foot-main">
+          <div class="cs-summary">
+            <div class="cs-total-lbl" id="csItemsCount">0 товаров</div>
+            <div class="cs-total-amt" id="csTotal">0 ₸</div>
+          </div>
+          <button class="order-btn" id="orderBtn" onclick="placeOrder()" disabled>Оформить</button>
         </div>
-        <button class="order-btn" id="orderBtn" onclick="placeOrder()" disabled>Оформить заказ</button>
       </div>
     </div>
   </div>
@@ -2321,6 +2589,7 @@ function cancelPickupDrag(event){
 function updateOrderState(){
   const btn=document.getElementById('orderBtn');
   if(!btn)return;
+  const hint=document.getElementById('orderHint');
   const hasItems=Object.keys(cart).some(k=>cart[k]>0);
   const addrInp=document.getElementById('addrInp');
   const phoneInp=document.getElementById('phoneInp');
@@ -2332,6 +2601,7 @@ function updateOrderState(){
   const addressValid=delMode!=='d'||!!addr;
   const paymentMethodValid=!!PAYMENT_METHOD_LABELS[paymentMethod];
   const pickupTimeValid=delMode!=='p'||getAvailablePickupSlots(new Date()).includes(pickupTime);
+
   if(phoneValid){
     const phoneErr=document.getElementById('phoneErr');
     if(phoneErr)phoneErr.hidden=true;
@@ -2345,14 +2615,26 @@ function updateOrderState(){
   if(paymentMethodValid){
     const paymentMethodErr=document.getElementById('paymentMethodErr');
     if(paymentMethodErr)paymentMethodErr.hidden=true;
-    paymentMethodInp?.removeAttribute('aria-invalid');
   }
   if(pickupTimeValid){
     const pickupTimeErr=document.getElementById('pickupTimeErr');
     if(pickupTimeErr)pickupTimeErr.hidden=true;
     document.getElementById('pickupTimeTrigger')?.removeAttribute('aria-invalid');
   }
-  btn.disabled=!hasItems||!phoneValid||!addressValid||!paymentMethodValid||!pickupTimeValid;
+
+  const valid=hasItems&&phoneValid&&addressValid&&paymentMethodValid&&pickupTimeValid;
+  btn.disabled=!valid;
+  if(hint){
+    let message='';
+    if(hasItems){
+      if(!phoneValid)message='Укажите номер телефона';
+      else if(!addressValid)message='Укажите адрес доставки';
+      else if(!pickupTimeValid)message='Выберите время самовывоза';
+      else if(!paymentMethodValid)message='Выберите способ оплаты';
+    }
+    hint.textContent=message;
+    hint.hidden=!message;
+  }
 }
 
 rebuildCats();
@@ -2512,31 +2794,38 @@ function updatePill(){
     pill.classList.remove('on');
   }
 }
-function openCart(){renderCart();openOv('cartOv');}
+function openCart(){
+  renderCart();
+  syncCartOptionalBlocks();
+  openOv('cartOv');
+}
 function renderCart(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
+  const cartOv=document.getElementById('cartOv');
+  cartOv?.classList.toggle('cart-empty',keys.length===0);
   let html='';
-  if(!keys.length){html='<div class="empty-cs">Корзина пуста</div>';}
-  else keys.forEach(id=>{
+  if(!keys.length){
+    html=`<div class="empty-cs">
+      <div class="empty-cs-icon">${svgIcon('cart','svg-icon')}</div>
+      <div class="empty-cs-title">Корзина пуста</div>
+      <div class="empty-cs-sub">Добавьте блюда из меню — они появятся здесь.</div>
+      <button class="empty-cs-btn" type="button" onclick="closeOv('cartOv')">Вернуться к меню</button>
+    </div>`;
+  }else keys.forEach(id=>{
     const item=getItem(id);
     if(!item)return;
     const qty=cart[id];
     html+=`<div class="ci ci-card">
       <div class="ci-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
       <div class="ci-info">
-        <div class="ci-head-row">
-          <div>
-            <div class="ci-name">${item.n}</div>
-            <div class="ci-weight">${item.w}</div>
-          </div>
-          <div class="ci-price">${fmt(item.p*qty)}<span>${fmt(item.p)} за шт.</span></div>
-        </div>
+        <div class="ci-name">${item.n}</div>
+        <div class="ci-weight">${item.w}</div>
         <div class="ci-bottom-row">
-          <div class="ci-mini-note">Количество</div>
-          <div class="qty-row">
-            <button class="qb" onclick="chQ('${id}',-1)">${svgIcon('minus','svg-icon plus-icon')}</button>
+          <div class="ci-price">${fmt(item.p*qty)}<span>${qty>1?fmt(item.p)+' за шт.':'за позицию'}</span></div>
+          <div class="qty-row" aria-label="Количество">
+            <button class="qb" onclick="chQ('${id}',-1)" aria-label="Уменьшить количество">${svgIcon('minus','svg-icon plus-icon')}</button>
             <div class="qn">${qty}</div>
-            <button class="qb" onclick="chQ('${id}',1)">${svgIcon('plus','svg-icon plus-icon')}</button>
+            <button class="qb" onclick="chQ('${id}',1)" aria-label="Увеличить количество">${svgIcon('plus','svg-icon plus-icon')}</button>
           </div>
         </div>
       </div>
@@ -2547,8 +2836,17 @@ function renderCart(){
     const item=getItem(id);
     return s+(item&&cart[id]?item.p*cart[id]:0);
   },0);
+  const itemCount=keys.reduce((sum,id)=>sum+(cart[id]||0),0);
   document.getElementById('csTotal').textContent=fmt(total);
+  const countNode=document.getElementById('csItemsCount');
+  if(countNode)countNode.textContent=itemCount+' '+pluralItems(itemCount);
   updateOrderState();
+}
+function pluralItems(n){
+  const mod10=n%10,mod100=n%100;
+  if(mod10===1&&mod100!==11)return 'товар';
+  if(mod10>=2&&mod10<=4&&(mod100<12||mod100>14))return 'товара';
+  return 'товаров';
 }
 function chQ(id,d){
   cart[id]=(cart[id]||0)+d;
@@ -2558,6 +2856,55 @@ function chQ(id,d){
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
 }
 function clearCart(){cart={};updatePill();syncCardState(null,true);renderCart();}
+function confirmClearCart(){
+  if(!Object.keys(cart).some(k=>cart[k]>0))return;
+  if(window.confirm('Очистить корзину?'))clearCart();
+}
+function setPayment(value,btn){
+  const input=document.getElementById('paymentMethodInp');
+  if(input)input.value=value;
+  document.querySelectorAll('#cartOv .payment-opt').forEach(el=>{
+    const active=el===btn;
+    el.classList.toggle('on',active);
+    el.setAttribute('aria-pressed',active?'true':'false');
+  });
+  updateOrderState();
+}
+function toggleAddressDetails(btn){
+  const block=document.getElementById('addressDetails');
+  if(!block)return;
+  const opening=block.hidden;
+  block.hidden=!opening;
+  btn?.setAttribute('aria-expanded',opening?'true':'false');
+  if(btn)btn.textContent=opening?'− Скрыть детали адреса':'+ Добавить детали адреса';
+}
+function toggleCartComment(btn){
+  const block=document.getElementById('commentBlock');
+  if(!block)return;
+  const opening=block.hidden;
+  block.hidden=!opening;
+  btn?.setAttribute('aria-expanded',opening?'true':'false');
+  if(btn)btn.textContent=opening?'− Скрыть комментарий':'+ Добавить комментарий';
+  if(opening)document.getElementById('commentTa')?.focus();
+}
+function syncCartOptionalBlocks(){
+  const details=document.getElementById('addressDetails');
+  const detailsBtn=document.getElementById('addressDetailsToggle');
+  const hasAddressDetails=['entranceInp','floorInp','flatInp','intercomInp'].some(id=>(document.getElementById(id)?.value||'').trim());
+  if(details&&detailsBtn&&hasAddressDetails){
+    details.hidden=false;
+    detailsBtn.setAttribute('aria-expanded','true');
+    detailsBtn.textContent='− Скрыть детали адреса';
+  }
+  const comment=document.getElementById('commentTa');
+  const commentBlock=document.getElementById('commentBlock');
+  const commentBtn=document.getElementById('commentToggle');
+  if(comment&&commentBlock&&commentBtn&&comment.value.trim()){
+    commentBlock.hidden=false;
+    commentBtn.setAttribute('aria-expanded','true');
+    commentBtn.textContent='− Скрыть комментарий';
+  }
+}
 function setDel(m,btn){
   delMode=m;
   document.querySelectorAll('.dopt').forEach(b=>b.classList.remove('on'));
