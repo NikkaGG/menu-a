@@ -265,11 +265,20 @@ function toggleFavorite(id,event){
   syncFavoritesUi();
 }
 function toggleFavoritesFilter(){
+  // Если пользователь уже находится в избранном, выход должен работать
+  // даже когда последняя сохранённая позиция была удалена.
+  if(favoritesOnly){
+    favoritesOnly=false;
+    render();
+    syncFavoritesUi();
+    requestAnimationFrame(()=>document.getElementById('menuArea')?.scrollIntoView({behavior:prefersReducedMotion()?'auto':'smooth',block:'start'}));
+    return;
+  }
   if(!favorites.size){
     showToast('В избранном пока пусто');
     return;
   }
-  favoritesOnly=!favoritesOnly;
+  favoritesOnly=true;
   render();
   syncFavoritesUi();
   requestAnimationFrame(()=>document.getElementById('menuArea')?.scrollIntoView({behavior:prefersReducedMotion()?'auto':'smooth',block:'start'}));
