@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#0f1115">
   <title>Sushi Crazy — управление меню</title>
-  <link rel="stylesheet" href="/admin.css?v=20260930-admin-v1">
+  <link rel="stylesheet" href="/admin.css?v=20260930-admin-v2">
 </head>
 <body>
   <div class="login-screen" id="loginScreen">
@@ -306,8 +306,8 @@
               <label><span>Старая цена, ₸</span><input name="old_price" type="number" min="0" step="1"></label>
               <label><span>Вес / объём</span><input name="weight"></label>
               <label class="full"><span>Описание / состав</span><textarea name="description" rows="6"></textarea></label>
-              <label class="full"><span>Фото в каталоге</span><input name="photo_url" placeholder="/assets/... или https://..."></label>
-              <label class="full"><span>Широкое фото карточки</span><input name="detail_image_url" placeholder="/assets/... или https://..."></label>
+              <label class="full"><span>Фото в каталоге</span><div class="media-field"><input name="photo_url" placeholder="/assets/... или https://..."><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden><button class="secondary-btn compact" type="button" data-upload-target="photo_url" data-file-input="photoFile">Загрузить</button></div></label>
+              <label class="full"><span>Широкое фото карточки</span><div class="media-field"><input name="detail_image_url" placeholder="/assets/... или https://..."><input id="detailPhotoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden><button class="secondary-btn compact" type="button" data-upload-target="detail_image_url" data-file-input="detailPhotoFile">Загрузить</button></div></label>
               <label><span>Скрыть с</span><input name="hidden_from" type="datetime-local"></label>
               <label><span>Вернуть после</span><input name="hidden_until" type="datetime-local"></label>
             </div>
@@ -374,6 +374,6 @@
   </div>
 
   <div class="toast-host" id="toastHost"></div>
-  <script src="/admin.js?v=20260930-admin-v1"></script>
+  <script src="/admin.js?v=20260930-admin-v2"></script>
 </body>
 </html>
