@@ -2964,6 +2964,7 @@ function buildOrderPayload(){
 }
 function buildOrderText(payload=buildOrderPayload()){
   const separator='────────────────';
+  const head=title=>`── ${title} ──`;
   const paymentLabel={
     kaspi_invoice:'Счёт в Kaspi',
     card:'Оплата картой',
@@ -2997,13 +2998,13 @@ function buildOrderText(payload=buildOrderPayload()){
   }
 
   lines.push('');
-  lines.push('Клиент');
+  lines.push(head('КЛИЕНТ'));
   if(payload.contact.name)lines.push(payload.contact.name);
   if(payload.contact.phone)lines.push(formatCustomerPhone(payload.contact.phone));
 
   if(payload.deliveryAddress){
     lines.push('');
-    lines.push('Адрес');
+    lines.push(head('АДРЕС'));
     if(payload.deliveryAddress.address)lines.push(payload.deliveryAddress.address);
     const details=[];
     if(payload.deliveryAddress.entrance)details.push(`подъезд ${payload.deliveryAddress.entrance}`);
@@ -3015,7 +3016,7 @@ function buildOrderText(payload=buildOrderPayload()){
 
   if(payload.comment){
     lines.push('');
-    lines.push('Комментарий');
+    lines.push(head('КОММЕНТАРИЙ'));
     lines.push(payload.comment);
   }
 
