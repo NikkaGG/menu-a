@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0f1115">
+  <title>Sushi Crazy — управление меню</title>
+  <link rel="stylesheet" href="/admin.css?v=20260930-admin-v1">
+</head>
+<body>
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-mark">SC</div>
+        <div>
+          <strong>Sushi Crazy</strong>
+          <span>Управление меню</span>
+        </div>
+      </div>
+      <div class="login-copy">
+        <h1>Вход в админ-панель</h1>
+        <p>Меняйте блюда, цены, категории и контент сайта без правок кода.</p>
+      </div>
+      <form id="loginForm" class="login-form">
+        <label>
+          <span>Пароль</span>
+          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Введите пароль" required>
+        </label>
+        <button class="primary-btn" type="submit" id="loginBtn">Войти</button>
+        <div class="form-error" id="loginError" hidden></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-app" id="adminApp" hidden>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark small">SC</div>
+        <div class="sidebar-brand-copy">
+          <strong>Sushi Crazy</strong>
+          <span>Admin</span>
+        </div>
+        <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="Закрыть меню">×</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="dashboard">
+          <span class="nav-icon">⌂</span><span>Обзор</span>
+        </button>
+        <button class="nav-item" data-section="analytics">
+          <span class="nav-icon">⌁</span><span>Аналитика</span>
+        </button>
+        <button class="nav-item" data-section="dishes">
+          <span class="nav-icon">◫</span><span>Блюда</span>
+        </button>
+        <button class="nav-item" data-section="categories">
+          <span class="nav-icon">▦</span><span>Категории</span>
+        </button>
+        <button class="nav-item" data-section="recommendations">
+          <span class="nav-icon">✦</span><span>Рекомендации</span>
+        </button>
+        <button class="nav-item" data-section="content">
+          <span class="nav-icon">✎</span><span>Контент сайта</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <a class="site-link" href="/" target="_blank" rel="noopener">Открыть меню ↗</a>
+        <button class="logout-btn" id="logoutBtn">Выйти</button>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Открыть меню">☰</button>
+          <div>
+            <h1 id="pageTitle">Обзор</h1>
+            <div class="topbar-sub" id="pageSub">Главные показатели меню</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="save-indicator" id="saveIndicator">Все изменения сохранены</div>
+          <button class="secondary-btn compact" id="refreshBtn">Обновить</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page-section active" id="section-dashboard">
+          <div class="toolbar-row">
+            <div class="period-switch" data-period-host>
+              <button data-days="1">Сегодня</button>
+              <button data-days="7" class="active">7 дней</button>
+              <button data-days="30">30 дней</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid" id="dashboardKpis"></div>
+
+          <div class="dashboard-grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div><h2>Активность</h2><p>Посещения и действия по дням</p></div>
+              </div>
+              <div class="line-chart" id="activityChart"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head">
+                <div><h2>Воронка</h2><p>От открытия меню до WhatsApp</p></div>
+              </div>
+              <div class="funnel" id="dashboardFunnel"></div>
+            </article>
+          </div>
+
+          <div class="dashboard-grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div><h2>Популярные блюда</h2><p>По реальным действиям пользователей</p></div>
+                <button class="text-btn" data-go="analytics">Все данные</button>
+              </div>
+              <div class="rank-list" id="dashboardTopDishes"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head">
+                <div><h2>Состояние меню</h2><p>Что сейчас опубликовано</p></div>
+              </div>
+              <div class="health-grid" id="menuHealth"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="page-section" id="section-analytics">
+          <div class="toolbar-row analytics-toolbar">
+            <div class="tab-switch" id="analyticsTabs">
+              <button class="active" data-analytics-tab="overview">Общее</button>
+              <button data-analytics-tab="dishes">Блюда</button>
+              <button data-analytics-tab="cart">Корзина</button>
+              <button data-analytics-tab="search">Поиск</button>
+              <button data-analytics-tab="audience">Аудитория</button>
+            </div>
+            <div class="period-switch" data-period-host>
+              <button data-days="1">Сегодня</button>
+              <button data-days="7" class="active">7 дней</button>
+              <button data-days="30">30 дней</button>
+            </div>
+          </div>
+
+          <div class="analytics-pane active" data-pane="overview">
+            <div class="kpi-grid" id="analyticsKpis"></div>
+            <div class="dashboard-grid two">
+              <article class="panel"><div class="panel-head"><div><h2>Динамика</h2><p>По выбранному периоду</p></div></div><div class="line-chart" id="analyticsChart"></div></article>
+              <article class="panel"><div class="panel-head"><div><h2>Воронка</h2><p>Ключевые шаги пользователя</p></div></div><div class="funnel" id="analyticsFunnel"></div></article>
+            </div>
+          </div>
+
+          <div class="analytics-pane" data-pane="dishes">
+            <article class="panel">
+              <div class="panel-head"><div><h2>Рейтинг блюд</h2><p>Просмотры, избранное, корзина и переходы в WhatsApp</p></div></div>
+              <div class="table-wrap"><table class="data-table"><thead><tr><th>Блюдо</th><th>Просмотры</th><th>Избранное</th><th>Корзина</th><th>WhatsApp</th><th>Конв. в корзину</th></tr></thead><tbody id="dishAnalyticsBody"></tbody></table></div>
+            </article>
+          </div>
+
+          <div class="analytics-pane" data-pane="cart">
+            <div class="kpi-grid" id="cartKpis"></div>
+            <article class="panel"><div class="panel-head"><div><h2>Путь корзины</h2><p>Это поведение на сайте, а не подтверждённые заказы</p></div></div><div class="funnel" id="cartFunnel"></div></article>
+          </div>
+
+          <div class="analytics-pane" data-pane="search">
+            <div class="dashboard-grid two">
+              <article class="panel"><div class="panel-head"><div><h2>Что ищут</h2><p>Самые частые поисковые запросы</p></div></div><div class="rank-list" id="searchRanking"></div></article>
+              <article class="panel"><div class="panel-head"><div><h2>Категории</h2><p>Интерес по категориям</p></div></div><div class="rank-list" id="categoryRanking"></div></article>
+            </div>
+          </div>
+
+          <div class="analytics-pane" data-pane="audience">
+            <div class="dashboard-grid two">
+              <article class="panel"><div class="panel-head"><div><h2>Устройства</h2><p>По открытиям меню</p></div></div><div class="stat-bars" id="deviceStats"></div></article>
+              <article class="panel"><div class="panel-head"><div><h2>Браузеры</h2><p>Среда, в которой открывают меню</p></div></div><div class="stat-bars" id="browserStats"></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" id="section-dishes">
+          <div class="section-actions">
+            <div class="filter-row">
+              <label class="search-control"><span>⌕</span><input id="dishSearch" type="search" placeholder="Найти блюдо"></label>
+              <select id="dishCategoryFilter"><option value="">Все категории</option></select>
+              <select id="dishStatusFilter"><option value="">Все</option><option value="visible">Опубликованные</option><option value="hidden">Скрытые</option><option value="recommended">Рекомендуемые</option></select>
+            </div>
+            <button class="primary-btn compact" id="newDishBtn">+ Добавить блюдо</button>
+          </div>
+
+          <div class="bulk-bar" id="bulkBar" hidden>
+            <strong><span id="bulkCount">0</span> выбрано</strong>
+            <button class="secondary-btn compact" id="bulkPriceBtn">Изменить цены</button>
+            <button class="text-btn" id="bulkClearBtn">Снять выбор</button>
+          </div>
+
+          <article class="panel no-pad">
+            <div class="table-wrap">
+              <table class="data-table dish-table">
+                <thead><tr><th class="check-col"><input type="checkbox" id="selectAllDishes"></th><th>Блюдо</th><th>Категория</th><th>Цена</th><th>Показ</th><th>Рекоменд.</th><th></th></tr></thead>
+                <tbody id="dishesBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="page-section" id="section-categories">
+          <div class="section-actions">
+            <div><h2 class="section-title">Категории меню</h2><p class="section-desc">Меняйте порядок перетаскиванием. Скрытая категория исчезает вместе со всеми блюдами.</p></div>
+            <button class="primary-btn compact" id="newCategoryBtn">+ Категория</button>
+          </div>
+          <div class="sortable-list" id="categoriesList"></div>
+        </section>
+
+        <section class="page-section" id="section-recommendations">
+          <div class="dashboard-grid two">
+            <article class="panel">
+              <div class="panel-head"><div><h2>Блок «Рекомендуем»</h2><p>Владелец выбирает блюда вручную</p></div></div>
+              <div class="recommend-list" id="manualRecommendations"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><h2>Автоматические связи</h2><p>Сначала по смыслу категорий, затем усиливаются статистикой совместных действий</p></div></div>
+              <div class="logic-card">
+                <div><strong>Фаст-фуд / Пицца</strong><span>→ напитки и соусы</span></div>
+                <div><strong>Роллы / Сеты</strong><span>→ соусы и напитки</span></div>
+                <div><strong>Поведение</strong><span>→ товары, которые пользователи чаще выбирают вместе</span></div>
+              </div>
+              <p class="muted-note">Автоматические рекомендации начинают с базовой логики и постепенно учитывают накопленную статистику меню.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="page-section" id="section-content">
+          <form id="settingsForm">
+            <div class="settings-grid">
+              <article class="panel form-panel">
+                <div class="panel-head"><div><h2>Основная информация</h2><p>Название и тексты на главной странице</p></div></div>
+                <div class="form-grid">
+                  <label><span>Название заведения</span><input name="restaurant_name"></label>
+                  <label><span>Подзаголовок</span><input name="subtitle"></label>
+                  <label><span>Город</span><input name="city"></label>
+                  <label class="full"><span>Текст доставки</span><textarea name="delivery_text" rows="3"></textarea></label>
+                  <label><span>Открытие</span><input name="schedule_open" type="time"></label>
+                  <label><span>Закрытие</span><input name="schedule_close" type="time"></label>
+                  <label><span>Бесплатная доставка от, ₸</span><input name="free_delivery_from" type="number" min="0"></label>
+                  <label><span>Текст кнопки связи</span><input name="contact_button_text"></label>
+                </div>
+              </article>
+
+              <article class="panel form-panel">
+                <div class="panel-head"><div><h2>Контакты</h2><p>Меняются сразу на публичном меню</p></div></div>
+                <div class="form-grid">
+                  <label><span>WhatsApp</span><input name="whatsapp_number" placeholder="+7..."></label>
+                  <label><span>Телефон</span><input name="phone_number" placeholder="+7..."></label>
+                  <label><span>Instagram</span><input name="instagram_handle"></label>
+                  <label><span>Ссылка Instagram</span><input name="instagram_url" type="url"></label>
+                  <label class="full"><span>Заголовок сообщения WhatsApp</span><input name="whatsapp_order_title"></label>
+                </div>
+              </article>
+
+              <article class="panel form-panel">
+                <div class="panel-head"><div><h2>Адрес и карты</h2><p>Данные блока с Яндекс Картами</p></div></div>
+                <div class="form-grid">
+                  <label class="full"><span>Адрес</span><input name="address_text"></label>
+                  <label class="full"><span>Ссылка на Яндекс Карты</span><input name="map_url" type="url"></label>
+                  <label class="full"><span>Ссылка для виджета карты</span><input name="map_embed_url" type="url"></label>
+                </div>
+              </article>
+
+              <article class="panel form-panel">
+                <div class="panel-head"><div><h2>Изображения и популярное</h2><p>Можно использовать пути сайта или публичные URL</p></div></div>
+                <div class="form-grid">
+                  <label class="full"><span>Логотип</span><input name="logo_url" placeholder="/api/branding?type=logo"></label>
+                  <label class="full"><span>Баннер</span><input name="banner_url" placeholder="/api/branding?type=banner"></label>
+                  <label class="full"><span>Популярное по умолчанию</span><textarea name="popular_fallback_names" rows="5" placeholder="Одно блюдо на строку"></textarea></label>
+                </div>
+              </article>
+            </div>
+            <div class="sticky-save">
+              <span>Изменения применятся к публичному меню после сохранения.</span>
+              <button class="primary-btn" type="submit">Сохранить контент</button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="dishModal" hidden>
+    <div class="modal large" role="dialog" aria-modal="true" aria-labelledby="dishModalTitle">
+      <div class="modal-head">
+        <div><h2 id="dishModalTitle">Блюдо</h2><p id="dishModalSub">Настройки карточки</p></div>
+        <button class="icon-btn" data-close-modal="dishModal">×</button>
+      </div>
+      <form id="dishForm">
+        <input type="hidden" name="id">
+        <div class="editor-layout">
+          <div class="editor-fields">
+            <div class="form-grid">
+              <label class="full"><span>Название</span><input name="name" required></label>
+              <label><span>Категория</span><select name="category_id" required></select></label>
+              <label><span>Цена, ₸</span><input name="price" type="number" min="0" step="1" required></label>
+              <label><span>Старая цена, ₸</span><input name="old_price" type="number" min="0" step="1"></label>
+              <label><span>Вес / объём</span><input name="weight"></label>
+              <label class="full"><span>Описание / состав</span><textarea name="description" rows="6"></textarea></label>
+              <label class="full"><span>Фото в каталоге</span><input name="photo_url" placeholder="/assets/... или https://..."></label>
+              <label class="full"><span>Широкое фото карточки</span><input name="detail_image_url" placeholder="/assets/... или https://..."></label>
+              <label><span>Скрыть с</span><input name="hidden_from" type="datetime-local"></label>
+              <label><span>Вернуть после</span><input name="hidden_until" type="datetime-local"></label>
+            </div>
+            <div class="toggle-row">
+              <label class="switch-line"><input name="is_available" type="checkbox"><span class="switch"></span><span>Показывать блюдо</span></label>
+              <label class="switch-line"><input name="is_recommended" type="checkbox"><span class="switch"></span><span>Добавить в «Рекомендуем»</span></label>
+            </div>
+
+            <div class="scheduled-box" id="scheduledPriceBox">
+              <div><strong>Отложенная цена</strong><span id="scheduledPriceStatus">Не запланирована</span></div>
+              <div class="inline-fields">
+                <input id="schedulePriceValue" type="number" min="0" placeholder="Новая цена">
+                <input id="schedulePriceDate" type="datetime-local">
+                <button class="secondary-btn compact" id="schedulePriceBtn" type="button">Запланировать</button>
+              </div>
+              <button class="text-btn danger-text" id="cancelScheduledPriceBtn" type="button" hidden>Отменить запланированную цену</button>
+            </div>
+
+            <details class="history-box" id="priceHistoryBox">
+              <summary>История цены</summary>
+              <div id="priceHistoryList"></div>
+            </details>
+          </div>
+
+          <aside class="preview-panel">
+            <div class="preview-label">Предпросмотр</div>
+            <div class="dish-preview" id="dishPreview"></div>
+          </aside>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-btn" type="button" data-close-modal="dishModal">Отмена</button>
+          <button class="primary-btn" type="submit">Сохранить блюдо</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="categoryModal" hidden>
+    <div class="modal small" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+      <div class="modal-head"><div><h2 id="categoryModalTitle">Категория</h2><p>Название и отображение</p></div><button class="icon-btn" data-close-modal="categoryModal">×</button></div>
+      <form id="categoryForm">
+        <input type="hidden" name="id">
+        <div class="form-grid single">
+          <label><span>Название</span><input name="name" required></label>
+          <label><span>Slug</span><input name="slug" placeholder="pizza"></label>
+          <label class="switch-line"><input name="is_visible" type="checkbox"><span class="switch"></span><span>Показывать категорию</span></label>
+        </div>
+        <div class="modal-actions"><button class="secondary-btn" type="button" data-close-modal="categoryModal">Отмена</button><button class="primary-btn" type="submit">Сохранить</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="bulkPriceModal" hidden>
+    <div class="modal small" role="dialog" aria-modal="true" aria-labelledby="bulkPriceTitle">
+      <div class="modal-head"><div><h2 id="bulkPriceTitle">Изменить цены</h2><p>Для выбранных блюд</p></div><button class="icon-btn" data-close-modal="bulkPriceModal">×</button></div>
+      <form id="bulkPriceForm">
+        <div class="form-grid single">
+          <label><span>Способ</span><select name="mode"><option value="add">Прибавить / вычесть сумму</option><option value="percent">Изменить на процент</option><option value="set">Установить одну цену</option></select></label>
+          <label><span>Значение</span><input name="value" type="number" step="1" required placeholder="Например: 200 или -5"></label>
+        </div>
+        <div class="modal-actions"><button class="secondary-btn" type="button" data-close-modal="bulkPriceModal">Отмена</button><button class="primary-btn" type="submit">Применить</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toastHost"></div>
+  <script src="/admin.js?v=20260930-admin-v1"></script>
+</body>
+</html>
