@@ -2604,3 +2604,308 @@ body.cookie-visible .page{padding-bottom:170px}body.cookie-visible.cart-has-item
 }
 
 #menuArea{scroll-margin-top:120px}
+
+
+/* ── FAVORITES CLEANUP + STRUCTURED RESTAURANT FOOTER ── */
+/* Favorite hearts live only inside the full product sheet. */
+.fav-btn,.fav-card,.fav-list,.fav-pop{display:none!important}
+.ps-top-left{display:flex;align-items:center;gap:8px}
+.prod-fav-btn{display:flex!important}
+.prod-fav-btn.is-favorite{background:#111!important;color:#fff!important;border-color:#111!important}
+.prod-fav-btn.is-favorite .ui-icon{fill:currentColor}
+
+/* While favorites are open, categories are irrelevant and visually noisy. */
+body.favorites-mode .cats{display:none!important}
+body.favorites-mode .sticky-bar{padding-bottom:12px!important}
+body.favorites-mode .search-row{margin-bottom:0!important}
+
+.favorites-view{
+  min-height:430px;
+  padding:4px 0 36px;
+}
+.favorites-view-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  margin:0 0 24px;
+  padding:18px 2px 15px;
+  border-bottom:1px solid #e9e9eb;
+}
+.favorites-kicker{
+  display:block;
+  margin-bottom:5px;
+  color:#8a8a8f;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.favorites-view-head h2{
+  margin:0;
+  color:#111;
+  font-size:28px;
+  font-weight:800;
+  line-height:1.05;
+}
+.favorites-view-head p{
+  margin:6px 0 0;
+  color:#8a8a8f;
+  font-size:12px;
+}
+.favorites-back{
+  min-height:38px;
+  padding:0 15px;
+  border:1px solid #dedee1;
+  border-radius:999px;
+  background:#fff;
+  color:#222;
+  font:600 12px/1 inherit;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.favorites-back:hover{background:#f5f5f6}
+.favorites-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,168px));
+  justify-content:start;
+  gap:14px;
+}
+.favorites-grid:has(.gc:only-child){justify-content:center}
+.favorites-grid .gc{width:100%;height:360px}
+.favorites-list{display:flex;flex-direction:column;gap:14px}
+.favorites-empty{
+  min-height:300px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:44px 20px;
+  text-align:center;
+}
+.favorites-empty-icon{
+  width:48px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:14px;
+  border-radius:50%;
+  background:#f1f1f3;
+  color:#555;
+}
+.favorites-empty-icon .svg-icon{width:23px;height:23px}
+.favorites-empty strong{font-size:17px;color:#222}
+.favorites-empty span{max-width:330px;margin-top:7px;color:#85858a;font-size:12px;line-height:1.45}
+.favorites-empty button{
+  margin-top:16px;
+  min-height:40px;
+  padding:0 17px;
+  border:0;
+  border-radius:999px;
+  background:#111;
+  color:#fff;
+  font:700 12px/1 inherit;
+  cursor:pointer;
+}
+
+/* Footer now behaves like a real information section, not a card collection. */
+.restaurant-footer{
+  width:100%;
+  margin:42px 0 0;
+  padding:0 28px 18px;
+  background:#050505;
+  color:#f5f5f5;
+  border-top:1px solid #242426;
+}
+.rf-topline{
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  border-bottom:1px solid #242426;
+}
+.rf-toplink,.rf-topcall{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#f2f2f2;
+  text-decoration:none;
+  font-size:12px;
+}
+.rf-toplink span{color:#7d7d82;font-weight:500}
+.rf-topcall{margin-left:auto}
+.rf-topcall strong{font-weight:700}
+.rf-plus{
+  width:32px;
+  height:32px;
+  margin-left:5px;
+  border:1px solid #4a4a4e;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#d7d7da;
+  font-size:20px;
+  font-weight:300;
+  line-height:1;
+}
+.rf-main{
+  display:grid;
+  grid-template-columns:1.15fr 1fr 1fr;
+  gap:0;
+  padding:42px 0 32px;
+}
+.rf-brand{
+  padding-right:24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.rf-brand h2{
+  margin:0;
+  color:#fff;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:.07em;
+  line-height:1;
+}
+.rf-brand p{
+  margin:9px 0 2px;
+  color:#9b9ba1;
+  font-size:12px;
+}
+.rf-brand span{color:#67676c;font-size:11px}
+.rf-column{
+  min-width:0;
+  padding:6px 22px 4px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  border-left:1px solid #2b2b2e;
+}
+.rf-label{
+  margin-bottom:4px;
+  color:#85858a;
+  font-size:11px;
+}
+.rf-column a,.rf-link-button{
+  width:max-content;
+  max-width:100%;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#fff;
+  font:600 11.5px/1.35 inherit;
+  text-align:left;
+  text-decoration:none;
+  cursor:pointer;
+}
+.rf-column a:hover,.rf-link-button:hover{text-decoration:underline}
+.rf-muted{color:#707075;font-size:10.5px}
+
+.rf-map{
+  position:relative;
+  height:104px;
+  display:block;
+  overflow:hidden;
+  border:1px solid #28282c;
+  border-radius:12px;
+  color:#fff;
+  text-decoration:none;
+  background:#111;
+}
+.rf-map img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  filter:saturate(.7) brightness(.56) contrast(1.05);
+}
+.rf-map-shade{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,rgba(0,0,0,.78),rgba(0,0,0,.25) 68%,rgba(0,0,0,.55));
+}
+.rf-map-copy{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.rf-map-copy strong{font-size:13px}
+.rf-map-copy small{color:#b2b2b7;font-size:10.5px}
+.rf-map-arrow{
+  position:absolute;
+  right:15px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:1;
+  width:34px;
+  height:34px;
+  border:1px solid rgba(255,255,255,.35);
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+.rf-credit{
+  padding-top:15px;
+  display:flex;
+  justify-content:flex-end;
+  gap:5px;
+  color:#55555a;
+  font-size:9.5px;
+}
+.rf-credit a{color:#77777c;text-decoration:none}
+.rf-credit a:hover{color:#aaa}
+
+@media(max-width:600px){
+  .favorites-view{min-height:360px}
+  .favorites-view-head{align-items:center;margin-bottom:18px}
+  .favorites-view-head h2{font-size:24px}
+  .favorites-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+  .favorites-grid:has(.gc:only-child){
+    grid-template-columns:minmax(0,168px);
+    justify-content:center;
+  }
+  .favorites-grid .gc{height:360px}
+
+  .restaurant-footer{
+    margin-top:34px;
+    padding:0 18px 16px;
+  }
+  .rf-topline{
+    min-height:66px;
+    align-items:flex-start;
+    flex-direction:column;
+    justify-content:center;
+    gap:7px;
+  }
+  .rf-topcall{margin-left:0}
+  .rf-plus{display:none}
+  .rf-main{
+    grid-template-columns:1fr;
+    gap:22px;
+    padding:30px 0 26px;
+  }
+  .rf-brand{padding-right:0}
+  .rf-brand h2{font-size:26px}
+  .rf-column{
+    padding:0;
+    border-left:0;
+    border-top:1px solid #242426;
+    padding-top:20px;
+  }
+  .rf-map{height:96px}
+  .rf-credit{justify-content:flex-start}
+}
