@@ -14,7 +14,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/app-192.png" type="image/png">
 <link rel="apple-touch-icon" href="/icons/app-192.png">
-<link rel="stylesheet" href="/styles.css?v=20260930-footertrim">
+<link rel="stylesheet" href="/styles.css?v=20260930-productcontrols">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Restaurant","name":"Sushi Crazy","url":"https://menu-a-eta.vercel.app/","image":"https://menu-a-eta.vercel.app/api/branding?type=banner","telephone":"+7 776 680 78 60","servesCuisine":["Sushi","Pizza","Fast food"],"address":{"@type":"PostalAddress","streetAddress":"улица Трудовиков, 2г","addressLocality":"Грозный","addressRegion":"Чеченская Республика"}}
@@ -150,11 +150,9 @@
     <div class="sheet-scroll">
       <div class="handle"></div>
       <div class="ps-top">
-        <div class="ps-top-left">
-          <button class="ps-icon-btn" onclick="shareProduct()" title="Поделиться" aria-label="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
-          <button class="ps-icon-btn prod-fav-btn" id="prodFavBtn" onclick="toggleFavorite(activeProductId,event)" title="В избранное" aria-label="Добавить в избранное" aria-pressed="false"><span class="ui-icon svg-slot" data-icon="heart"></span></button>
-        </div>
-        <button class="ps-icon-btn" onclick="closeOv('prodOv')" aria-label="Закрыть товар" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="chevron-left"></span></button>
+        <button class="ps-icon-btn ps-share-btn" onclick="shareProduct()" title="Поделиться" aria-label="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
+        <button class="ps-icon-btn prod-fav-btn" id="prodFavBtn" onclick="toggleFavorite(activeProductId,event)" title="В избранное" aria-label="Добавить в избранное" aria-pressed="false"><span class="ui-icon svg-slot" data-icon="heart"></span></button>
+        <button class="ps-icon-btn ps-back-btn" onclick="closeOv('prodOv')" aria-label="Назад" title="Назад" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="chevron-left"></span></button>
       </div>
       <div id="prodContent"></div>
     </div>
@@ -323,7 +321,7 @@
   </div>
 </div>
 
-<script src="/app.js?v=20260930-yandexmap"></script>
+<script src="/app.js?v=20260930-favclosefix"></script>
 
 </body>
 </html>
