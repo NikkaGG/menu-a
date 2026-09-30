@@ -210,6 +210,7 @@ let cartRestored=false;
 const CART_STORAGE_KEY='sushi-crazy-cart-v1';
 const FAVORITES_STORAGE_KEY='sushi-crazy-favorites-v1';
 let favorites=new Set();
+let favoritesRefreshPending=false;
 try{
   const savedFavorites=JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY)||'[]');
   if(Array.isArray(savedFavorites))favorites=new Set(savedFavorites.filter(Boolean).map(String));
@@ -255,9 +256,12 @@ function toggleFavorite(id,event){
     favorites.add(item.n);
     showToast('Добавлено в избранное');
   }
-  if(favoritesOnly&&favorites.size===0)favoritesOnly=false;
   persistFavorites();
-  if(favoritesOnly)render();
+  if(favoritesOnly){
+    const productOpen=document.getElementById('prodOv')?.classList.contains('on');
+    if(productOpen)favoritesRefreshPending=true;
+    else render();
+  }
   syncFavoritesUi();
 }
 function toggleFavoritesFilter(){
@@ -1358,6 +1362,7 @@ function closeOv(id,shouldRestoreFocus=true,fromHistory=false){
   if(!ov)return;
   if(!fromHistory&&(id==='prodOv'||id==='cartOv')&&history.state?.menuOverlay===id){history.back();return;}
   const opener=dialogOpeners.get(ov);
+  const refreshFavoritesAfterClose=id==='prodOv'&&favoritesRefreshPending;
   if(id==='pickupTimeOv'){
     document.getElementById('pickupTimeTrigger')?.setAttribute('aria-expanded','false');
     resetPickupDrag();
@@ -1372,6 +1377,13 @@ function closeOv(id,shouldRestoreFocus=true,fromHistory=false){
   runAfterMotion(()=>{
     unlockPageScroll();
     if(shouldRestoreFocus&&!getTopmostOpenDialog())restoreFocus(opener);
+    if(refreshFavoritesAfterClose){
+      favoritesRefreshPending=false;
+      const restoreY=lockedScrollY||0;
+      render();
+      syncFavoritesUi();
+      requestAnimationFrame(()=>window.scrollTo(0,restoreY));
+    }
   },20);
 }
 function bgClose(e,id){if(e.target&&e.target.id===id)closeOv(id);}
