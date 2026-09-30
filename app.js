@@ -272,6 +272,7 @@ function toggleFavoritesFilter(){
   favoritesOnly=!favoritesOnly;
   render();
   syncFavoritesUi();
+  requestAnimationFrame(()=>document.getElementById('menuArea')?.scrollIntoView({behavior:prefersReducedMotion()?'auto':'smooth',block:'start'}));
 }
 
 function restoreCart(){
