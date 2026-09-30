@@ -475,18 +475,6 @@ function renderPopular(){
   renderPopularDots();
   updatePopular();
 }
-function renderPopularDots(){
-  const dots=document.getElementById('popDots');
-  if(!dots)return;
-  dots.innerHTML=POPULAR_IDS.map((id,idx)=>`<button class="dot-item ${idx===popIndex?'active':''}" onclick="setPopular(${idx})" aria-label="Популярное ${idx+1}"></button>`).join('');
-}
-function updatePopular(pxOffset=0){
-  const track=document.getElementById('popularTrack');
-  if(!track)return;
-  track.style.transition=prefersReducedMotion()?'none':'';
-  track.style.transform=pxOffset?`translateX(calc(${-popIndex*100}% + ${pxOffset}px))`:`translateX(${-popIndex*100}%)`;
-  renderPopularDots();
-}
 function setPopular(i){
   popIndex=(i+POPULAR_IDS.length)%POPULAR_IDS.length;
   updatePopular();
@@ -1000,21 +988,6 @@ function placeOrder(){
 function openShare(mode='contact'){
   prepareServiceSheet(mode);
   openOv('shareOv');
-}
-function finishOrder(){
-  if(pendingOrderText.startsWith('Новый заказ')){
-    cart={};
-    pickupTime='';
-    syncPickupTimeControl();
-    const pickupTimeErr=document.getElementById('pickupTimeErr');
-    if(pickupTimeErr)pickupTimeErr.hidden=true;
-    document.getElementById('pickupTimeTrigger')?.removeAttribute('aria-invalid');
-    updatePill();
-    syncCardState(null,true);renderCart();
-    pendingOrderText='';
-    pendingOrderPayload=null;
-    showToast('Заказ подготовлен к отправке');
-  }
 }
 function shareVia(v){
   const shareOv=document.getElementById('shareOv');
