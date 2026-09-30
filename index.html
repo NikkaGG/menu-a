@@ -14,7 +14,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/app-192.png" type="image/png">
 <link rel="apple-touch-icon" href="/icons/app-192.png">
-<link rel="stylesheet" href="/styles.css?v=20260930-fullfooter">
+<link rel="stylesheet" href="/styles.css?v=20260930-yandexmap">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Restaurant","name":"Sushi Crazy","url":"https://menu-a-eta.vercel.app/","image":"https://menu-a-eta.vercel.app/api/branding?type=banner","telephone":"+7 776 680 78 60","servesCuisine":["Sushi","Pizza","Fast food"],"address":{"@type":"PostalAddress","streetAddress":"улица Трудовиков, 2г","addressLocality":"Грозный","addressRegion":"Чеченская Республика"}}
@@ -110,15 +110,20 @@
     <div class="rf-column">
       <div class="rf-label">Социальные сети и адрес:</div>
       <a href="https://www.instagram.com/sushi_crazy_195/" target="_blank" rel="noopener noreferrer">Instagram: @sushi_crazy_195</a>
-      <a href="https://2gis.ru/grozny/firm/70000001063972120" target="_blank" rel="noopener noreferrer">2GIS: ул. Трудовиков, 2г</a>
+      <a href="https://yandex.ru/maps/?ll=45.593695%2C43.373205&z=17&pt=45.593695%2C43.373205%2Cpm2rdm" target="_blank" rel="noopener noreferrer">Яндекс Карты: ул. Трудовиков, 2г</a>
       <button type="button" class="rf-link-button" onclick="shareRestaurant()">Поделиться меню</button>
       <button type="button" class="rf-link-button" id="installAppBtn" onclick="installPwa()" hidden>Добавить на главный экран</button>
     </div>
   </div>
 
-  <a class="rf-map" href="https://2gis.ru/grozny/directions/points/%7C45.593695%2C43.373205%3B70000001063972120" target="_blank" rel="noopener noreferrer" aria-label="Построить маршрут до Sushi Crazy в 2GIS">
-    <img src="/api/map-preview?v=2" alt="Карта проезда к Sushi Crazy" loading="lazy" decoding="async">
-  </a>
+  <div class="rf-map" aria-label="Карта проезда к Sushi Crazy">
+    <iframe
+      src="https://yandex.ru/map-widget/v1/?ll=45.593695%2C43.373205&z=17&pt=45.593695%2C43.373205%2Cpm2rdm"
+      title="Sushi Crazy на Яндекс Картах"
+      loading="lazy"
+      allowfullscreen
+      referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
 
   <div class="rf-credit">
     <span>Разработано студией</span>
@@ -327,7 +332,7 @@
   </div>
 </div>
 
-<script src="/app.js?v=20260930-favfooter"></script>
+<script src="/app.js?v=20260930-yandexmap"></script>
 
 </body>
 </html>
