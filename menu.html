@@ -1969,6 +1969,296 @@ button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-u
   padding-bottom:18px!important;
   scroll-padding-bottom:96px!important;
 }
+
+/* ── ORDER HANDOFF REDESIGN ── */
+.ios-grid>.ss-divider{grid-column:1/-1}
+.ss-mini-copy,.ss-mini-arrow,.ss-copy-icon,.ss-copy-meta{display:none}
+
+#shareOv.order-mode{
+  background:rgba(0,0,0,.40);
+  backdrop-filter:blur(3px);
+}
+#shareOv.order-mode .share-sheet{
+  background:#f8f8fa;
+  position:relative;
+  overflow:hidden;
+}
+#shareOv.order-mode .ios-services{
+  padding:30px 28px 26px;
+}
+#shareOv.order-mode .ss-title{
+  max-width:none;
+  margin:0 0 7px;
+  padding:0 54px 0 0;
+  color:#1c1c1e;
+  font-size:24px;
+  font-weight:800;
+  line-height:1.2;
+  text-align:left;
+}
+#shareOv.order-mode .ss-sub{
+  max-width:none;
+  margin:0 54px 22px 0;
+  color:#7b7b80;
+  font-size:13.5px;
+  line-height:1.45;
+  text-align:left;
+}
+#shareOv.order-mode .ss-x{
+  top:18px;
+  right:18px;
+  width:40px;
+  height:40px;
+  border:1px solid #e6e6e9;
+  border-radius:50%;
+  background:#fff;
+  color:#8e8e93;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+#shareOv.order-mode .ss-x:hover{
+  color:#555;
+  background:#fff;
+  transform:none;
+  border-color:#d9d9dd;
+}
+#shareOv.order-mode .ss-x .ui-icon{
+  width:22px;
+  height:22px;
+  stroke-width:1.7;
+}
+#shareOv.order-mode .ios-grid{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-width:none;
+  margin:0;
+}
+#shareOv.order-mode .ss-opt{
+  width:100%;
+  min-height:68px;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+  gap:12px;
+  padding:10px 12px;
+  border:1px solid #e5e5e8;
+  border-radius:16px;
+  background:#fff;
+  color:#1c1c1e;
+  text-align:left;
+  box-shadow:0 1px 2px rgba(0,0,0,.02);
+  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+#shareOv.order-mode .ss-opt:hover{
+  background:#fff;
+  border-color:#d7d7dc;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+  transform:translateY(-1px);
+}
+#shareOv.order-mode .ss-opt:active{
+  transform:scale(.99);
+}
+#shareOv.order-mode .ios-app{
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
+  border-radius:13px;
+}
+#shareOv.order-mode .ss-opt-label{
+  max-width:none;
+  color:#1c1c1e;
+  font-size:15px;
+  font-weight:750;
+  line-height:1.25;
+  text-align:left;
+}
+#shareOv.order-mode #shareWaLabel::after,
+#shareOv.order-mode #shareSecondLabel::after{
+  display:block;
+  margin-top:3px;
+  color:#8e8e93;
+  font-size:12px;
+  font-weight:500;
+  line-height:1.25;
+}
+#shareOv.order-mode #shareWaLabel::after{content:'Отправить заказ'}
+#shareOv.order-mode #shareSecondLabel::after{content:'Отправить по SMS'}
+#shareOv.order-mode .ss-divider{
+  width:100%;
+  margin:8px 0 1px;
+  padding:0 4px;
+  color:#8e8e93;
+  font-size:11.5px;
+  font-weight:800;
+  letter-spacing:.055em;
+  line-height:1.3;
+  text-align:left;
+  text-transform:uppercase;
+}
+#shareOv.order-mode .ss-mini{
+  min-height:60px;
+  margin:0;
+  padding:10px 12px;
+}
+#shareOv.order-mode .ss-mini .ss-mini-glyph{
+  width:23px;
+  height:23px;
+  flex:0 0 23px;
+  margin:0 6px;
+  color:#5a5a5f;
+}
+#shareOv.order-mode .ss-mini-copy{
+  display:flex;
+  flex:1;
+  min-width:0;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+}
+#shareOv.order-mode .ss-mini-title{
+  color:#2c2c2e;
+  font-size:14px;
+  font-weight:700;
+  line-height:1.25;
+}
+#shareOv.order-mode .ss-mini-meta{
+  color:#8e8e93;
+  font-size:11.5px;
+  font-weight:500;
+  line-height:1.3;
+}
+#shareOv.order-mode .ss-mini-arrow{
+  display:block;
+  margin-left:auto;
+  color:#c7c7cc;
+  font-size:24px;
+  font-weight:400;
+  line-height:1;
+}
+#shareOv.order-mode .ss-copy{
+  width:100%;
+  min-height:58px;
+  display:grid;
+  grid-template-columns:35px minmax(0,1fr);
+  grid-template-areas:'icon label' 'icon meta';
+  align-items:center;
+  column-gap:8px;
+  row-gap:2px;
+  margin:10px 0 0;
+  padding:9px 12px;
+  border:1px solid #e5e5e8;
+  border-radius:16px;
+  background:#fff;
+  color:#2c2c2e;
+  text-align:left;
+  text-decoration:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.02);
+}
+#shareOv.order-mode .ss-copy:hover{
+  background:#fff;
+  border-color:#d7d7dc;
+  color:#111;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+#shareOv.order-mode .ss-copy-icon{
+  grid-area:icon;
+  display:block;
+  width:22px;
+  height:22px;
+  margin:auto;
+  color:#5a5a5f;
+}
+#shareOv.order-mode #shareCopyLabel{
+  grid-area:label;
+  font-size:14px;
+  font-weight:700;
+  line-height:1.25;
+}
+#shareOv.order-mode .ss-copy-meta{
+  grid-area:meta;
+  display:block;
+  color:#8e8e93;
+  font-size:11.5px;
+  font-weight:500;
+  line-height:1.3;
+}
+
+@media(min-width:521px){
+  #shareOv.order-mode{
+    align-items:center;
+    padding:24px;
+  }
+  #shareOv.order-mode .share-sheet{
+    width:min(560px,calc(100vw - 48px));
+    max-width:560px;
+    border-radius:24px;
+    box-shadow:0 24px 70px rgba(0,0,0,.22);
+    transform:translateY(18px) scale(.985);
+    opacity:0;
+  }
+  #shareOv.order-mode.on .share-sheet{
+    transform:translateY(0) scale(1);
+    opacity:1;
+  }
+  #shareOv.order-mode .handle{display:none}
+}
+
+@media(max-width:520px){
+  #shareOv.order-mode{
+    align-items:flex-end;
+    padding:0;
+  }
+  #shareOv.order-mode .share-sheet{
+    width:100%;
+    max-width:100%;
+    border-radius:22px 22px 0 0;
+    box-shadow:0 -12px 34px rgba(0,0,0,.16);
+  }
+  #shareOv.order-mode .handle{
+    display:block;
+    width:38px;
+    height:4px;
+    margin:10px auto 6px;
+    background:#d1d1d6;
+  }
+  #shareOv.order-mode .ios-services{
+    padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px));
+  }
+  #shareOv.order-mode .ss-title{
+    margin-bottom:6px;
+    padding-right:46px;
+    font-size:21px;
+  }
+  #shareOv.order-mode .ss-sub{
+    margin-right:46px;
+    margin-bottom:18px;
+    font-size:12.5px;
+  }
+  #shareOv.order-mode .ss-x{
+    top:17px;
+    right:14px;
+    width:38px;
+    height:38px;
+  }
+  #shareOv.order-mode .ss-opt{
+    min-height:64px;
+    padding:9px 11px;
+    border-radius:15px;
+  }
+  #shareOv.order-mode .ios-app{
+    width:44px;
+    height:44px;
+    flex-basis:44px;
+    border-radius:12px;
+  }
+  #shareOv.order-mode .ss-opt-label{font-size:14px}
+  #shareOv.order-mode #shareWaLabel::after,
+  #shareOv.order-mode #shareSecondLabel::after{font-size:11.5px}
+  #shareOv.order-mode .ss-mini{min-height:58px}
+  #shareOv.order-mode .ss-copy{min-height:56px}
+}
+
 </style>
 </head>
 <body>
@@ -2068,33 +2358,48 @@ button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-u
 </div>
 
 <!-- SEND / CONTACT SERVICES OVERLAY -->
-<div class="ov" id="shareOv" role="dialog" aria-modal="true" aria-labelledby="shareTitle" onclick="bgClose(event,'shareOv')">
+<div class="ov" id="shareOv" role="dialog" aria-modal="true" aria-labelledby="shareTitle" aria-describedby="shareSub" onclick="bgClose(event,'shareOv')">
   <div class="sheet share-sheet" onclick="event.stopPropagation()">
-    <div class="handle"></div>
+    <div class="handle" aria-hidden="true"></div>
     <button class="ss-x" type="button" onclick="closeOv('shareOv')" aria-label="Закрыть" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="x"></span></button>
     <div class="ss-body ios-services" id="shareBody">
       <div class="ss-title" id="shareTitle">Выберите удобный сервис для связи с нами</div>
       <div class="ss-sub" id="shareSub"></div>
       <div class="ss-grid ios-grid">
         <button class="ss-opt" type="button" onclick="shareVia('wa')">
-          <!-- ICON SLOT: положи свой файл сюда: icons/whatsapp-ios.png -->
           <div class="ss-icon ios-app ios-custom-icon" data-icon-place="icons/whatsapp-ios.png"><img class="ios-app-img" src="icons/whatsapp-ios.png" alt="WhatsApp" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')"></div>
           <div class="ss-opt-label" id="shareWaLabel">Напишите нам в WhatsApp</div>
         </button>
         <button class="ss-opt" type="button" id="shareSecondBtn" data-service="sms" onclick="shareVia(this.dataset.service)">
-          <!-- ICON SLOT: сообщения: icons/messages-ios.png -->
           <div class="ss-icon ios-app ios-custom-icon" id="shareSecondIcon" data-icon-place="icons/messages-ios.png"><img class="ios-app-img" src="icons/messages-ios.png" alt="Сообщения" onerror="this.style.display='none';this.parentElement.classList.add('missing-icon')"></div>
           <div class="ss-opt-label" id="shareSecondLabel">Напишите нам в сообщения</div>
         </button>
+
+        <div class="ss-divider" id="shareDivider">Другие способы</div>
+
         <button class="ss-opt ss-mini" type="button" onclick="shareVia('call')" aria-label="Позвонить">
           <svg class="ss-mini-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span class="ss-mini-copy">
+            <span class="ss-mini-title">Позвонить</span>
+            <span class="ss-mini-meta" id="shareCallMeta">+7 776 680 78 60</span>
+          </span>
+          <span class="ss-mini-arrow" aria-hidden="true">›</span>
         </button>
-        <button class="ss-opt ss-mini" type="button" onclick="shareVia('map')" aria-label="Карта">
+        <button class="ss-opt ss-mini" type="button" onclick="shareVia('map')" aria-label="Открыть адрес ресторана на карте">
           <svg class="ss-mini-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="ss-mini-copy">
+            <span class="ss-mini-title">Адрес ресторана</span>
+            <span class="ss-mini-meta">Открыть на карте</span>
+          </span>
+          <span class="ss-mini-arrow" aria-hidden="true">›</span>
         </button>
       </div>
-      <div class="ss-divider" id="shareDivider">или вы можете</div>
-      <button class="ss-copy" id="shareCopyBtn" type="button" onclick="copyOrder()">Скопировать ссылку</button>
+
+      <button class="ss-copy" id="shareCopyBtn" type="button" onclick="copyOrder()">
+        <svg class="ss-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <span id="shareCopyLabel">Скопировать ссылку</span>
+        <span class="ss-copy-meta">Можно отправить вручную</span>
+      </button>
     </div>
   </div>
 </div>
@@ -3099,23 +3404,28 @@ function prepareServiceSheet(mode){
   const title=document.getElementById('shareTitle');
   const sub=document.getElementById('shareSub');
   const waLabel=document.getElementById('shareWaLabel');
-  const copyBtn=document.getElementById('shareCopyBtn');
+  const copyLabel=document.getElementById('shareCopyLabel');
+  const divider=document.getElementById('shareDivider');
+  const callMeta=document.getElementById('shareCallMeta');
   ov.classList.remove('contact-mode','order-mode','product-mode');
   ov.classList.add(mode+'-mode');
+  if(callMeta)callMeta.textContent=SHOP_PHONE_TEXT;
   if(mode==='contact'){
     pendingOrderText='Sushi Crazy — '+SHOP_PHONE_TEXT;
     title.textContent='Выберите удобный сервис для связи с нами';
     sub.textContent='';
     waLabel.textContent='Напишите нам в WhatsApp';
-    copyBtn.textContent='Скопировать ссылку';
+    copyLabel.textContent='Скопировать ссылку';
+    divider.textContent='Другие способы';
     setSecondService('Напишите нам в сообщения');
   }
   if(mode==='order'){
     title.textContent='Куда отправить заказ?';
-    sub.textContent='Выберите сервис. Текст заказа уже собран: позиции, адрес и комментарий.';
-    waLabel.textContent='Отправить в WhatsApp';
-    copyBtn.textContent='Скопировать текст заказа';
-    setSecondService('Отправить сообщение');
+    sub.textContent='Заказ уже подготовлен. Осталось выбрать способ отправки.';
+    waLabel.textContent='WhatsApp';
+    copyLabel.textContent='Скопировать текст заказа';
+    divider.textContent='Другие способы';
+    setSecondService('Сообщение');
   }
   if(mode==='product'){
     const data=getProductShareData();
@@ -3124,7 +3434,8 @@ function prepareServiceSheet(mode){
     title.textContent=item?`Поделиться «${item.n}»`:'Поделиться';
     sub.textContent='Отправьте блюдо через WhatsApp, сообщения или скопируйте ссылку.';
     waLabel.textContent='Отправить в WhatsApp';
-    copyBtn.textContent='Скопировать ссылку';
+    copyLabel.textContent='Скопировать ссылку';
+    divider.textContent='или скопируйте ссылку';
     setSecondService('Отправить сообщением');
   }
 }
