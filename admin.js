@@ -68,6 +68,26 @@ async function schedule(){const id=$('#dishForm').elements.id.value,p=Number($('
 async function cancelSchedule(){const id=$('#dishForm').elements.id.value;if(!id)return;await mutate('cancel_scheduled_price',{id:id});toast('Отложенная цена отменена');await load(S.days,true);dishModal(findDish(id))}
 async function saveSettings(){const f=$('#settingsForm'),p={},names=['restaurant_name','subtitle','city','schedule_open','schedule_close','delivery_text','free_delivery_from','whatsapp_number','phone_number','instagram_handle','instagram_url','address_text','map_url','map_embed_url','logo_url','banner_url','contact_button_text','whatsapp_order_title'];names.forEach(n=>p[n]=f.elements[n].value);p.popular_fallback_names=f.elements.popular_fallback_names.value.split('\n').map(x=>x.trim()).filter(Boolean);await mutate('save_settings',p);toast('Контент сайта сохранён');await load(S.days,true)}
 async function bulkPrice(){const f=$('#bulkPriceForm');await mutate('batch_price',{ids:Array.from(S.selected),mode:f.elements.mode.value,value:Number(f.elements.value.value)});closeModal('bulkPriceModal');S.selected.clear();toast('Цены обновлены');await load(S.days,true)}
+async function uploadDishImage(file,targetName,button){
+  if(!file)return;
+  if(file.size>10*1024*1024){toast('Файл больше 10 МБ','error');return}
+  const old=button.textContent;button.disabled=true;button.textContent='Загрузка…';
+  try{
+    const fd=new FormData();fd.append('file',file);
+    const r=await fetch(SB+'/functions/v1/menu-media-upload',{method:'POST',headers:{'x-admin-token':S.token},body:fd});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(data.error||'Не удалось загрузить изображение');
+    const form=$('#dishForm');
+    form.elements[targetName].value=data.url;
+    preview();
+    toast('Изображение загружено');
+  }catch(e){
+    if(/Unauthorized/i.test(e.message))forceLogout('Сессия истекла. Войдите снова.');
+    else toast(e.message,'error');
+  }finally{
+    button.disabled=false;button.textContent=old;
+  }
+}
 function init(){
   $('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginError').hidden=true;$('#loginBtn').disabled=true;try{await login($('#loginPassword').value)}catch(x){$('#loginError').textContent=x.message;$('#loginError').hidden=false}finally{$('#loginBtn').disabled=false}};
   $('#logoutBtn').onclick=logout;$('#refreshBtn').onclick=()=>load(S.days).then(()=>toast('Данные обновлены')).catch(e=>toast(e.message,'error'));
@@ -81,7 +101,8 @@ function init(){
   $('#dishForm').onsubmit=e=>{e.preventDefault();saveDish().catch(x=>toast(x.message,'error'))};$('#dishForm').oninput=preview;
   $('#categoryForm').onsubmit=e=>{e.preventDefault();saveCat().catch(x=>toast(x.message,'error'))};$('#bulkPriceForm').onsubmit=e=>{e.preventDefault();bulkPrice().catch(x=>toast(x.message,'error'))};$('#settingsForm').onsubmit=e=>{e.preventDefault();saveSettings().catch(x=>toast(x.message,'error'))};
   $('#schedulePriceBtn').onclick=()=>schedule().catch(e=>toast(e.message,'error'));$('#cancelScheduledPriceBtn').onclick=()=>cancelSchedule().catch(e=>toast(e.message,'error'));
-  $$('[data-close-modal]').forEach(b=>b.onclick=()=>closeModal(b.dataset.closeModal));$$('.modal-backdrop').forEach(m=>m.onmousedown=e=>{if(e.target===m)closeModal(m.id)});
+  $('[data-upload-target]').forEach(btn=>{const input=$('#'+btn.dataset.fileInput);btn.onclick=()=>input.click();input.onchange=()=>{const file=input.files&&input.files[0];if(file)uploadDishImage(file,btn.dataset.uploadTarget,btn).finally(()=>{input.value=''})}});
+  $('[data-close-modal]').forEach(b=>b.onclick=()=>closeModal(b.dataset.closeModal));$$('.modal-backdrop').forEach(m=>m.onmousedown=e=>{if(e.target===m)closeModal(m.id)});
   document.onkeydown=e=>{if(e.key==='Escape'){const m=$$('.modal-backdrop').find(x=>!x.hidden);if(m)closeModal(m.id);else document.body.classList.remove('sidebar-open')}};
 }
 init();if(S.token)boot().catch(e=>forceLogout(e.message));
