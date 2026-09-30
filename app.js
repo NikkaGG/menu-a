@@ -47,14 +47,120 @@ function renderSvgSlots(root=document){
 }
 
 renderSvgSlots();
-const SHOP_PHONE='+77766807860';
-const SHOP_PHONE_TEXT='+7 776 680 78 60';
-const SHOP_ADDRESS='улица Трудовиков, 2г, Грозный, Чеченская Республика';
-const SHOP_ADDRESS_SHORT='ул. Трудовиков, 2г';
-const SHOP_MAP_URL='https://yandex.ru/maps/?ll=45.593695%2C43.373205&z=17&pt=45.593695%2C43.373205%2Cpm2rdm';
-const SHOP_INSTAGRAM_URL='https://www.instagram.com/sushi_crazy_195/';
-const SHOP_INSTAGRAM_HANDLE='@sushi_crazy_195';
-const SHOP_SCHEDULE=Object.freeze({open:'11:00',close:'22:40',utcOffsetMinutes:300});
+let SHOP_NAME='Sushi Crazy';
+let SHOP_PHONE='+77766807860';
+let SHOP_PHONE_TEXT='+7 776 680 78 60';
+let SHOP_ADDRESS='улица Трудовиков, 2г, Грозный, Чеченская Республика';
+let SHOP_ADDRESS_SHORT='ул. Трудовиков, 2г';
+let SHOP_MAP_URL='https://yandex.ru/maps/?ll=45.593695%2C43.373205&z=17&pt=45.593695%2C43.373205%2Cpm2rdm';
+let SHOP_INSTAGRAM_URL='https://www.instagram.com/sushi_crazy_195/';
+let SHOP_INSTAGRAM_HANDLE='@sushi_crazy_195';
+const SHOP_SCHEDULE={open:'11:00',close:'22:40',utcOffsetMinutes:300};
+let WHATSAPP_ORDER_TITLE='Новый заказ · Sushi Crazy';
+let SITE_SETTINGS=null;
+const MENU_SB_URL='https://osyphouhtjanfoujcbid.supabase.co';
+const MENU_SB_KEY='sb_publishable_FJcKpYUD2sH6Ai2psVe97Q_59HenbRO';
+let recommendationMap=new Map();
+const RECOMMENDED_IDS=[];
+const ANALYTICS_VISITOR_KEY='sushi-crazy-visitor-v1';
+const ANALYTICS_SESSION_KEY='sushi-crazy-session-v1';
+let searchAnalyticsTimer=null;
+function analyticsUuid(storage,key){
+  try{
+    let id=storage.getItem(key);
+    if(!id){
+      id=crypto.randomUUID?.()||'00000000-0000-4000-8000-'+Math.random().toString(16).slice(2).padEnd(12,'0').slice(0,12);
+      storage.setItem(key,id);
+    }
+    return id;
+  }catch(error){return crypto.randomUUID?.()||'00000000-0000-4000-8000-000000000001';}
+}
+function analyticsDevice(){
+  const ua=navigator.userAgent||'';
+  if(/iPad|Tablet|PlayBook|Silk/i.test(ua))return 'tablet';
+  if(/Android|iPhone|iPod|Mobile/i.test(ua))return 'mobile';
+  return 'desktop';
+}
+function analyticsBrowser(){
+  const ua=navigator.userAgent||'';
+  if(/Instagram/i.test(ua))return 'Instagram';
+  if(/Telegram/i.test(ua))return 'Telegram';
+  if(/Edg\//i.test(ua))return 'Edge';
+  if(/OPR\//i.test(ua))return 'Opera';
+  if(/CriOS|Chrome/i.test(ua))return 'Chrome';
+  if(/FxiOS|Firefox/i.test(ua))return 'Firefox';
+  if(/Safari/i.test(ua))return 'Safari';
+  return 'Other';
+}
+function trackEvent(eventType,item=null,extra={}){
+  try{
+    const payload={
+      event_type:eventType,
+      visitor_id:analyticsUuid(localStorage,ANALYTICS_VISITOR_KEY),
+      session_id:analyticsUuid(sessionStorage,ANALYTICS_SESSION_KEY),
+      event_key:crypto.randomUUID?.()||null,
+      product_id:item?.id??null,
+      product_name:item?.n??null,
+      category:item?(CN[item.c]||item.c||null):null,
+      device_class:analyticsDevice(),
+      browser_family:analyticsBrowser(),
+      ...extra
+    };
+    fetch(MENU_SB_URL+'/rest/v1/analytics_events',{
+      method:'POST',
+      keepalive:true,
+      headers:{apikey:MENU_SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(payload)
+    }).catch(()=>{});
+  }catch(error){}
+}
+async function menuApi(path){
+  const r=await fetch(MENU_SB_URL+'/rest/v1/'+path,{headers:{apikey:MENU_SB_KEY}});
+  if(!r.ok)throw new Error('Menu API '+r.status);
+  return r.json();
+}
+function prettyPhone(value){
+  const digits=String(value||'').replace(/\D/g,'');
+  if(digits.length===11&&digits[0]==='7')return '+7 '+digits.slice(1,4)+' '+digits.slice(4,7)+' '+digits.slice(7,9)+' '+digits.slice(9,11);
+  return value||'';
+}
+function applySiteSettings(s){
+  if(!s)return;
+  SITE_SETTINGS=s;
+  SHOP_NAME=s.restaurant_name||SHOP_NAME;
+  SHOP_PHONE=s.whatsapp_number||SHOP_PHONE;
+  SHOP_PHONE_TEXT=prettyPhone(SHOP_PHONE);
+  SHOP_ADDRESS_SHORT=s.address_text||SHOP_ADDRESS_SHORT;
+  SHOP_ADDRESS=SHOP_ADDRESS_SHORT+(s.city?', '+s.city:'');
+  SHOP_MAP_URL=s.map_url||SHOP_MAP_URL;
+  SHOP_INSTAGRAM_URL=s.instagram_url||SHOP_INSTAGRAM_URL;
+  SHOP_INSTAGRAM_HANDLE=s.instagram_handle||SHOP_INSTAGRAM_HANDLE;
+  SHOP_SCHEDULE.open=s.schedule_open||SHOP_SCHEDULE.open;
+  SHOP_SCHEDULE.close=s.schedule_close||SHOP_SCHEDULE.close;
+  WHATSAPP_ORDER_TITLE=s.whatsapp_order_title||('Новый заказ · '+SHOP_NAME);
+  document.title=SHOP_NAME+' — меню';
+  const setText=(selector,value)=>{const el=document.querySelector(selector);if(el&&value!=null)el.textContent=value;};
+  setText('.rest-name',SHOP_NAME);
+  setText('.rest-tags',s.subtitle||'');
+  const details=document.querySelectorAll('.rest-detail');
+  if(details[1]&&s.delivery_text)details[1].innerHTML='<span class="dot">•</span> <span>'+s.delivery_text+'</span>';
+  const contact=document.querySelector('.contact-btn');if(contact&&s.contact_button_text)contact.textContent=s.contact_button_text;
+  setText('.rf-brand h2',SHOP_NAME.toUpperCase());
+  setText('.rf-brand p',(s.subtitle||'').replace(/\|/g,' · '));
+  setText('.rf-brand span',s.city||'');
+  const rfLinks=document.querySelectorAll('.rf-column a');
+  if(rfLinks[0]){rfLinks[0].href='https://wa.me/'+SHOP_PHONE.replace(/\D/g,'');rfLinks[0].textContent='WhatsApp: '+SHOP_PHONE_TEXT;}
+  if(rfLinks[1]){rfLinks[1].href='tel:'+String(s.phone_number||SHOP_PHONE).replace(/\s/g,'');rfLinks[1].textContent='Позвонить: '+prettyPhone(s.phone_number||SHOP_PHONE);}
+  const rfSchedule=document.querySelector('.rf-muted');if(rfSchedule)rfSchedule.textContent='Ежедневно '+SHOP_SCHEDULE.open+'–'+SHOP_SCHEDULE.close;
+  const socialLinks=document.querySelectorAll('.rf-column:nth-of-type(3) a');
+  if(socialLinks[0]){socialLinks[0].href=SHOP_INSTAGRAM_URL;socialLinks[0].textContent='Instagram: '+SHOP_INSTAGRAM_HANDLE;}
+  if(socialLinks[1]){socialLinks[1].href=SHOP_MAP_URL;socialLinks[1].textContent='Яндекс Карты: '+SHOP_ADDRESS_SHORT;}
+  const map=document.querySelector('.rf-map iframe');if(map&&s.map_embed_url)map.src=s.map_embed_url;
+  const logo=document.querySelector('.avatar-photo');if(logo&&s.logo_url)logo.src=s.logo_url;
+  const banner=document.querySelector('.banner-photo');if(banner&&s.banner_url)banner.src=s.banner_url;
+  const instagramBtn=document.getElementById('shareInstagramBtn');if(instagramBtn)instagramBtn.href=SHOP_INSTAGRAM_URL;
+  renderShopSchedule();
+}
 const PICKUP_PREPARATION_MINUTES=40;
 const PICKUP_SLOT_STEP_MINUTES=20;
 function parseTimeMinutes(time){
@@ -251,9 +357,11 @@ function toggleFavorite(id,event){
   if(!item)return;
   if(favorites.has(item.n)){
     favorites.delete(item.n);
+    trackEvent('favorite_remove',item);
     showToast('Удалено из избранного');
   }else{
     favorites.add(item.n);
+    trackEvent('favorite_add',item);
     showToast('Добавлено в избранное');
   }
   persistFavorites();
@@ -305,21 +413,69 @@ const POPULAR_IDS=[15,1,2,3,10,18];
 const REF_CAT_IDS={'Фаст-фуд':'f','Роллы':'r','Сеты':'s','Пицца':'z','Соусы':'a','Напитки':'d'};
 const REF_DESC={'Торт из 7 порций':'2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура','Бизнес-ланч':'Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105','Чизбургер (говяжий)':'Состав: булочка, говяжья котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б24 / Ж30 / У46','Гиро на тарелке':'Состав: курица (гиро), картофель фри, пита, помидор, огурец, лук, соус (чесночный/дзадзики) Пищевая ценность на порцию: Б38 / Ж45 / У105','Пепперони':'Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118','Бешеный лосось':'Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62'};
 function rebuildCats(){const el=document.getElementById('catsEl');if(!el)return;el.innerHTML='';CATS.forEach((c,idx)=>{const b=document.createElement('button');b.className='cat'+(idx===0?' on':'');b.textContent=c.l;b.onclick=()=>{document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(window.muteSpy)window.muteSpy(600);const sec=document.getElementById('sec-'+c.id);if(sec)window.scrollTo(0,Math.max(0,sec.offsetTop-92));};el.appendChild(b);});}
-fetch('ref-products-dom.json')
-  .then(r=>{if(!r.ok)throw new Error('Menu data '+r.status);return r.json();})
-  .then(data=>{
-    if(!Array.isArray(data))throw new Error('Invalid menu data');
-    M.splice(0,M.length,...data.map((x,i)=>({id:i+1,c:REF_CAT_IDS[x.cat]||'f',n:x.name,w:x.weight,d:x.desc||REF_DESC[x.name]||'',p:x.price,img:x.img,detailImg:x.detailImg||'',i:(REF_CAT_IDS[x.cat]||'f')})));
-    CATS.splice(0,CATS.length,...['Фаст-фуд','Роллы','Сеты','Пицца','Соусы','Напитки'].map(x=>({id:REF_CAT_IDS[x],l:x})));
-    POPULAR_IDS.splice(0,POPULAR_IDS.length,...['Торт из 7 порций','Бизнес-ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешеный лосось'].map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean));
-    menuReady=true;restoreCart();rebuildCats();renderPopular();render();syncFavoritesUi();updatePill();openProductFromUrl();
-  })
-  .catch(error=>{
+async function loadMenuFromSupabase(){
+  const dishes=await menuApi('public_menu_dishes?select=*&order=sort_order.asc');
+  const categories=await menuApi('categories?select=id,name,slug,sort_order&is_visible=eq.true&order=sort_order.asc');
+  const settingsRows=await menuApi('site_settings?select=*&id=eq.1&limit=1');
+  const popularity=await menuApi('public_dish_popularity?select=*&order=score.desc&limit=12');
+  const relations=await menuApi('public_dish_recommendations?select=*&order=score.desc&limit=1000');
+  const settings=settingsRows?.[0]||null;
+  applySiteSettings(settings);
+  const codeByCategory=new Map();
+  categories.forEach((cat,idx)=>{
+    const code=REF_CAT_IDS[cat.name]||cat.slug||('cat-'+idx);
+    codeByCategory.set(cat.id,code);
+    CN[code]=cat.name;
+  });
+  M.splice(0,M.length,...dishes.map(x=>({
+    dbId:x.id,
+    id:Number(x.public_id),
+    c:codeByCategory.get(x.category_id)||REF_CAT_IDS[x.category_name]||x.category_slug||'f',
+    n:x.name,
+    w:x.weight||'',
+    d:x.description||'',
+    p:Number(x.price||0),
+    oldPrice:x.old_price==null?null:Number(x.old_price),
+    img:x.photo_url||'',
+    detailImg:x.detail_image_url||'',
+    i:codeByCategory.get(x.category_id)||REF_CAT_IDS[x.category_name]||x.category_slug||'f',
+    recommended:!!x.is_recommended
+  })));
+  CATS.splice(0,CATS.length,...categories.map((cat,idx)=>({id:codeByCategory.get(cat.id)||('cat-'+idx),l:cat.name})));
+  recommendationMap=new Map();
+  relations.forEach(row=>{
+    const id=Number(row.dish_public_id),related=Number(row.related_public_id);
+    if(!recommendationMap.has(id))recommendationMap.set(id,[]);
+    if(!recommendationMap.get(id).includes(related))recommendationMap.get(id).push(related);
+  });
+  RECOMMENDED_IDS.splice(0,RECOMMENDED_IDS.length,...M.filter(x=>x.recommended).map(x=>x.id));
+  const popularIds=(popularity||[]).map(x=>Number(x.dish_public_id)).filter(id=>getItem(id));
+  const fallbackNames=Array.isArray(settings?.popular_fallback_names)?settings.popular_fallback_names:['Торт из 7 порций','Бизнес-ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешеный лосось'];
+  POPULAR_IDS.splice(0,POPULAR_IDS.length,...(popularIds.length?popularIds.slice(0,6):fallbackNames.map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean)));
+}
+async function loadMenuFallback(){
+  const r=await fetch('ref-products-dom.json');
+  if(!r.ok)throw new Error('Menu data '+r.status);
+  const data=await r.json();
+  if(!Array.isArray(data))throw new Error('Invalid menu data');
+  M.splice(0,M.length,...data.map((x,i)=>({id:i+1,c:REF_CAT_IDS[x.cat]||'f',n:x.name,w:x.weight,d:x.desc||REF_DESC[x.name]||'',p:x.price,img:x.img,detailImg:x.detailImg||'',i:(REF_CAT_IDS[x.cat]||'f')})));
+  CATS.splice(0,CATS.length,...['Фаст-фуд','Роллы','Сеты','Пицца','Соусы','Напитки'].map(x=>({id:REF_CAT_IDS[x],l:x})));
+  POPULAR_IDS.splice(0,POPULAR_IDS.length,...['Торт из 7 порций','Бизнес-ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешеный лосось'].map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean));
+}
+(async()=>{
+  try{await loadMenuFromSupabase();}
+  catch(error){console.warn('Supabase menu fallback',error);await loadMenuFallback();}
+  try{
+    menuReady=true;
+    restoreCart();rebuildCats();renderPopular();renderRecommended();render();syncFavoritesUi();updatePill();openProductFromUrl();
+    trackEvent('menu_view',null,{metadata:{path:location.pathname}});
+  }catch(error){
     console.error(error);menuReady=true;
     const area=document.getElementById('menuArea');
     if(area)area.innerHTML='<div class="menu-load-error"><strong>Не удалось загрузить меню</strong><span>Проверьте соединение и попробуйте ещё раз.</span><button type="button" onclick="location.reload()">Повторить</button></div>';
     const popular=document.getElementById('popularCard');if(popular)popular.innerHTML='';
-  });
+  }
+})();
 function fmt(n){return n.toLocaleString('ru-RU')+' ₸'}
 function getItem(id){return M.find(i=>i.id===parseInt(id));}
 function priceText(n){return fmt(n).replace(' ₸','');}
@@ -555,6 +711,20 @@ function renderPopular(){
   renderPopularDots();
   updatePopular();
 }
+function renderRecommended(){
+  const section=document.getElementById('recommendedSection');
+  const host=document.getElementById('recommendedList');
+  if(!section||!host)return;
+  const items=RECOMMENDED_IDS.map(id=>getItem(id)).filter(Boolean).slice(0,8);
+  if(!items.length){section.hidden=true;host.innerHTML='';return;}
+  section.hidden=false;
+  host.innerHTML=items.map(item=>`<div class="recommended-item">
+    <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
+    <div class="recommended-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async">`:foodIcon(item.i)}</div>
+    <div class="recommended-copy"><strong>${item.n}</strong><span>${item.w||''}</span><b>${fmt(item.p)}</b></div>
+    ${cartAddButton(item.id,'recommended-add')}
+  </div>`).join('');
+}
 function setPopular(i){
   popIndex=(i+POPULAR_IDS.length)%POPULAR_IDS.length;
   updatePopular();
@@ -663,7 +833,12 @@ function toggleView(){
   setViewIcon();
   render();
 }
-function doSearch(v){search=v;render();}
+function doSearch(v){
+  search=v;render();
+  clearTimeout(searchAnalyticsTimer);
+  const query=String(v||'').trim();
+  if(query.length>=2)searchAnalyticsTimer=setTimeout(()=>trackEvent('search',null,{search_term:query,metadata:{results:filtered().length}}),650);
+}
 const viewBtn=document.getElementById('vbtn');
 if(viewBtn){
   viewBtn.addEventListener('click',e=>{e.preventDefault();toggleView();});
@@ -675,6 +850,7 @@ function openProd(id,opener,skipHistory=false){
   if(!item)return;
   activeProductId=item.id;
   if(!skipHistory)pushMenuOverlayState('prodOv',item.id);
+  trackEvent('product_view',item);
   document.getElementById('prodContent').innerHTML=`
     <div class="ps-img${item.detailImg?' detail-generated':''}">${(item.detailImg||item.img)?`<img class="product-img" src="${item.detailImg||item.img}" alt="${item.n}" decoding="async" fetchpriority="high">`:foodIcon(item.i)}</div>
     <div class="ps-dot" aria-hidden="true"></div>
@@ -691,7 +867,9 @@ function openProd(id,opener,skipHistory=false){
   openOv('prodOv',opener);
 }
 function addCart(id){
+  const item=getItem(id);
   cart[id]=(cart[id]||0)+1;
+  if(item)trackEvent('cart_add',item,{quantity_added:1,cart_quantity:cart[id]});
   updatePill();
   syncCardState(id,true);
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
@@ -714,6 +892,8 @@ function updatePill(){
 }
 function openCart(skipHistory=false){
   if(!skipHistory)pushMenuOverlayState('cartOv');
+  const payload=buildOrderPayload();
+  trackEvent('cart_open',null,{cart_total:payload.total,item_count:payload.items.reduce((s,x)=>s+x.quantity,0)});
   renderCart();syncCartOptionalBlocks();openOv('cartOv');
 }
 
@@ -721,6 +901,10 @@ function getCartRecommendations(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
   if(!keys.length)return [];
   const inCart=new Set(keys.map(Number));
+  const smartIds=[];
+  keys.forEach(id=>(recommendationMap.get(Number(id))||[]).forEach(recId=>{if(!inCart.has(recId)&&!smartIds.includes(recId))smartIds.push(recId);}));
+  const smart=smartIds.map(id=>getItem(id)).filter(Boolean).slice(0,3);
+  if(smart.length>=3)return smart;
   const cats=new Set(keys.map(id=>getItem(id)?.c).filter(Boolean));
   const names=[];
   const push=(...values)=>values.forEach(value=>{if(!names.includes(value))names.push(value);});
@@ -730,7 +914,8 @@ function getCartRecommendations(){
   if(cats.has('a'))push('Добрый Cola','Картошка фри');
   if(cats.has('d'))push('Сырный соус','Картошка фри');
   push('Добрый Cola','Сырный соус','Чесночный соус');
-  return names.map(name=>M.find(item=>item.n===name)).filter(item=>item&&!inCart.has(item.id)).slice(0,3);
+  const fallback=names.map(name=>M.find(item=>item.n===name)).filter(item=>item&&!inCart.has(item.id)&&!smartIds.includes(item.id));
+  return smart.concat(fallback).slice(0,3);
 }
 function renderCartRecommendations(){
   const host=document.getElementById('cartRecommendations');
@@ -801,8 +986,10 @@ function pluralItems(n){
   return 'товаров';
 }
 function chQ(id,d){
+  const item=getItem(id);
   cart[id]=(cart[id]||0)+d;
   if(cart[id]<=0)delete cart[id];
+  if(item)trackEvent(d>0?'cart_add':'cart_remove',item,{quantity_added:d>0?d:null,cart_quantity:cart[id]||0});
   updatePill();
   syncCardState(id,true);
   if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
@@ -947,7 +1134,7 @@ function buildOrderText(payload=buildOrderPayload()){
     return raw;
   };
 
-  const lines=['Новый заказ · Sushi Crazy',separator];
+  const lines=[WHATSAPP_ORDER_TITLE,separator];
 
   payload.items.forEach(item=>{
     lines.push(`${item.name} × ${item.quantity} — ${fmt(item.lineTotal)}`);
@@ -1006,7 +1193,7 @@ function getProductShareData(id=activeProductId){
   const url=new URL('/product/'+item.id,location.origin);
   return {
     id:item.id,
-    title:`${item.n} — Sushi Crazy`,
+    title:`${item.n} — ${SHOP_NAME}`,
     text:`${item.w} · ${fmt(item.p)}`,
     url:url.toString()
   };
@@ -1148,6 +1335,12 @@ function placeOrder(){
     return;
   }
   pendingOrderPayload=buildOrderPayload();
+  trackEvent('checkout_open',null,{
+    cart_total:pendingOrderPayload.total,
+    item_count:pendingOrderPayload.items.reduce((s,x)=>s+x.quantity,0),
+    delivery_method:pendingOrderPayload.orderMethod,
+    payment_method:pendingOrderPayload.paymentMethod
+  });
   pendingOrderText=buildOrderText(pendingOrderPayload);
   prepareServiceSheet('order');
   const transitionOpener=dialogOpeners.get(document.getElementById('cartOv'));
@@ -1215,6 +1408,8 @@ function shareVia(v){
       return;
     }
     if(v==='wa'){
+      const item=getItem(activeProductId);
+      if(item)trackEvent('share_product',item,{metadata:{channel:'whatsapp'}});
       const opened=window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
       if(!opened){
         showToast('Разрешите открытие WhatsApp или скопируйте ссылку');
@@ -1227,9 +1422,19 @@ function shareVia(v){
     runAfterMotion(()=>closeOv('shareOv'),400);
     return;
   }
-  const text=pendingOrderText||'Sushi Crazy: '+SHOP_PHONE_TEXT;
+  const text=pendingOrderText||SHOP_NAME+': '+SHOP_PHONE_TEXT;
   if(v==='wa'){
-    const opened=window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
+    if(shareOv?.classList.contains('order-mode')&&pendingOrderPayload){
+      trackEvent('whatsapp_click',null,{
+        cart_total:pendingOrderPayload.total,
+        item_count:pendingOrderPayload.items.reduce((s,x)=>s+x.quantity,0),
+        cart_quantity:pendingOrderPayload.items.reduce((s,x)=>s+x.quantity,0),
+        delivery_method:pendingOrderPayload.orderMethod,
+        payment_method:pendingOrderPayload.paymentMethod,
+        order_items:pendingOrderPayload.items.map(x=>({id:x.id,name:x.name,quantity:x.quantity,price:x.unitPrice}))
+      });
+    }
+    const opened=window.open('https://wa.me/'+SHOP_PHONE.replace(/\D/g,'')+'?text='+encodeURIComponent(text),'_blank');
     if(!opened){showToast('Разрешите открытие WhatsApp или скопируйте текст заказа');return;}
   }
   if(v==='sms'){
