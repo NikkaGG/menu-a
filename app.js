@@ -49,6 +49,7 @@ function renderSvgSlots(root=document){
 renderSvgSlots();
 let SHOP_NAME='Sushi Crazy';
 let SHOP_PHONE='+77766807860';
+let SHOP_CALL_PHONE='+77766807860';
 let SHOP_PHONE_TEXT='+7 776 680 78 60';
 let SHOP_ADDRESS='улица Трудовиков, 2г, Грозный, Чеченская Республика';
 let SHOP_ADDRESS_SHORT='ул. Трудовиков, 2г';
@@ -129,6 +130,7 @@ function applySiteSettings(s){
   SITE_SETTINGS=s;
   SHOP_NAME=s.restaurant_name||SHOP_NAME;
   SHOP_PHONE=s.whatsapp_number||SHOP_PHONE;
+  SHOP_CALL_PHONE=s.phone_number||SHOP_PHONE;
   SHOP_PHONE_TEXT=prettyPhone(SHOP_PHONE);
   SHOP_ADDRESS_SHORT=s.address_text||SHOP_ADDRESS_SHORT;
   SHOP_ADDRESS=SHOP_ADDRESS_SHORT+(s.city?', '+s.city:'');
@@ -1438,12 +1440,12 @@ function shareVia(v){
     if(!opened){showToast('Разрешите открытие WhatsApp или скопируйте текст заказа');return;}
   }
   if(v==='sms'){
-    window.location.href='sms:'+SHOP_PHONE+'?body='+encodeURIComponent(text);
+    window.location.href='sms:'+SHOP_CALL_PHONE+'?body='+encodeURIComponent(text);
     showToast('Открываем сообщения');
   }
   if(v==='call'){
-    window.location.href='tel:'+SHOP_PHONE;
-    showToast('Звоним: '+SHOP_PHONE_TEXT);
+    window.location.href='tel:'+SHOP_CALL_PHONE;
+    showToast('Звоним: '+prettyPhone(SHOP_CALL_PHONE));
   }
   if(v==='map'){
     window.open(SHOP_MAP_URL,'_blank','noopener');
