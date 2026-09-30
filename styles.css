@@ -3038,3 +3038,26 @@ body.favorites-mode .search-row{margin-bottom:0!important}
     padding-top:28px!important;
   }
 }
+
+
+/* ── PRODUCT ACTION LAYOUT + FAVORITES CLOSE STABILITY ── */
+#prodOv .ps-top{
+  display:grid!important;
+  grid-template-columns:44px 44px!important;
+  grid-template-rows:44px 44px!important;
+  gap:8px!important;
+  align-items:center!important;
+  justify-items:center!important;
+}
+#prodOv .ps-share-btn{
+  grid-column:1;
+  grid-row:1;
+}
+#prodOv .prod-fav-btn{
+  grid-column:2;
+  grid-row:1;
+}
+#prodOv .ps-back-btn{
+  grid-column:2;
+  grid-row:2;
+}
