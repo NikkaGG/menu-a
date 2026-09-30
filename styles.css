@@ -2909,3 +2909,104 @@ body.favorites-mode .search-row{margin-bottom:0!important}
   .rf-map{height:96px}
   .rf-credit{justify-content:flex-start}
 }
+
+
+/* ── FULL-BLEED RESTAURANT FOOTER + CLEAN MAP ── */
+.restaurant-footer{
+  width:100vw!important;
+  max-width:none!important;
+  margin:48px 0 0 calc(50% - 50vw)!important;
+  padding:0 28px 24px!important;
+  border-radius:0!important;
+  box-sizing:border-box!important;
+  background:#050505!important;
+}
+.restaurant-footer > .rf-topline,
+.restaurant-footer > .rf-main,
+.restaurant-footer > .rf-map,
+.restaurant-footer > .rf-credit{
+  width:min(1120px,calc(100vw - 56px));
+  margin-left:auto!important;
+  margin-right:auto!important;
+  box-sizing:border-box;
+}
+.restaurant-footer > .rf-topline{
+  min-height:82px;
+}
+.restaurant-footer > .rf-main{
+  grid-template-columns:1.2fr 1fr 1fr;
+  padding:54px 0 42px;
+}
+.restaurant-footer .rf-brand h2{
+  font-size:34px;
+}
+.restaurant-footer .rf-column{
+  padding-left:34px;
+  padding-right:28px;
+}
+.restaurant-footer .rf-label{
+  font-size:12px;
+}
+.restaurant-footer .rf-column a,
+.restaurant-footer .rf-link-button{
+  font-size:13px;
+}
+.restaurant-footer .rf-muted{
+  font-size:11px;
+}
+.restaurant-footer > .rf-map{
+  height:220px;
+  border:1px solid #28282c;
+  border-radius:14px;
+  overflow:hidden;
+  background:#111;
+  transition:border-color .16s ease,transform .16s ease;
+}
+.restaurant-footer > .rf-map:hover{
+  border-color:#4a4a4f;
+}
+.restaurant-footer > .rf-map img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  filter:none!important;
+  transform:none!important;
+}
+.restaurant-footer .rf-map-shade,
+.restaurant-footer .rf-map-copy,
+.restaurant-footer .rf-map-arrow{
+  display:none!important;
+}
+.restaurant-footer > .rf-credit{
+  padding-top:18px;
+}
+
+@media(max-width:760px){
+  .restaurant-footer{
+    width:100vw!important;
+    margin-left:calc(50% - 50vw)!important;
+    padding:0 18px 18px!important;
+  }
+  .restaurant-footer > .rf-topline,
+  .restaurant-footer > .rf-main,
+  .restaurant-footer > .rf-map,
+  .restaurant-footer > .rf-credit{
+    width:100%;
+  }
+  .restaurant-footer > .rf-main{
+    grid-template-columns:1fr;
+    gap:22px;
+    padding:32px 0 28px;
+  }
+  .restaurant-footer .rf-column{
+    padding:20px 0 0;
+  }
+  .restaurant-footer .rf-brand h2{
+    font-size:28px;
+  }
+  .restaurant-footer > .rf-map{
+    height:180px;
+    border-radius:12px;
+  }
+}
