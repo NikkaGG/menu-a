@@ -221,14 +221,11 @@ function isFavorite(itemOrId){
   const item=typeof itemOrId==='object'?itemOrId:getItem(itemOrId);
   return !!item&&favorites.has(item.n);
 }
-function favoriteButtonHtml(item,extraClass=''){
-  const active=isFavorite(item);
-  return `<button type="button" class="fav-btn ${extraClass}${active?' is-favorite':''}" aria-label="${active?'Убрать из избранного':'Добавить в избранное'}: ${item.n}" aria-pressed="${active}" onclick="toggleFavorite(${item.id},event)">${svgIcon('heart','svg-icon')}</button>`;
-}
 function syncFavoritesUi(){
   const toggle=document.getElementById('favToggle');
   const count=document.getElementById('favCount');
   if(count)count.textContent=String(favorites.size);
+  document.body.classList.toggle('favorites-mode',favoritesOnly);
   if(toggle){
     toggle.classList.toggle('on',favoritesOnly);
     toggle.classList.toggle('has-favorites',favorites.size>0);
@@ -260,8 +257,7 @@ function toggleFavorite(id,event){
   }
   if(favoritesOnly&&favorites.size===0)favoritesOnly=false;
   persistFavorites();
-  renderPopular();
-  render();
+  if(favoritesOnly)render();
   syncFavoritesUi();
 }
 function toggleFavoritesFilter(){
@@ -527,7 +523,6 @@ function renderPopular(){
     return `<div class="popular-slide">
       <div class="pop-card">
         <button type="button" class="product-details-btn" data-product-id="${item.id}" onclick="openPopularItem(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-        ${favoriteButtonHtml(item,'fav-pop')}
         <div class="pop-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
         ${cartAddButton(item.id,'add-sq pop-add-top')}
         <div class="pop-body">
@@ -562,6 +557,34 @@ function filtered(){
   if(query)r=r.filter(i=>[i.n,i.d,CN[i.c]||i.c].join(' ').toLowerCase().includes(query));
   return r;
 }
+function menuGridCardHtml(item){
+  return `<div class="gc">
+    <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
+    <div class="gc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}
+      ${cartAddButton(item.id,'gc-plus')}
+    </div>
+    <div class="gc-foot">
+      <div class="gc-name">${item.n}</div>
+      <div class="gc-weight">${item.w}</div>
+    </div>
+    ${qtyPriceHtml(item,'gc-price')}
+  </div>`;
+}
+function menuListCardHtml(item){
+  return `<div class="lc">
+    <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
+    <div class="lc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
+    <div class="lc-info">
+      <div class="lc-name">${item.n}</div>
+      <div class="lc-weight">${item.w}</div>
+      <div class="lc-desc">${item.d}</div>
+    </div>
+    <div class="lc-right">
+      ${cartAddButton(item.id,'add-sq')}
+      ${qtyPriceHtml(item,'lc-price')}
+    </div>
+  </div>`;
+}
 function render(){
   if(!menuReady){
     const area=document.getElementById('menuArea');
@@ -569,46 +592,48 @@ function render(){
     return;
   }
   const items=filtered();
+
+  if(favoritesOnly){
+    const allFavoriteCount=[...favorites].filter(name=>M.some(item=>item.n===name)).length;
+    const resultText=search.trim()
+      ? `${items.length} из ${allFavoriteCount} сохранённых`
+      : `${allFavoriteCount} ${allFavoriteCount===1?'товар':allFavoriteCount>=2&&allFavoriteCount<=4?'товара':'товаров'}`;
+    let cards='';
+    if(items.length){
+      cards=isGrid
+        ? `<div class="favorites-grid">${items.map(menuGridCardHtml).join('')}</div>`
+        : `<div class="favorites-list">${items.map(menuListCardHtml).join('')}</div>`;
+    }else{
+      cards=`<div class="favorites-empty">
+        <div class="favorites-empty-icon">${svgIcon('heart','svg-icon')}</div>
+        <strong>${search.trim()?'В избранном ничего не найдено':'В избранном пока пусто'}</strong>
+        <span>${search.trim()?'Измените запрос или очистите поиск.':'Откройте блюдо и нажмите сердечко, чтобы сохранить его здесь.'}</span>
+        ${search.trim()?'<button type="button" onclick="clearSearch()">Очистить поиск</button>':'<button type="button" onclick="toggleFavoritesFilter()">Вернуться в меню</button>'}
+      </div>`;
+    }
+    document.getElementById('menuArea').innerHTML=`<section class="favorites-view">
+      <div class="favorites-view-head">
+        <div>
+          <span class="favorites-kicker">Сохранённое</span>
+          <h2>Избранное</h2>
+          <p>${resultText}</p>
+        </div>
+        <button type="button" class="favorites-back" onclick="toggleFavoritesFilter()">Все меню</button>
+      </div>
+      ${cards}
+    </section>`;
+    return;
+  }
+
   const byCat={};
   items.forEach(i=>{if(!byCat[i.c])byCat[i.c]=[];byCat[i.c].push(i)});
   let html='';
   for(const cat in byCat){
     html+=`<h2 class="menu-sec-title" id="sec-${cat}">${CN[cat]||cat}</h2>`;
     if(isGrid){
-      html+=`<div class="g4">`;
-      byCat[cat].forEach(item=>{
-        html+=`<div class="gc">
-          <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-          <div class="gc-img">${favoriteButtonHtml(item,'fav-card')}${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}
-            ${cartAddButton(item.id,'gc-plus')}
-          </div>
-          <div class="gc-foot">
-            <div class="gc-name">${item.n}</div>
-            <div class="gc-weight">${item.w}</div>
-          </div>
-          ${qtyPriceHtml(item,'gc-price')}
-        </div>`;
-      });
-      html+=`</div>`;
-    } else {
-      html+=`<div class="lv">`;
-      byCat[cat].forEach(item=>{
-        html+=`<div class="lc">
-          <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-          ${favoriteButtonHtml(item,'fav-list')}
-          <div class="lc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
-          <div class="lc-info">
-            <div class="lc-name">${item.n}</div>
-            <div class="lc-weight">${item.w}</div>
-            <div class="lc-desc">${item.d}</div>
-          </div>
-          <div class="lc-right">
-            ${cartAddButton(item.id,'add-sq')}
-            ${qtyPriceHtml(item,'lc-price')}
-          </div>
-        </div>`;
-      });
-      html+=`</div>`;
+      html+=`<div class="g4">${byCat[cat].map(menuGridCardHtml).join('')}</div>`;
+    }else{
+      html+=`<div class="lv">${byCat[cat].map(menuListCardHtml).join('')}</div>`;
     }
   }
   if(!html) html='<div class="empty-search"><strong>Ничего не найдено</strong><span>Попробуйте другой запрос или сбросьте поиск.</span><button type="button" onclick="clearSearch()">Сбросить поиск</button></div>';
