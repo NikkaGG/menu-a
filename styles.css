@@ -3026,3 +3026,15 @@ body.favorites-mode .search-row{margin-bottom:0!important}
   border-radius:inherit;
   background:#111;
 }
+
+
+/* ── REMOVE FOOTER TOP STRIP ── */
+.restaurant-footer > .rf-topline{display:none!important}
+.restaurant-footer > .rf-main{
+  padding-top:42px!important;
+}
+@media(max-width:760px){
+  .restaurant-footer > .rf-main{
+    padding-top:28px!important;
+  }
+}
