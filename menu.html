@@ -2963,26 +2963,60 @@ function buildOrderPayload(){
   };
 }
 function buildOrderText(payload=buildOrderPayload()){
-  let lines=['Новый заказ Sushi Crazy',''];
-  payload.items.forEach((item,idx)=>{
-    lines.push(`${idx+1}. ${item.name} × ${item.quantity} — ${fmt(item.lineTotal)}`);
+  const separator='────────────────';
+  const paymentLabel={
+    kaspi_invoice:'Счёт в Kaspi',
+    card:'Оплата картой',
+    cash:'Наличные'
+  }[payload.paymentMethod]||PAYMENT_METHOD_LABELS[payload.paymentMethod]||'';
+
+  const formatCustomerPhone=phone=>{
+    const raw=String(phone||'').trim();
+    const digits=raw.replace(/\D/g,'');
+    if(digits.length===11&&(digits.startsWith('7')||digits.startsWith('8'))){
+      const normalized=(digits.startsWith('8')?'7'+digits.slice(1):digits);
+      return `+7 ${normalized.slice(1,4)} ${normalized.slice(4,7)} ${normalized.slice(7,9)} ${normalized.slice(9,11)}`;
+    }
+    return raw;
+  };
+
+  const lines=['Новый заказ · Sushi Crazy',separator];
+
+  payload.items.forEach(item=>{
+    lines.push(`${item.name} × ${item.quantity} — ${fmt(item.lineTotal)}`);
   });
-  lines.push('',`Итого: ${fmt(payload.total)}`);
-  lines.push(`Способ: ${payload.orderMethod==='delivery'?'доставка':'самовывоз'}`);
-  if(payload.contact.name)lines.push(`Имя: ${payload.contact.name}`);
-  if(payload.contact.phone)lines.push(`Номер клиента: ${payload.contact.phone}`);
+
+  lines.push(separator);
+  lines.push(`Итого ${fmt(payload.total)}`);
+  lines.push(`${payload.orderMethod==='delivery'?'Доставка':'Самовывоз'} · ${paymentLabel}`);
+
+  if(payload.orderMethod==='pickup'&&payload.pickupTime){
+    lines.push(`Время: ${payload.pickupTime}`);
+  }
+
+  lines.push('');
+  lines.push('Клиент');
+  if(payload.contact.name)lines.push(payload.contact.name);
+  if(payload.contact.phone)lines.push(formatCustomerPhone(payload.contact.phone));
+
   if(payload.deliveryAddress){
-    lines.push(`Адрес: ${payload.deliveryAddress.address}`);
+    lines.push('');
+    lines.push('Адрес');
+    if(payload.deliveryAddress.address)lines.push(payload.deliveryAddress.address);
     const details=[];
     if(payload.deliveryAddress.entrance)details.push(`подъезд ${payload.deliveryAddress.entrance}`);
     if(payload.deliveryAddress.floor)details.push(`этаж ${payload.deliveryAddress.floor}`);
     if(payload.deliveryAddress.flat)details.push(`кв./офис ${payload.deliveryAddress.flat}`);
     if(payload.deliveryAddress.intercom)details.push(`домофон ${payload.deliveryAddress.intercom}`);
-    if(details.length)lines.push(`Уточнение адреса: ${details.join(', ')}`);
+    if(details.length)lines.push(details.join(' · '));
   }
-  if(payload.orderMethod==='pickup'&&payload.pickupTime)lines.push(`Время самовывоза: ${payload.pickupTime}`);
-  lines.push(`Оплата: ${PAYMENT_METHOD_LABELS[payload.paymentMethod]}`);
-  if(payload.comment)lines.push(`Комментарий: ${payload.comment}`);
+
+  if(payload.comment){
+    lines.push('');
+    lines.push('Комментарий');
+    lines.push(payload.comment);
+  }
+
   return lines.join('\n');
 }
 function setSecondService(labelText='Напишите нам в сообщения'){
