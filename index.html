@@ -14,7 +14,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/app-192.png" type="image/png">
 <link rel="apple-touch-icon" href="/icons/app-192.png">
-<link rel="stylesheet" href="/styles.css?v=20260930-features2">
+<link rel="stylesheet" href="/styles.css?v=20260930-favfooter2">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Restaurant","name":"Sushi Crazy","url":"https://menu-a-eta.vercel.app/","image":"https://menu-a-eta.vercel.app/api/branding?type=banner","telephone":"+7 776 680 78 60","servesCuisine":["Sushi","Pizza","Fast food"],"address":{"@type":"PostalAddress","streetAddress":"улица Трудовиков, 2г","addressLocality":"Грозный","addressRegion":"Чеченская Республика"}}
@@ -80,39 +80,57 @@
 <div class="menu-area" id="menuArea"></div>
 
 
-<!-- RESTAURANT INFO -->
-<section class="restaurant-info-panel" aria-labelledby="restaurantInfoTitle">
-  <div class="restaurant-info-head">
-    <div>
-      <h2 id="restaurantInfoTitle">Sushi Crazy</h2>
-      <p>ул. Трудовиков, 2г · ежедневно 11:00–22:40</p>
-    </div>
-    <span class="restaurant-info-badge">2GIS</span>
+<!-- RESTAURANT INFO / FOOTER -->
+<section class="restaurant-footer" aria-labelledby="restaurantFooterTitle">
+  <div class="rf-topline">
+    <a href="https://www.instagram.com/sushi_crazy_195/" target="_blank" rel="noopener noreferrer" class="rf-toplink">
+      <strong>Instagram</strong>
+      <span>@sushi_crazy_195 — следите за нами</span>
+    </a>
+    <a href="tel:+77766807860" class="rf-topcall">
+      <strong>Нет мессенджеров? Позвоните нам</strong>
+      <span class="rf-plus" aria-hidden="true">+</span>
+    </a>
   </div>
 
-  <a class="restaurant-map-card" href="https://2gis.ru/grozny/firm/70000001063972120" target="_blank" rel="noopener noreferrer" aria-label="Открыть Sushi Crazy в 2GIS">
+  <div class="rf-main">
+    <div class="rf-brand">
+      <h2 id="restaurantFooterTitle">SUSHI CRAZY</h2>
+      <p>Суши · Фастфуд · Пицца</p>
+      <span>Грозный</span>
+    </div>
+
+    <div class="rf-column">
+      <div class="rf-label">Связаться:</div>
+      <a href="https://wa.me/77766807860" target="_blank" rel="noopener noreferrer">WhatsApp: +7 776 680 78 60</a>
+      <a href="tel:+77766807860">Позвонить: +7 776 680 78 60</a>
+      <span class="rf-muted">Ежедневно 11:00–22:40</span>
+    </div>
+
+    <div class="rf-column">
+      <div class="rf-label">Социальные сети и адрес:</div>
+      <a href="https://www.instagram.com/sushi_crazy_195/" target="_blank" rel="noopener noreferrer">Instagram: @sushi_crazy_195</a>
+      <a href="https://2gis.ru/grozny/firm/70000001063972120" target="_blank" rel="noopener noreferrer">2GIS: ул. Трудовиков, 2г</a>
+      <button type="button" class="rf-link-button" onclick="shareRestaurant()">Поделиться меню</button>
+      <button type="button" class="rf-link-button" id="installAppBtn" onclick="installPwa()" hidden>Добавить на главный экран</button>
+    </div>
+  </div>
+
+  <a class="rf-map" href="https://2gis.ru/grozny/firm/70000001063972120" target="_blank" rel="noopener noreferrer" aria-label="Открыть Sushi Crazy в 2GIS">
     <img src="/api/map-preview" alt="Sushi Crazy на карте 2GIS" loading="lazy" decoding="async">
-    <span class="restaurant-map-overlay">
-      <strong>Мы на карте</strong>
-      <small>Открыть в 2GIS</small>
+    <span class="rf-map-shade" aria-hidden="true"></span>
+    <span class="rf-map-copy">
+      <strong>ул. Трудовиков, 2г</strong>
+      <small>Открыть маршрут в 2GIS</small>
     </span>
+    <span class="rf-map-arrow" aria-hidden="true">↗</span>
   </a>
 
-  <div class="restaurant-actions">
-    <a class="restaurant-action is-whatsapp" href="https://wa.me/77766807860" target="_blank" rel="noopener noreferrer"><strong>WhatsApp</strong><span>Написать нам</span></a>
-    <a class="restaurant-action" href="https://www.instagram.com/sushi_crazy_195/" target="_blank" rel="noopener noreferrer"><strong>Instagram</strong><span>@sushi_crazy_195</span></a>
-    <a class="restaurant-action" href="tel:+77766807860"><strong>Позвонить</strong><span>+7 776 680 78 60</span></a>
-    <a class="restaurant-action" href="https://2gis.ru/grozny/firm/70000001063972120" target="_blank" rel="noopener noreferrer"><strong>2GIS</strong><span>Маршрут и карточка</span></a>
-    <button class="restaurant-action" type="button" onclick="shareRestaurant()"><strong>Поделиться меню</strong><span>Отправить друзьям</span></button>
-    <button class="restaurant-action install-action" id="installAppBtn" type="button" onclick="installPwa()" hidden><strong>На главный экран</strong><span>Установить приложение</span></button>
+  <div class="rf-credit">
+    <span>Разработано студией</span>
+    <a href="https://t.me/stumsdio" target="_blank" rel="noopener noreferrer">Mirage Studio</a>
   </div>
 </section>
-
-<!-- FOOTER -->
-<footer class="site-footer">
-  Разработано студией<br>
-  <a href="https://t.me/stumsdio" target="_blank" rel="noopener noreferrer" class="site-footer-brand">Mirage Studio</a>
-</footer>
 
 </main><!-- /page -->
 
@@ -315,7 +333,7 @@
   </div>
 </div>
 
-<script src="/app.js?v=20260930-features2"></script>
+<script src="/app.js?v=20260930-favfooter"></script>
 
 </body>
 </html>
