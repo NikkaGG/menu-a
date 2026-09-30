@@ -1268,8 +1268,8 @@ function prepareServiceSheet(mode){
   if(mapMeta)mapMeta.textContent=SHOP_ADDRESS_SHORT;
   if(instagramBtn)instagramBtn.hidden=mode!=='contact';
   if(mode==='contact'){
-    pendingOrderText='Здравствуйте! Хочу уточнить информацию по меню Sushi Crazy.';
-    title.textContent='Связаться с Sushi Crazy';
+    pendingOrderText='Здравствуйте! Хочу уточнить информацию по меню '+SHOP_NAME+'.';
+    title.textContent='Связаться с '+SHOP_NAME;
     sub.textContent='WhatsApp — основной способ связи. Ниже доступны остальные варианты.';
     waLabel.textContent='WhatsApp';
     copyLabel.textContent='Скопировать номер';
@@ -1355,8 +1355,8 @@ function openShare(mode='contact'){
 
 async function shareRestaurant(){
   const payload={
-    title:'Sushi Crazy',
-    text:'Меню Sushi Crazy — суши, роллы, пицца и фастфуд',
+    title:SHOP_NAME,
+    text:'Меню '+SHOP_NAME+(SITE_SETTINGS?.subtitle?' — '+SITE_SETTINGS.subtitle:'') ,
     url:new URL('/',location.origin).toString()
   };
   const canNative=typeof navigator.share==='function'&&(typeof navigator.canShare!=='function'||navigator.canShare(payload));
@@ -1387,7 +1387,7 @@ window.addEventListener('beforeinstallprompt',event=>{
 window.addEventListener('appinstalled',()=>{
   deferredInstallPrompt=null;
   syncInstallButton();
-  showToast('Sushi Crazy добавлено на главный экран');
+  showToast(SHOP_NAME+' добавлено на главный экран');
 });
 async function installPwa(){
   if(!deferredInstallPrompt)return;
