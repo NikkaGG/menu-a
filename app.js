@@ -10,6 +10,7 @@ function svgIcon(name,cls='svg-icon'){
     list:`<svg ${common}><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>`,
     cart:`<svg ${common}><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.1 11.2A2 2 0 0 0 9 16h9.8a2 2 0 0 0 1.9-1.4L22 8H6"/></svg>`,
     share:`<svg ${common}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.7 10.7 15.3 6.3M8.7 13.3l6.6 4.4"/></svg>`,
+    heart:`<svg ${common}><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>`,
     'chevron-left':`<svg ${common}><path d="m15 18-6-6 6-6"/></svg>`,
     phone:`<svg ${common}><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6.1 6.1l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>`,
     map:`<svg ${common}><path d="M12 21s7-5.2 7-12a7 7 0 1 0-14 0c0 6.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg>`,
@@ -50,6 +51,9 @@ const SHOP_PHONE='+77766807860';
 const SHOP_PHONE_TEXT='+7 776 680 78 60';
 const SHOP_ADDRESS='улица Трудовиков, 2г, Грозный, Чеченская Республика';
 const SHOP_ADDRESS_SHORT='ул. Трудовиков, 2г';
+const SHOP_2GIS_URL='https://2gis.ru/grozny/firm/70000001063972120';
+const SHOP_INSTAGRAM_URL='https://www.instagram.com/sushi_crazy_195/';
+const SHOP_INSTAGRAM_HANDLE='@sushi_crazy_195';
 const SHOP_SCHEDULE=Object.freeze({open:'11:00',close:'22:40',utcOffsetMinutes:300});
 const PICKUP_PREPARATION_MINUTES=40;
 const PICKUP_SLOT_STEP_MINUTES=20;
@@ -200,10 +204,76 @@ function foodIcon(type){
 const M=[];
 const CATS=[{id:'f',l:'Фаст-фуд'},{id:'r',l:'Роллы'},{id:'s',l:'Сеты'},{id:'z',l:'Пицца'},{id:'a',l:'Соусы'},{id:'d',l:'Напитки'}];
 const CN={f:'Фаст-фуд',r:'Роллы',s:'Сеты',z:'Пицца',a:'Соусы',d:'Напитки'};
-let isGrid=true,activeCat='all',search='',cart={},delMode='d',pickupTime='',popIndex=0;
+let isGrid=true,activeCat='all',search='',cart={},delMode='d',pickupTime='',popIndex=0,favoritesOnly=false;
 let menuReady=false;
 let cartRestored=false;
 const CART_STORAGE_KEY='sushi-crazy-cart-v1';
+const FAVORITES_STORAGE_KEY='sushi-crazy-favorites-v1';
+let favorites=new Set();
+try{
+  const savedFavorites=JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY)||'[]');
+  if(Array.isArray(savedFavorites))favorites=new Set(savedFavorites.filter(Boolean).map(String));
+}catch(error){favorites=new Set();}
+function persistFavorites(){
+  try{localStorage.setItem(FAVORITES_STORAGE_KEY,JSON.stringify([...favorites]));}catch(error){}
+}
+function isFavorite(itemOrId){
+  const item=typeof itemOrId==='object'?itemOrId:getItem(itemOrId);
+  return !!item&&favorites.has(item.n);
+}
+function favoriteButtonHtml(item,extraClass=''){
+  const active=isFavorite(item);
+  return `<button type="button" class="fav-btn ${extraClass}${active?' is-favorite':''}" aria-label="${active?'Убрать из избранного':'Добавить в избранное'}: ${item.n}" aria-pressed="${active}" onclick="toggleFavorite(${item.id},event)">${svgIcon('heart','svg-icon')}</button>`;
+}
+function syncFavoritesUi(){
+  const toggle=document.getElementById('favToggle');
+  const count=document.getElementById('favCount');
+  if(count)count.textContent=String(favorites.size);
+  if(toggle){
+    toggle.classList.toggle('on',favoritesOnly);
+    toggle.classList.toggle('has-favorites',favorites.size>0);
+    toggle.setAttribute('aria-pressed',favoritesOnly?'true':'false');
+    toggle.setAttribute('aria-label',favoritesOnly?'Показать все товары':'Показать избранное');
+  }
+  updateProductFavoriteButton();
+}
+function updateProductFavoriteButton(){
+  const btn=document.getElementById('prodFavBtn');
+  if(!btn)return;
+  const active=isFavorite(activeProductId);
+  btn.classList.toggle('is-favorite',active);
+  btn.setAttribute('aria-pressed',active?'true':'false');
+  btn.setAttribute('aria-label',active?'Убрать товар из избранного':'Добавить товар в избранное');
+  btn.title=active?'Убрать из избранного':'В избранное';
+}
+function toggleFavorite(id,event){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  const item=getItem(id);
+  if(!item)return;
+  if(favorites.has(item.n)){
+    favorites.delete(item.n);
+    showToast('Удалено из избранного');
+  }else{
+    favorites.add(item.n);
+    showToast('Добавлено в избранное');
+  }
+  if(favoritesOnly&&favorites.size===0)favoritesOnly=false;
+  persistFavorites();
+  renderPopular();
+  render();
+  syncFavoritesUi();
+}
+function toggleFavoritesFilter(){
+  if(!favorites.size){
+    showToast('В избранном пока пусто');
+    return;
+  }
+  favoritesOnly=!favoritesOnly;
+  render();
+  syncFavoritesUi();
+}
+
 function restoreCart(){
   try{
     const saved=JSON.parse(localStorage.getItem(CART_STORAGE_KEY)||'{}');
@@ -232,7 +302,7 @@ fetch('ref-products-dom.json')
     M.splice(0,M.length,...data.map((x,i)=>({id:i+1,c:REF_CAT_IDS[x.cat]||'f',n:x.name,w:x.weight,d:x.desc||REF_DESC[x.name]||'',p:x.price,img:x.img,detailImg:x.detailImg||'',i:(REF_CAT_IDS[x.cat]||'f')})));
     CATS.splice(0,CATS.length,...['Фаст-фуд','Роллы','Сеты','Пицца','Соусы','Напитки'].map(x=>({id:REF_CAT_IDS[x],l:x})));
     POPULAR_IDS.splice(0,POPULAR_IDS.length,...['Торт из 7 порций','Бизнес-ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешеный лосось'].map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean));
-    menuReady=true;restoreCart();rebuildCats();renderPopular();render();updatePill();openProductFromUrl();
+    menuReady=true;restoreCart();rebuildCats();renderPopular();render();syncFavoritesUi();updatePill();openProductFromUrl();
   })
   .catch(error=>{
     console.error(error);menuReady=true;
@@ -456,6 +526,7 @@ function renderPopular(){
     return `<div class="popular-slide">
       <div class="pop-card">
         <button type="button" class="product-details-btn" data-product-id="${item.id}" onclick="openPopularItem(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
+        ${favoriteButtonHtml(item,'fav-pop')}
         <div class="pop-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
         ${cartAddButton(item.id,'add-sq pop-add-top')}
         <div class="pop-body">
@@ -485,6 +556,7 @@ initDragSlider('popularCard',()=>setPopular(popIndex+1),()=>setPopular(popIndex-
 
 function filtered(){
   let r=M;
+  if(favoritesOnly)r=r.filter(item=>favorites.has(item.n));
   const query=search.trim().toLowerCase();
   if(query)r=r.filter(i=>[i.n,i.d,CN[i.c]||i.c].join(' ').toLowerCase().includes(query));
   return r;
@@ -506,7 +578,7 @@ function render(){
       byCat[cat].forEach(item=>{
         html+=`<div class="gc">
           <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-          <div class="gc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}
+          <div class="gc-img">${favoriteButtonHtml(item,'fav-card')}${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}
             ${cartAddButton(item.id,'gc-plus')}
           </div>
           <div class="gc-foot">
@@ -522,6 +594,7 @@ function render(){
       byCat[cat].forEach(item=>{
         html+=`<div class="lc">
           <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
+          ${favoriteButtonHtml(item,'fav-list')}
           <div class="lc-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async" fetchpriority="auto">`:foodIcon(item.i)}</div>
           <div class="lc-info">
             <div class="lc-name">${item.n}</div>
@@ -575,6 +648,7 @@ function openProd(id,opener,skipHistory=false){
       ${qtyPriceHtml(item,'ps-price')}
       ${cartAddButton(item.id,'ps-add')}
     </div>`;
+  updateProductFavoriteButton();
   openOv('prodOv',opener);
 }
 function addCart(id){
@@ -603,6 +677,40 @@ function openCart(skipHistory=false){
   if(!skipHistory)pushMenuOverlayState('cartOv');
   renderCart();syncCartOptionalBlocks();openOv('cartOv');
 }
+
+function getCartRecommendations(){
+  const keys=Object.keys(cart).filter(k=>cart[k]>0);
+  if(!keys.length)return [];
+  const inCart=new Set(keys.map(Number));
+  const cats=new Set(keys.map(id=>getItem(id)?.c).filter(Boolean));
+  const names=[];
+  const push=(...values)=>values.forEach(value=>{if(!names.includes(value))names.push(value);});
+  if(cats.has('f'))push('Картошка фри','Сырный соус','Добрый Cola','Чесночный соус');
+  if(cats.has('r')||cats.has('s'))push('Чесночный соус','Добрый Cola','Сырный соус','ST.OM Black Ice Tea (персик)');
+  if(cats.has('z'))push('Сырный соус','Добрый Cola','Чесночный соус','Кисло-сладкий');
+  if(cats.has('a'))push('Добрый Cola','Картошка фри');
+  if(cats.has('d'))push('Сырный соус','Картошка фри');
+  push('Добрый Cola','Сырный соус','Чесночный соус');
+  return names.map(name=>M.find(item=>item.n===name)).filter(item=>item&&!inCart.has(item.id)).slice(0,3);
+}
+function renderCartRecommendations(){
+  const host=document.getElementById('cartRecommendations');
+  if(!host)return;
+  const items=getCartRecommendations();
+  if(!items.length){host.innerHTML='';host.hidden=true;return;}
+  host.hidden=false;
+  host.innerHTML=`<section class="cart-recommendations" aria-labelledby="cartRecommendationsTitle">
+    <div class="cart-recommendations-title" id="cartRecommendationsTitle">С этим берут</div>
+    <div class="cart-recommendations-list">
+      ${items.map(item=>`<div class="cart-rec-item">
+        <div class="cart-rec-img">${item.img?`<img src="${item.img}" alt="${item.n}" loading="lazy" decoding="async">`:foodIcon(item.i)}</div>
+        <div class="cart-rec-copy"><strong>${item.n}</strong><span>${fmt(item.p)}</span></div>
+        <button type="button" class="cart-rec-add" onclick="addCart(${item.id})" aria-label="Добавить ${item.n}">${svgIcon('plus','svg-icon')}</button>
+      </div>`).join('')}
+    </div>
+  </section>`;
+}
+
 function renderCart(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
   const cartOv=document.getElementById('cartOv');
@@ -636,6 +744,7 @@ function renderCart(){
     </div>`;
   });
   document.getElementById('cartItems').innerHTML=html;
+  renderCartRecommendations();
   const total=keys.reduce((s,id)=>{
     const item=getItem(id);
     return s+(item&&cart[id]?item.p*cart[id]:0);
@@ -727,7 +836,27 @@ function currentTotal(){
     const item=getItem(id);return s+(item?item.p*cart[id]:0);
   },0);
 }
-function validPhone(phone){const digits=phone.replace(/\D/g,'');return digits.length>=10&&digits.length<=15;}
+function validPhone(phone){const digits=phone.replace(/\D/g,'');return digits.length===11&&digits.startsWith('7');}
+function formatPhoneValue(value){
+  let digits=String(value||'').replace(/\D/g,'');
+  if(!digits)return '';
+  if(digits[0]==='8')digits='7'+digits.slice(1);
+  else if(digits[0]!=='7'&&digits.length<=10)digits='7'+digits;
+  digits=digits.slice(0,11);
+  if(!digits.startsWith('7'))return '+'+digits;
+  const body=digits.slice(1);
+  let out='+7';
+  if(body.length)out+=' '+body.slice(0,3);
+  if(body.length>3)out+=' '+body.slice(3,6);
+  if(body.length>6)out+=' '+body.slice(6,8);
+  if(body.length>8)out+=' '+body.slice(8,10);
+  return out;
+}
+function formatPhoneInput(input){
+  if(!input)return;
+  input.value=formatPhoneValue(input.value);
+  updateOrderState();
+}
 function buildOrderPayload(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
   const items=keys.map(id=>{
@@ -906,10 +1035,12 @@ function prepareServiceSheet(mode){
   const divider=document.getElementById('shareDivider');
   const callMeta=document.getElementById('shareCallMeta');
   const mapMeta=document.getElementById('shareMapMeta');
+  const instagramBtn=document.getElementById('shareInstagramBtn');
   ov.classList.remove('contact-mode','order-mode','product-mode');
   ov.classList.add(mode+'-mode');
   if(callMeta)callMeta.textContent=SHOP_PHONE_TEXT;
   if(mapMeta)mapMeta.textContent=SHOP_ADDRESS_SHORT;
+  if(instagramBtn)instagramBtn.hidden=mode!=='contact';
   if(mode==='contact'){
     pendingOrderText='Здравствуйте! Хочу уточнить информацию по меню Sushi Crazy.';
     title.textContent='Связаться с Sushi Crazy';
@@ -989,6 +1120,52 @@ function openShare(mode='contact'){
   prepareServiceSheet(mode);
   openOv('shareOv');
 }
+
+async function shareRestaurant(){
+  const payload={
+    title:'Sushi Crazy',
+    text:'Меню Sushi Crazy — суши, роллы, пицца и фастфуд',
+    url:new URL('/',location.origin).toString()
+  };
+  const canNative=typeof navigator.share==='function'&&(typeof navigator.canShare!=='function'||navigator.canShare(payload));
+  if(canNative){
+    try{await navigator.share(payload);return;}catch(error){if(error?.name==='AbortError')return;}
+  }
+  try{
+    await navigator.clipboard.writeText(payload.url);
+    showToast('Ссылка на меню скопирована');
+  }catch(error){
+    showToast('Не удалось поделиться ссылкой');
+  }
+}
+
+let deferredInstallPrompt=null;
+function appIsStandalone(){
+  return window.matchMedia?.('(display-mode: standalone)').matches||window.navigator.standalone===true;
+}
+function syncInstallButton(){
+  const btn=document.getElementById('installAppBtn');
+  if(btn)btn.hidden=!deferredInstallPrompt||appIsStandalone();
+}
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  syncInstallButton();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  syncInstallButton();
+  showToast('Sushi Crazy добавлено на главный экран');
+});
+async function installPwa(){
+  if(!deferredInstallPrompt)return;
+  deferredInstallPrompt.prompt();
+  try{await deferredInstallPrompt.userChoice;}catch(error){}
+  deferredInstallPrompt=null;
+  syncInstallButton();
+}
+syncInstallButton();
+
 function shareVia(v){
   const shareOv=document.getElementById('shareOv');
   const isProduct=shareOv?.classList.contains('product-mode');
@@ -1025,7 +1202,7 @@ function shareVia(v){
     showToast('Звоним: '+SHOP_PHONE_TEXT);
   }
   if(v==='map'){
-    window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(SHOP_ADDRESS),'_blank','noopener');
+    window.open(SHOP_2GIS_URL,'_blank','noopener');
     showToast('Открываем адрес на карте');
   }
   runAfterMotion(()=>closeOv('shareOv'),400);
