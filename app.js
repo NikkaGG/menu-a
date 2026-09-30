@@ -51,7 +51,7 @@ const SHOP_PHONE='+77766807860';
 const SHOP_PHONE_TEXT='+7 776 680 78 60';
 const SHOP_ADDRESS='улица Трудовиков, 2г, Грозный, Чеченская Республика';
 const SHOP_ADDRESS_SHORT='ул. Трудовиков, 2г';
-const SHOP_2GIS_URL='https://2gis.ru/grozny/firm/70000001063972120';
+const SHOP_MAP_URL='https://yandex.ru/maps/?ll=45.593695%2C43.373205&z=17&pt=45.593695%2C43.373205%2Cpm2rdm';
 const SHOP_INSTAGRAM_URL='https://www.instagram.com/sushi_crazy_195/';
 const SHOP_INSTAGRAM_HANDLE='@sushi_crazy_195';
 const SHOP_SCHEDULE=Object.freeze({open:'11:00',close:'22:40',utcOffsetMinutes:300});
@@ -1228,7 +1228,7 @@ function shareVia(v){
     showToast('Звоним: '+SHOP_PHONE_TEXT);
   }
   if(v==='map'){
-    window.open(SHOP_2GIS_URL,'_blank','noopener');
+    window.open(SHOP_MAP_URL,'_blank','noopener');
     showToast('Открываем адрес на карте');
   }
   runAfterMotion(()=>closeOv('shareOv'),400);
