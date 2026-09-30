@@ -1552,8 +1552,8 @@ function acceptCookies(){
     shell.style.display=cartOpen?'none':'';
   }
   const oldOpenCart=window.openCart;
-  window.openCart=function(){
-    if(typeof oldOpenCart==='function') oldOpenCart();
+  window.openCart=function(...args){
+    if(typeof oldOpenCart==='function') oldOpenCart(...args);
     setTimeout(syncShell,0);
   };
   const oldCloseOv=window.closeOv;
