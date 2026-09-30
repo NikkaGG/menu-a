@@ -14,7 +14,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/app-192.png" type="image/png">
 <link rel="apple-touch-icon" href="/icons/app-192.png">
-<link rel="stylesheet" href="/styles.css?v=20260930-contactfix">
+<link rel="stylesheet" href="/styles.css?v=20260930-features1">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Restaurant","name":"Sushi Crazy","url":"https://menu-a-eta.vercel.app/","image":"https://menu-a-eta.vercel.app/api/branding?type=banner","telephone":"+7 776 680 78 60","servesCuisine":["Sushi","Pizza","Fast food"],"address":{"@type":"PostalAddress","streetAddress":"улица Трудовиков, 2г","addressLocality":"Грозный","addressRegion":"Чеченская Республика"}}
@@ -65,6 +65,10 @@
       <span class="s-action" aria-hidden="true"><span class="ui-icon svg-slot" data-icon="search"></span></span>
       <button class="search-clear" id="searchClear" type="button" aria-label="Сбросить поиск" onclick="clearSearch()">×</button>
     </div>
+    <button class="fav-toggle" type="button" id="favToggle" aria-label="Показать избранное" aria-pressed="false" onclick="toggleFavoritesFilter()">
+      <span class="ui-icon svg-slot" data-icon="heart"></span>
+      <span class="fav-toggle-count" id="favCount">0</span>
+    </button>
     <button class="grid-toggle" type="button" id="vbtn" aria-label="Переключить вид">
       <span id="vicon" class="ui-icon svg-slot" data-icon="grid"></span>
     </button>
@@ -74,6 +78,35 @@
 
 <!-- MENU -->
 <div class="menu-area" id="menuArea"></div>
+
+
+<!-- RESTAURANT INFO -->
+<section class="restaurant-info-panel" aria-labelledby="restaurantInfoTitle">
+  <div class="restaurant-info-head">
+    <div>
+      <h2 id="restaurantInfoTitle">Sushi Crazy</h2>
+      <p>ул. Трудовиков, 2г · ежедневно 11:00–22:40</p>
+    </div>
+    <span class="restaurant-info-badge">2GIS</span>
+  </div>
+
+  <a class="restaurant-map-card" href="https://2gis.ru/grozny/firm/70000001063972120" target="_blank" rel="noopener noreferrer" aria-label="Открыть Sushi Crazy в 2GIS">
+    <img src="https://beautyshare.2gis.ru/api/v1/image?city=grozny&zoom=17&center=45.593695%2C43.373205&title=Sushi%20crazy%2C%20%D0%BA%D0%B0%D1%84%D0%B5&desc=%D0%A3%D0%BB%D0%B8%D1%86%D0%B0%20%D0%A2%D1%80%D1%83%D0%B4%D0%BE%D0%B2%D0%B8%D0%BA%D0%BE%D0%B2%2C%C2%A02%D0%B3%3Cbr%20%2F%3E%D0%93%D1%80%D0%BE%D0%B7%D0%BD%D1%8B%D0%B9" alt="Sushi Crazy на карте 2GIS" loading="lazy" decoding="async">
+    <span class="restaurant-map-overlay">
+      <strong>Мы на карте</strong>
+      <small>Открыть в 2GIS</small>
+    </span>
+  </a>
+
+  <div class="restaurant-actions">
+    <a class="restaurant-action is-whatsapp" href="https://wa.me/77766807860" target="_blank" rel="noopener noreferrer"><strong>WhatsApp</strong><span>Написать нам</span></a>
+    <a class="restaurant-action" href="https://www.instagram.com/sushi_crazy_195/" target="_blank" rel="noopener noreferrer"><strong>Instagram</strong><span>@sushi_crazy_195</span></a>
+    <a class="restaurant-action" href="tel:+77766807860"><strong>Позвонить</strong><span>+7 776 680 78 60</span></a>
+    <a class="restaurant-action" href="https://2gis.ru/grozny/firm/70000001063972120" target="_blank" rel="noopener noreferrer"><strong>2GIS</strong><span>Маршрут и карточка</span></a>
+    <button class="restaurant-action" type="button" onclick="shareRestaurant()"><strong>Поделиться меню</strong><span>Отправить друзьям</span></button>
+    <button class="restaurant-action install-action" id="installAppBtn" type="button" onclick="installPwa()" hidden><strong>На главный экран</strong><span>Установить приложение</span></button>
+  </div>
+</section>
 
 <!-- FOOTER -->
 <footer class="site-footer">
@@ -109,7 +142,10 @@
     <div class="sheet-scroll">
       <div class="handle"></div>
       <div class="ps-top">
-        <button class="ps-icon-btn" onclick="shareProduct()" title="Поделиться" aria-label="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
+        <div class="ps-top-left">
+          <button class="ps-icon-btn" onclick="shareProduct()" title="Поделиться" aria-label="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
+          <button class="ps-icon-btn prod-fav-btn" id="prodFavBtn" onclick="toggleFavorite(activeProductId,event)" title="В избранное" aria-label="Добавить в избранное" aria-pressed="false"><span class="ui-icon svg-slot" data-icon="heart"></span></button>
+        </div>
         <button class="ps-icon-btn" onclick="closeOv('prodOv')" aria-label="Закрыть товар" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="chevron-left"></span></button>
       </div>
       <div id="prodContent"></div>
@@ -153,6 +189,12 @@
           </span>
           <span class="ss-mini-arrow" aria-hidden="true">›</span>
         </button>
+        <a class="ss-opt ss-instagram" id="shareInstagramBtn" href="https://www.instagram.com/sushi_crazy_195/" target="_blank" rel="noopener noreferrer" hidden aria-label="Открыть Instagram Sushi Crazy">
+          <span class="ss-instagram-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+          </span>
+          <span class="ss-instagram-copy"><strong>Instagram</strong><small>@sushi_crazy_195</small></span>
+        </a>
       </div>
 
       <button class="ss-copy" id="shareCopyBtn" type="button" onclick="copyOrder()">
@@ -177,6 +219,7 @@
 
       <div class="cs-body-scroll">
         <div id="cartItems"></div>
+        <div id="cartRecommendations"></div>
 
         <div class="del-block cart-checkout">
           <div class="cart-step">
@@ -197,7 +240,7 @@
             <div class="cmnt-title">Контакты</div>
             <div class="order-grid two contact-grid">
               <input class="addr-inp" type="text" id="nameInp" placeholder="Имя (необязательно)" oninput="updateOrderState()">
-              <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+7 999 123 45 67" aria-describedby="phoneErr" oninput="updateOrderState()">
+              <input class="addr-inp" type="tel" inputmode="tel" id="phoneInp" placeholder="+7 999 123 45 67" aria-describedby="phoneErr" autocomplete="tel" oninput="formatPhoneInput(this)">
             </div>
             <div class="addr-err" id="phoneErr" hidden>Укажите корректный номер для связи.</div>
           </div>
@@ -272,7 +315,7 @@
   </div>
 </div>
 
-<script src="/app.js?v=20260930-audit"></script>
+<script src="/app.js?v=20260930-features1"></script>
 
 </body>
 </html>
