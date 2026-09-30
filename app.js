@@ -83,14 +83,14 @@ function analyticsDevice(){
 }
 function analyticsBrowser(){
   const ua=navigator.userAgent||'';
-  if(/Instagram/i.test(ua))return 'Instagram';
-  if(/Telegram/i.test(ua))return 'Telegram';
-  if(/Edg\//i.test(ua))return 'Edge';
-  if(/OPR\//i.test(ua))return 'Opera';
-  if(/CriOS|Chrome/i.test(ua))return 'Chrome';
-  if(/FxiOS|Firefox/i.test(ua))return 'Firefox';
-  if(/Safari/i.test(ua))return 'Safari';
-  return 'Other';
+  if(/Instagram/i.test(ua))return 'instagram';
+  if(/Telegram/i.test(ua))return 'telegram';
+  if(/Edg\//i.test(ua))return 'edge';
+  if(/OPR\//i.test(ua))return 'opera';
+  if(/CriOS|Chrome/i.test(ua))return 'chrome';
+  if(/FxiOS|Firefox/i.test(ua))return 'firefox';
+  if(/Safari/i.test(ua))return 'safari';
+  return 'other';
 }
 function trackEvent(eventType,item=null,extra={}){
   try{
