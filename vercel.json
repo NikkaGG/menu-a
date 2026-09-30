@@ -68,6 +68,33 @@
           "value": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800"
         }
       ]
+    },
+    {
+      "source": "/admin.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/admin.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/admin.css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        }
+      ]
     }
   ]
-}
+}\n
