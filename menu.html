@@ -2980,13 +2980,15 @@ function buildOrderText(payload=buildOrderPayload()){
     return raw;
   };
 
-  const lines=['Новый заказ · Sushi Crazy',separator];
+  const lines=['Новый заказ · Sushi Crazy',separator,''];
 
   payload.items.forEach(item=>{
     lines.push(`${item.name} × ${item.quantity} — ${fmt(item.lineTotal)}`);
   });
 
+  lines.push('');
   lines.push(separator);
+  lines.push('');
   lines.push(`Итого ${fmt(payload.total)}`);
   lines.push(`${payload.orderMethod==='delivery'?'Доставка':'Самовывоз'} · ${paymentLabel}`);
 
