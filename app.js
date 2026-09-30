@@ -202,6 +202,7 @@ const CATS=[{id:'f',l:'Фаст-фуд'},{id:'r',l:'Роллы'},{id:'s',l:'Се
 const CN={f:'Фаст-фуд',r:'Роллы',s:'Сеты',z:'Пицца',a:'Соусы',d:'Напитки'};
 let isGrid=true,activeCat='all',search='',cart={},delMode='d',pickupTime='',popIndex=0;
 let menuReady=false;
+let cartRestored=false;
 const CART_STORAGE_KEY='sushi-crazy-cart-v1';
 function restoreCart(){
   try{
@@ -214,8 +215,12 @@ function restoreCart(){
     });
     cart=next;
   }catch(error){cart={};}
+  cartRestored=true;
 }
-function persistCart(){try{localStorage.setItem(CART_STORAGE_KEY,JSON.stringify(cart));}catch(error){}}
+function persistCart(){
+  if(!cartRestored)return;
+  try{localStorage.setItem(CART_STORAGE_KEY,JSON.stringify(cart));}catch(error){}
+}
 const POPULAR_IDS=[15,1,2,3,10,18];
 const REF_CAT_IDS={'Фаст-фуд':'f','Роллы':'r','Сеты':'s','Пицца':'z','Соусы':'a','Напитки':'d'};
 const REF_DESC={'Торт из 7 порций':'2 бешеный 2 Калифорния с крабом 1 горячий 1 Филадельфия 1 тори темпура','Бизнес-ланч':'Состав: бургер (булочка, котлета, маринованный огурец, соус), картофель фри, наггетсы, кетчуп Пищевая ценность на порцию: Б33 / Ж45 / У105','Чизбургер (говяжий)':'Состав: булочка, говяжья котлета, сыр, салат, помидор, соус Пищевая ценность на порцию: Б24 / Ж30 / У46','Гиро на тарелке':'Состав: курица (гиро), картофель фри, пита, помидор, огурец, лук, соус (чесночный/дзадзики) Пищевая ценность на порцию: Б38 / Ж45 / У105','Пепперони':'Состав: колбаса, пицца соус, сыр моцарелла Пищевая ценность на порцию: Б52 / Ж60 / У118','Бешеный лосось':'Состав: рис, лосось, нори, сыр, тобико, огурец, карамель, унаги соус Пищевая ценность на порцию: Б19 / Ж24 / У62'};
@@ -1573,6 +1578,14 @@ function acceptCookies(){
   }catch(e){}
   syncShell();
 })();
+
+window.addEventListener('pageshow',event=>{
+  if(!event.persisted||!menuReady)return;
+  restoreCart();
+  updatePill();
+  syncCardState(null,false);
+  if(document.getElementById('cartOv')?.classList.contains('on'))renderCart();
+});
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
