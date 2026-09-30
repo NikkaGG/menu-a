@@ -344,6 +344,7 @@ body.modal-lock{position:fixed;overflow:hidden;width:100%;left:0;right:0}
 #shareOv.order-mode .ios-services .ss-title{font-size:23px}
 #shareOv.order-mode .ios-services .ss-sub{display:block}
 #shareOv.contact-mode .ios-services .ss-sub{display:none}
+#shareOv.product-mode .ss-mini{display:none!important}
 @media(max-width:520px){
   #shareOv .share-sheet{border-radius:16px 16px 0 0}
   .ios-services{padding:12px 18px 24px}
@@ -2058,7 +2059,7 @@ button,.cart-add-btn,.product-details-btn,.gc-plus,.add-sq,.ps-add,.qb{-webkit-u
     <div class="sheet-scroll">
       <div class="handle"></div>
       <div class="ps-top">
-        <button class="ps-icon-btn" onclick="openShare('product')" title="Поделиться" aria-label="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
+        <button class="ps-icon-btn" onclick="shareProduct()" title="Поделиться" aria-label="Поделиться"><span class="ui-icon svg-slot" data-icon="share"></span></button>
         <button class="ps-icon-btn" onclick="closeOv('prodOv')" aria-label="Закрыть товар" data-dialog-initial-focus><span class="ui-icon svg-slot" data-icon="chevron-left"></span></button>
       </div>
       <div id="prodContent"></div>
@@ -2764,6 +2765,7 @@ setViewIcon();
 function openProd(id,opener){
   const item=getItem(id);
   if(!item)return;
+  activeProductId=item.id;
   document.getElementById('prodContent').innerHTML=`
     <div class="ps-img${item.detailImg?' detail-generated':''}">${(item.detailImg||item.img)?`<img class="product-img" src="${item.detailImg||item.img}" alt="${item.n}" decoding="async" fetchpriority="high">`:foodIcon(item.i)}</div>
     <div class="ps-dot" aria-hidden="true"></div>
@@ -2778,6 +2780,8 @@ function openProd(id,opener){
     </div>`;
   openOv('prodOv',opener);
 }
+requestAnimationFrame(openProductFromUrl);
+
 function addCart(id){
   cart[id]=(cart[id]||0)+1;
   updatePill();
@@ -3034,6 +3038,64 @@ function setSecondService(labelText='Напишите нам в сообщени
   icon.innerHTML=iosIconImg('sms','Сообщения');
   label.textContent=labelText;
 }
+let activeProductId=null;
+
+function getProductShareData(id=activeProductId){
+  const item=getItem(Number(id));
+  if(!item)return null;
+  const url=new URL(location.href);
+  url.searchParams.set('product',String(item.id));
+  url.hash='';
+  return {
+    id:item.id,
+    title:`${item.n} — Sushi Crazy`,
+    text:`${item.w} · ${fmt(item.p)}`,
+    url:url.toString()
+  };
+}
+function getProductShareMessage(id=activeProductId){
+  const data=getProductShareData(id);
+  return data?`${data.title}\n${data.text}\n${data.url}`:'';
+}
+async function shareProduct(){
+  const data=getProductShareData();
+  if(!data){
+    showToast('Не удалось подготовить ссылку на товар');
+    return;
+  }
+  const payload={title:data.title,text:data.text,url:data.url};
+  const canNative=typeof navigator.share==='function'&&
+    (typeof navigator.canShare!=='function'||navigator.canShare(payload));
+  if(canNative){
+    try{
+      await navigator.share(payload);
+      return;
+    }catch(error){
+      if(error?.name==='AbortError')return;
+    }
+  }
+  openShare('product');
+}
+function openProductFromUrl(){
+  const url=new URL(location.href);
+  const raw=url.searchParams.get('product');
+  if(raw===null)return;
+  const id=Number(raw);
+  const item=Number.isInteger(id)?getItem(id):null;
+  if(!item){
+    url.searchParams.delete('product');
+    history.replaceState(history.state,'',url.pathname+url.search+url.hash);
+    return;
+  }
+  openProd(item.id);
+}
+function clearProductUrlParam(){
+  const url=new URL(location.href);
+  if(!url.searchParams.has('product'))return;
+  url.searchParams.delete('product');
+  history.replaceState(history.state,'',url.pathname+url.search+url.hash);
+}
+
 function prepareServiceSheet(mode){
   const ov=document.getElementById('shareOv');
   const title=document.getElementById('shareTitle');
@@ -3058,12 +3120,14 @@ function prepareServiceSheet(mode){
     setSecondService('Отправить сообщение');
   }
   if(mode==='product'){
-    pendingOrderText='Sushi Crazy — суши, фастфуд и пицца. Телефон: '+SHOP_PHONE_TEXT;
-    title.textContent='Поделиться';
-    sub.textContent='Можно отправить ссылку или контакты ресторана.';
+    const data=getProductShareData();
+    const item=data?getItem(data.id):null;
+    pendingOrderText=getProductShareMessage();
+    title.textContent=item?`Поделиться «${item.n}»`:'Поделиться';
+    sub.textContent='Отправьте блюдо через WhatsApp, сообщения или скопируйте ссылку.';
     waLabel.textContent='Отправить в WhatsApp';
     copyBtn.textContent='Скопировать ссылку';
-    setSecondService('Отправить сообщение');
+    setSecondService('Отправить сообщением');
   }
 }
 function placeOrder(){
@@ -3131,6 +3195,27 @@ function finishOrder(){
   }
 }
 function shareVia(v){
+  const shareOv=document.getElementById('shareOv');
+  const isProduct=shareOv?.classList.contains('product-mode');
+  if(isProduct){
+    const text=getProductShareMessage();
+    if(!text){
+      showToast('Не удалось подготовить ссылку на товар');
+      return;
+    }
+    if(v==='wa'){
+      const opened=window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+      if(!opened){
+        showToast('Разрешите открытие WhatsApp или скопируйте ссылку');
+        return;
+      }
+    }else if(v==='sms'){
+      window.location.href='sms:?body='+encodeURIComponent(text);
+      showToast('Открываем сообщения');
+    }
+    runAfterMotion(()=>closeOv('shareOv'),400);
+    return;
+  }
   const text=pendingOrderText||'Sushi Crazy: '+SHOP_PHONE_TEXT;
   if(v==='wa'){
     const opened=window.open('https://wa.me/'+SHOP_PHONE.replace('+','')+'?text='+encodeURIComponent(text),'_blank');
@@ -3153,8 +3238,11 @@ function shareVia(v){
   runAfterMotion(()=>closeOv('shareOv'),400);
 }
 function copyOrder(){
-  const isOrder=document.getElementById('shareOv')?.classList.contains('order-mode');
-  const text=isOrder?pendingOrderText:location.href;
+  const shareOv=document.getElementById('shareOv');
+  const isOrder=shareOv?.classList.contains('order-mode');
+  const isProduct=shareOv?.classList.contains('product-mode');
+  const productData=isProduct?getProductShareData():null;
+  const text=isOrder?pendingOrderText:isProduct?(productData?.url||location.href):location.href;
   if(navigator.clipboard){
     navigator.clipboard.writeText(text).then(()=>{
       showToast(isOrder?'Текст заказа скопирован':'Ссылка скопирована');
@@ -3276,6 +3364,10 @@ function closeOv(id,shouldRestoreFocus=true){
   if(id==='pickupTimeOv'){
     document.getElementById('pickupTimeTrigger')?.setAttribute('aria-expanded','false');
     resetPickupDrag();
+  }
+  if(id==='prodOv'){
+    activeProductId=null;
+    clearProductUrlParam();
   }
   ov.classList.remove('on');
   const openIndex=openDialogs.indexOf(ov);
