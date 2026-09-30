@@ -1,10 +1,10 @@
-const CACHE_NAME='sushi-crazy-shell-v5';
+const CACHE_NAME='sushi-crazy-shell-v6';
 const OFFLINE_URL='/offline.html';
 const PRECACHE=[
   '/',
   OFFLINE_URL,
-  '/styles.css?v=20260930-features2',
-  '/app.js?v=20260930-features2',
+  '/styles.css?v=20260930-favfooter2',
+  '/app.js?v=20260930-favfooter',
   '/manifest.webmanifest',
   '/ref-products-dom.json',
   '/icons/app-192.png',
