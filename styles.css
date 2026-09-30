@@ -2254,3 +2254,97 @@ body.cookie-visible .page{padding-bottom:170px}body.cookie-visible.cart-has-item
 #shareOv.contact-mode .ios-grid,#shareOv.product-mode .ios-grid{grid-template-columns:1fr;gap:10px;max-width:520px}
 #shareOv.contact-mode .ss-opt,#shareOv.product-mode .ss-opt{min-height:62px;flex-direction:row;justify-content:flex-start;padding:8px 12px;border:1px solid #e5e5e8;border-radius:15px;background:#fff;text-align:left}
 #shareOv.contact-mode .ss-opt-label,#shareOv.product-mode .ss-opt-label{max-width:none;text-align:left;font-size:14px;color:#2c2c2e}#shareOv.contact-mode .ss-mini{display:flex}#shareOv.product-mode .ss-mini{display:none!important}#shareOv.contact-mode .ss-divider,#shareOv.product-mode .ss-divider{text-align:left;margin:5px 0 0;padding-left:4px}
+
+
+/* ── CONTACT ACTION TILES + NATIVE SEARCH CLEAR FIX ── */
+/* Chrome/Edge/Safari draw their own clear button for type="search".
+   We keep only the custom neutral clear control. */
+.s-inp::-webkit-search-cancel-button,
+.s-inp::-webkit-search-decoration{
+  -webkit-appearance:none;
+  appearance:none;
+  display:none;
+}
+.s-inp::-ms-clear,
+.s-inp::-ms-reveal{
+  display:none;
+  width:0;
+  height:0;
+}
+
+/* Contact sheet: primary messengers stay full-width;
+   Call and address are compact paired actions underneath. */
+#shareOv.contact-mode .ios-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+#shareOv.contact-mode .ss-primary,
+#shareOv.contact-mode #shareSecondBtn,
+#shareOv.contact-mode .ss-divider{
+  grid-column:1/-1;
+}
+#shareOv.contact-mode .ss-mini{
+  width:100%;
+  min-width:0;
+  min-height:74px;
+  margin:0;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:9px;
+  border:1px solid #e5e5e8;
+  border-radius:15px;
+  background:#fff;
+  text-align:left;
+}
+#shareOv.contact-mode .ss-mini:hover{
+  background:#fff;
+  border-color:#d7d7dc;
+  box-shadow:0 4px 14px rgba(0,0,0,.05);
+}
+#shareOv.contact-mode .ss-mini .ss-mini-glyph{
+  width:23px;
+  height:23px;
+  flex:0 0 23px;
+  margin:0;
+  color:#5a5a5f;
+}
+#shareOv.contact-mode .ss-mini-copy{
+  display:flex;
+  flex:1;
+  min-width:0;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:3px;
+}
+#shareOv.contact-mode .ss-mini-title{
+  color:#2c2c2e;
+  font-size:13.5px;
+  font-weight:700;
+  line-height:1.2;
+}
+#shareOv.contact-mode .ss-mini-meta{
+  max-width:100%;
+  overflow:hidden;
+  color:#8e8e93;
+  font-size:11px;
+  font-weight:500;
+  line-height:1.25;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#shareOv.contact-mode .ss-mini-arrow{
+  display:none;
+}
+@media(max-width:420px){
+  #shareOv.contact-mode .ios-grid{gap:8px}
+  #shareOv.contact-mode .ss-mini{
+    min-height:70px;
+    padding:9px 10px;
+    gap:7px;
+  }
+  #shareOv.contact-mode .ss-mini-title{font-size:12.5px}
+  #shareOv.contact-mode .ss-mini-meta{font-size:10px}
+}
