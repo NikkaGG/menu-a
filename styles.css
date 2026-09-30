@@ -2348,3 +2348,257 @@ body.cookie-visible .page{padding-bottom:170px}body.cookie-visible.cart-has-item
   #shareOv.contact-mode .ss-mini-title{font-size:12.5px}
   #shareOv.contact-mode .ss-mini-meta{font-size:10px}
 }
+
+
+/* ── FAVORITES / RECOMMENDATIONS / RESTAURANT INFO ── */
+.search-row .fav-toggle{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1.5px solid #e0e0e0;
+  border-radius:9px;
+  background:#fff;
+  color:#555;
+  cursor:pointer;
+  transition:.15s;
+}
+.search-row .fav-toggle:hover{background:#f5f5f5}
+.search-row .fav-toggle.on{background:#111;color:#fff;border-color:#111}
+.search-row .fav-toggle .ui-icon{width:19px;height:19px}
+.search-row .fav-toggle.on .ui-icon{fill:currentColor}
+.fav-toggle-count{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  border-radius:999px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:#111;
+  color:#fff;
+  border:2px solid #fff;
+  font-size:10px;
+  font-weight:800;
+  line-height:1;
+}
+.fav-toggle.has-favorites .fav-toggle-count{display:flex}
+.fav-toggle.on .fav-toggle-count{background:#fff;color:#111;border-color:#111}
+
+.fav-btn{
+  position:absolute;
+  z-index:6;
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:0;
+  border-radius:10px;
+  background:rgba(255,255,255,.92);
+  color:#555;
+  cursor:pointer;
+  box-shadow:0 1px 5px rgba(0,0,0,.10);
+  transition:transform .14s ease,background .14s ease,color .14s ease;
+}
+.fav-btn:hover{background:#fff;transform:scale(1.04)}
+.fav-btn .svg-icon{width:19px;height:19px}
+.fav-btn.is-favorite{color:#111}
+.fav-btn.is-favorite .svg-icon{fill:currentColor}
+.fav-card{top:8px;left:8px}
+.fav-list{top:10px;left:10px}
+.fav-pop{top:10px;left:10px}
+.ps-top-left{display:flex;align-items:center;gap:8px}
+.prod-fav-btn.is-favorite{color:#111;background:#f1f1f3}
+.prod-fav-btn.is-favorite .ui-icon{fill:currentColor}
+
+.cart-recommendations{
+  margin:2px 0 16px;
+  padding:14px;
+  border:1px solid #ececee;
+  border-radius:16px;
+  background:#fafafa;
+}
+.cart-recommendations-title{
+  margin-bottom:10px;
+  color:#222;
+  font-size:15px;
+  font-weight:800;
+}
+.cart-recommendations-list{display:flex;flex-direction:column;gap:8px}
+.cart-rec-item{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) 36px;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  padding:5px 7px;
+  border-radius:12px;
+  background:#fff;
+}
+.cart-rec-img{
+  width:48px;
+  height:48px;
+  border-radius:9px;
+  overflow:hidden;
+  background:#f0f0f2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.cart-rec-img img{width:100%;height:100%;object-fit:cover;display:block}
+.cart-rec-img .food-icon{width:28px;height:28px;color:#555;filter:none}
+.cart-rec-copy{min-width:0;display:flex;flex-direction:column;gap:3px}
+.cart-rec-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#222}
+.cart-rec-copy span{font-size:12px;color:#777}
+.cart-rec-add{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#111;
+  color:#fff;
+  cursor:pointer;
+}
+.cart-rec-add .svg-icon{width:18px;height:18px}
+
+#shareOv .ss-instagram[hidden]{display:none!important}
+#shareOv.contact-mode .ss-instagram{
+  grid-column:1/-1;
+  min-height:60px;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+  gap:11px;
+  padding:9px 12px;
+  border:1px solid #e5e5e8;
+  border-radius:15px;
+  background:#fff;
+  color:#222;
+  text-decoration:none;
+}
+#shareOv.contact-mode .ss-instagram:hover{background:#fff;border-color:#d7d7dc;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.ss-instagram-icon{
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  background:#f3f3f5;
+  color:#333;
+}
+.ss-instagram-icon svg{width:23px;height:23px}
+.ss-instagram-copy{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:2px}
+.ss-instagram-copy strong{font-size:14px;line-height:1.2}
+.ss-instagram-copy small{font-size:11.5px;color:#8e8e93;line-height:1.2}
+
+.restaurant-info-panel{
+  margin:24px 10px 12px;
+  padding:16px;
+  border:1px solid #e7e7e9;
+  border-radius:18px;
+  background:#fafafa;
+}
+.restaurant-info-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:13px;
+}
+.restaurant-info-head h2{margin:0 0 4px;font-size:19px;line-height:1.2;color:#111}
+.restaurant-info-head p{margin:0;color:#737377;font-size:12px;line-height:1.4}
+.restaurant-info-badge{
+  flex:0 0 auto;
+  padding:6px 9px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid #e0e0e2;
+  color:#555;
+  font-size:11px;
+  font-weight:800;
+}
+.restaurant-map-card{
+  position:relative;
+  display:block;
+  width:100%;
+  height:168px;
+  overflow:hidden;
+  border-radius:14px;
+  background:#e9e9eb;
+  color:#fff;
+  text-decoration:none;
+}
+.restaurant-map-card img{width:100%;height:100%;display:block;object-fit:cover}
+.restaurant-map-card::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,transparent 38%,rgba(0,0,0,.58));
+  pointer-events:none;
+}
+.restaurant-map-overlay{
+  position:absolute;
+  left:13px;
+  right:13px;
+  bottom:11px;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  color:#fff;
+}
+.restaurant-map-overlay strong{font-size:14px}
+.restaurant-map-overlay small{font-size:11px;opacity:.9}
+.restaurant-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.restaurant-action{
+  min-width:0;
+  min-height:58px;
+  padding:10px 11px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:3px;
+  border:1px solid #e5e5e7;
+  border-radius:12px;
+  background:#fff;
+  color:#222;
+  font-family:inherit;
+  text-align:left;
+  text-decoration:none;
+  cursor:pointer;
+}
+.restaurant-action:hover{border-color:#d4d4d7;background:#fff}
+.restaurant-action strong{font-size:13px;line-height:1.2}
+.restaurant-action span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#85858a;font-size:10.5px;line-height:1.25}
+.restaurant-action.is-whatsapp{border-color:#ccebd5}
+.restaurant-action[hidden]{display:none!important}
+
+@media(max-width:420px){
+  .search-row{gap:10px!important}
+  .search-row .fav-toggle,.grid-toggle{width:40px!important;height:40px!important;flex-basis:40px!important}
+  .fav-btn{width:32px;height:32px}
+  .fav-pop{top:8px;left:8px}
+  .restaurant-info-panel{padding:14px;margin-left:10px;margin-right:10px}
+  .restaurant-map-card{height:150px}
+  .restaurant-action{padding:9px;min-height:56px}
+}
