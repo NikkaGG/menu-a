@@ -61,8 +61,6 @@ let WHATSAPP_ORDER_TITLE='Новый заказ · Sushi Crazy';
 let SITE_SETTINGS=null;
 const MENU_SB_URL='https://osyphouhtjanfoujcbid.supabase.co';
 const MENU_SB_KEY='sb_publishable_FJcKpYUD2sH6Ai2psVe97Q_59HenbRO';
-let recommendationMap=new Map();
-const RECOMMENDED_IDS=[];
 const ANALYTICS_VISITOR_KEY='sushi-crazy-visitor-v1';
 const ANALYTICS_SESSION_KEY='sushi-crazy-session-v1';
 let searchAnalyticsTimer=null;
@@ -420,7 +418,6 @@ async function loadMenuFromSupabase(){
   const categories=await menuApi('categories?select=id,name,slug,sort_order&is_visible=eq.true&order=sort_order.asc');
   const settingsRows=await menuApi('site_settings?select=*&id=eq.1&limit=1');
   const popularity=await menuApi('public_dish_popularity?select=*&order=score.desc&limit=12');
-  const relations=await menuApi('public_dish_recommendations?select=*&order=score.desc&limit=1000');
   const settings=settingsRows?.[0]||null;
   applySiteSettings(settings);
   const codeByCategory=new Map();
@@ -440,17 +437,9 @@ async function loadMenuFromSupabase(){
     oldPrice:x.old_price==null?null:Number(x.old_price),
     img:x.photo_url||'',
     detailImg:x.detail_image_url||'',
-    i:codeByCategory.get(x.category_id)||REF_CAT_IDS[x.category_name]||x.category_slug||'f',
-    recommended:!!x.is_recommended
+    i:codeByCategory.get(x.category_id)||REF_CAT_IDS[x.category_name]||x.category_slug||'f'
   })));
   CATS.splice(0,CATS.length,...categories.map((cat,idx)=>({id:codeByCategory.get(cat.id)||('cat-'+idx),l:cat.name})));
-  recommendationMap=new Map();
-  relations.forEach(row=>{
-    const id=Number(row.dish_public_id),related=Number(row.related_public_id);
-    if(!recommendationMap.has(id))recommendationMap.set(id,[]);
-    if(!recommendationMap.get(id).includes(related))recommendationMap.get(id).push(related);
-  });
-  RECOMMENDED_IDS.splice(0,RECOMMENDED_IDS.length,...M.filter(x=>x.recommended).map(x=>x.id));
   const popularIds=(popularity||[]).map(x=>Number(x.dish_public_id)).filter(id=>getItem(id));
   const fallbackNames=Array.isArray(settings?.popular_fallback_names)?settings.popular_fallback_names:['Торт из 7 порций','Бизнес-ланч','Чизбургер (говяжий)','Гиро на тарелке','Пепперони','Бешеный лосось'];
   POPULAR_IDS.splice(0,POPULAR_IDS.length,...(popularIds.length?popularIds.slice(0,6):fallbackNames.map(n=>(M.find(x=>x.n===n)||{}).id).filter(Boolean)));
@@ -469,7 +458,7 @@ async function loadMenuFallback(){
   catch(error){console.warn('Supabase menu fallback',error);await loadMenuFallback();}
   try{
     menuReady=true;
-    restoreCart();rebuildCats();renderPopular();renderRecommended();render();syncFavoritesUi();updatePill();openProductFromUrl();
+    restoreCart();rebuildCats();renderPopular();render();syncFavoritesUi();updatePill();openProductFromUrl();
     trackEvent('menu_view',null,{metadata:{path:location.pathname}});
   }catch(error){
     console.error(error);menuReady=true;
@@ -713,20 +702,6 @@ function renderPopular(){
   renderPopularDots();
   updatePopular();
 }
-function renderRecommended(){
-  const section=document.getElementById('recommendedSection');
-  const host=document.getElementById('recommendedList');
-  if(!section||!host)return;
-  const items=RECOMMENDED_IDS.map(id=>getItem(id)).filter(Boolean).slice(0,8);
-  if(!items.length){section.hidden=true;host.innerHTML='';return;}
-  section.hidden=false;
-  host.innerHTML=items.map(item=>`<div class="recommended-item">
-    <button type="button" class="product-details-btn" onclick="openProd(${item.id},this)" aria-label="Подробнее о ${item.n}"></button>
-    <div class="recommended-img">${item.img?`<img class="product-img" src="${item.img}" alt="${item.n}" loading="lazy" decoding="async">`:foodIcon(item.i)}</div>
-    <div class="recommended-copy"><strong>${item.n}</strong><span>${item.w||''}</span><b>${fmt(item.p)}</b></div>
-    ${cartAddButton(item.id,'recommended-add')}
-  </div>`).join('');
-}
 function setPopular(i){
   popIndex=(i+POPULAR_IDS.length)%POPULAR_IDS.length;
   updatePopular();
@@ -899,44 +874,6 @@ function openCart(skipHistory=false){
   renderCart();syncCartOptionalBlocks();openOv('cartOv');
 }
 
-function getCartRecommendations(){
-  const keys=Object.keys(cart).filter(k=>cart[k]>0);
-  if(!keys.length)return [];
-  const inCart=new Set(keys.map(Number));
-  const smartIds=[];
-  keys.forEach(id=>(recommendationMap.get(Number(id))||[]).forEach(recId=>{if(!inCart.has(recId)&&!smartIds.includes(recId))smartIds.push(recId);}));
-  const smart=smartIds.map(id=>getItem(id)).filter(Boolean).slice(0,3);
-  if(smart.length>=3)return smart;
-  const cats=new Set(keys.map(id=>getItem(id)?.c).filter(Boolean));
-  const names=[];
-  const push=(...values)=>values.forEach(value=>{if(!names.includes(value))names.push(value);});
-  if(cats.has('f'))push('Картошка фри','Сырный соус','Добрый Cola','Чесночный соус');
-  if(cats.has('r')||cats.has('s'))push('Чесночный соус','Добрый Cola','Сырный соус','ST.OM Black Ice Tea (персик)');
-  if(cats.has('z'))push('Сырный соус','Добрый Cola','Чесночный соус','Кисло-сладкий');
-  if(cats.has('a'))push('Добрый Cola','Картошка фри');
-  if(cats.has('d'))push('Сырный соус','Картошка фри');
-  push('Добрый Cola','Сырный соус','Чесночный соус');
-  const fallback=names.map(name=>M.find(item=>item.n===name)).filter(item=>item&&!inCart.has(item.id)&&!smartIds.includes(item.id));
-  return smart.concat(fallback).slice(0,3);
-}
-function renderCartRecommendations(){
-  const host=document.getElementById('cartRecommendations');
-  if(!host)return;
-  const items=getCartRecommendations();
-  if(!items.length){host.innerHTML='';host.hidden=true;return;}
-  host.hidden=false;
-  host.innerHTML=`<section class="cart-recommendations" aria-labelledby="cartRecommendationsTitle">
-    <div class="cart-recommendations-title" id="cartRecommendationsTitle">С этим берут</div>
-    <div class="cart-recommendations-list">
-      ${items.map(item=>`<div class="cart-rec-item">
-        <div class="cart-rec-img">${item.img?`<img src="${item.img}" alt="${item.n}" loading="lazy" decoding="async">`:foodIcon(item.i)}</div>
-        <div class="cart-rec-copy"><strong>${item.n}</strong><span>${fmt(item.p)}</span></div>
-        <button type="button" class="cart-rec-add" onclick="addCart(${item.id})" aria-label="Добавить ${item.n}">${svgIcon('plus','svg-icon')}</button>
-      </div>`).join('')}
-    </div>
-  </section>`;
-}
-
 function renderCart(){
   const keys=Object.keys(cart).filter(k=>cart[k]>0);
   const cartOv=document.getElementById('cartOv');
@@ -970,7 +907,6 @@ function renderCart(){
     </div>`;
   });
   document.getElementById('cartItems').innerHTML=html;
-  renderCartRecommendations();
   const total=keys.reduce((s,id)=>{
     const item=getItem(id);
     return s+(item&&cart[id]?item.p*cart[id]:0);

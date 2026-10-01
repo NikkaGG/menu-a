@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#0f1115">
   <title>Sushi Crazy — управление меню</title>
-  <link rel="stylesheet" href="/admin.css?v=20261001-admin-v3">
+  <link rel="stylesheet" href="/admin.css?v=20261001-no-recommend">
 </head>
 <body>
   <div class="login-screen" id="loginScreen">
@@ -56,9 +56,6 @@
         </button>
         <button class="nav-item" data-section="categories">
           <span class="nav-icon">▦</span><span>Категории</span>
-        </button>
-        <button class="nav-item" data-section="recommendations">
-          <span class="nav-icon">✦</span><span>Рекомендации</span>
         </button>
         <button class="nav-item" data-section="content">
           <span class="nav-icon">✎</span><span>Контент сайта</span>
@@ -186,7 +183,7 @@
             <div class="filter-row">
               <label class="search-control"><span>⌕</span><input id="dishSearch" type="search" placeholder="Найти блюдо"></label>
               <select id="dishCategoryFilter"><option value="">Все категории</option></select>
-              <select id="dishStatusFilter"><option value="">Все</option><option value="visible">Опубликованные</option><option value="hidden">Скрытые</option><option value="recommended">Рекомендуемые</option></select>
+              <select id="dishStatusFilter"><option value="">Все</option><option value="visible">Опубликованные</option><option value="hidden">Скрытые</option></select>
             </div>
             <button class="primary-btn compact" id="newDishBtn">+ Добавить блюдо</button>
           </div>
@@ -200,7 +197,7 @@
           <article class="panel no-pad">
             <div class="table-wrap">
               <table class="data-table dish-table">
-                <thead><tr><th class="check-col"><input type="checkbox" id="selectAllDishes"></th><th>Блюдо</th><th>Категория</th><th>Цена</th><th>Показ</th><th>Рекоменд.</th><th></th></tr></thead>
+                <thead><tr><th class="check-col"><input type="checkbox" id="selectAllDishes"></th><th>Блюдо</th><th>Категория</th><th>Цена</th><th>Показ</th><th></th></tr></thead>
                 <tbody id="dishesBody"></tbody>
               </table>
             </div>
@@ -213,24 +210,6 @@
             <button class="primary-btn compact" id="newCategoryBtn">+ Категория</button>
           </div>
           <div class="sortable-list" id="categoriesList"></div>
-        </section>
-
-        <section class="page-section" id="section-recommendations">
-          <div class="dashboard-grid two">
-            <article class="panel">
-              <div class="panel-head"><div><h2>Блок «Рекомендуем»</h2><p>Владелец выбирает блюда вручную</p></div></div>
-              <div class="recommend-list" id="manualRecommendations"></div>
-            </article>
-            <article class="panel">
-              <div class="panel-head"><div><h2>Автоматические связи</h2><p>Сначала по смыслу категорий, затем усиливаются статистикой совместных действий</p></div></div>
-              <div class="logic-card">
-                <div><strong>Фаст-фуд / Пицца</strong><span>→ напитки и соусы</span></div>
-                <div><strong>Роллы / Сеты</strong><span>→ соусы и напитки</span></div>
-                <div><strong>Поведение</strong><span>→ товары, которые пользователи чаще выбирают вместе</span></div>
-              </div>
-              <p class="muted-note">Автоматические рекомендации начинают с базовой логики и постепенно учитывают накопленную статистику меню.</p>
-            </article>
-          </div>
         </section>
 
         <section class="page-section" id="section-content">
@@ -313,7 +292,6 @@
             </div>
             <div class="toggle-row">
               <label class="switch-line"><input name="is_available" type="checkbox"><span class="switch"></span><span>Показывать блюдо</span></label>
-              <label class="switch-line"><input name="is_recommended" type="checkbox"><span class="switch"></span><span>Добавить в «Рекомендуем»</span></label>
             </div>
 
             <div class="scheduled-box" id="scheduledPriceBox">
@@ -374,6 +352,6 @@
   </div>
 
   <div class="toast-host" id="toastHost"></div>
-  <script src="/admin.js?v=20261001-admin-v3"></script>
+  <script src="/admin.js?v=20261001-no-recommend"></script>
 </body>
 </html>
