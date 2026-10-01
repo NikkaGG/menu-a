@@ -4,115 +4,189 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="theme-color" content="#0f1115">
-  <title>Sushi Crazy — управление меню</title>
+  <meta name="theme-color" content="#0d0f12">
+  <title>Sushi Crazy — Панель управления</title>
   <script>
     (() => {
       try {
         const key = 'menu-admin-theme-v2';
         const saved = localStorage.getItem(key);
-        const theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.dataset.theme = theme;
+        let resolved = 'light';
+        if (saved === 'dark' || saved === 'light') {
+          resolved = saved;
+        } else {
+          resolved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.dataset.themePreference = saved || 'system';
       } catch (_) {
         document.documentElement.dataset.theme = 'light';
+        document.documentElement.dataset.themePreference = 'system';
       }
     })();
   </script>
-  <link rel="stylesheet" href="/admin.css?v=20261001-redesign-v1">
+  <link rel="stylesheet" href="/admin.css?v=20261001-redesign-v2">
 </head>
 <body>
+  <a href="#mainContent" class="skip-link">Перейти к основному содержимому</a>
+
   <div class="login-screen" id="loginScreen">
-    <div class="login-theme-slot"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Переключить тему" title="Переключить тему">
-  <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.3A8.5 8.5 0 0 1 8.7 4a8.5 8.5 0 1 0 11.3 11.3Z"/></svg>
-  <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-  <span class="theme-label">Тёмная</span>
-</button></div>
+    <div class="login-theme-slot">
+      <div class="theme-select-wrap">
+        <label class="theme-select-label" for="loginThemeSelect">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <span class="sr-only">Тема оформления</span>
+        </label>
+        <select id="loginThemeSelect" data-theme-select class="theme-select" aria-label="Тема оформления">
+          <option value="system">Системная тема</option>
+          <option value="light">Светлая тема</option>
+          <option value="dark">Тёмная тема</option>
+        </select>
+      </div>
+    </div>
     <div class="login-card">
       <div class="login-brand">
         <div class="brand-mark">SC</div>
-        <div>
+        <div class="brand-info">
           <strong>Sushi Crazy</strong>
-          <span>Управление меню</span>
+          <span>Панель управления меню</span>
         </div>
       </div>
       <div class="login-copy">
         <h1>Вход в админ-панель</h1>
-        <p>Меняйте блюда, цены, категории и контент сайта без правок кода.</p>
+        <p>Управление меню, ценами, наличием блюд и информацией о заведении.</p>
       </div>
       <form id="loginForm" class="login-form">
-        <label>
-          <span>Пароль</span>
-          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Введите пароль" required>
+        <label class="form-field">
+          <span class="label-text">Пароль администратора</span>
+          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Введите пароль доступа" required>
         </label>
-        <button class="primary-btn" type="submit" id="loginBtn">Войти</button>
-        <div class="form-error" id="loginError" hidden></div>
+        <button class="primary-btn" type="submit" id="loginBtn">Войти в панель</button>
+        <div class="form-error" id="loginError" role="alert" hidden></div>
       </form>
     </div>
   </div>
 
   <div class="admin-app" id="adminApp" hidden>
-    <aside class="sidebar" id="sidebar">
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <aside class="sidebar" id="sidebar" aria-label="Основная навигация">
       <div class="sidebar-brand">
         <div class="brand-mark small">SC</div>
         <div class="sidebar-brand-copy">
           <strong>Sushi Crazy</strong>
-          <span>Admin</span>
+          <span>Панель управления</span>
         </div>
-        <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="Закрыть меню">×</button>
+        <button class="icon-btn sidebar-close" id="sidebarClose" type="button" aria-label="Закрыть меню">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
 
-      <div class="nav-label">Разделы</div>
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-section="dashboard">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span><span>Обзор</span>
-        </button>
-        <button class="nav-item" data-section="analytics">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V11M10 19V5M16 19v-8M22 19V8"/></svg></span><span>Аналитика</span>
-        </button>
-        <button class="nav-item" data-section="dishes">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v13H4z"/><path d="M8 6V4h8v2M8 10h8M8 14h5"/></svg></span><span>Блюда</span>
-        </button>
-        <button class="nav-item" data-section="categories">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span>Категории</span>
-        </button>
-        <button class="nav-item" data-section="content">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></span><span>Контент сайта</span>
-        </button>
-      </nav>
+      <div class="sidebar-scroll">
+        <div class="sidebar-group">
+          <div class="nav-label">Аналитика</div>
+          <nav class="sidebar-nav" aria-label="Аналитика и обзор">
+            <button class="nav-item active" data-section="dashboard" type="button">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+              <span>Обзор</span>
+            </button>
+            <button class="nav-item" data-section="analytics" type="button">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+              <span>Аналитика</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar-group">
+          <div class="nav-label">Управление меню</div>
+          <nav class="sidebar-nav" aria-label="Управление каталогом">
+            <button class="nav-item" data-section="dishes" type="button">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></span>
+              <span>Блюда</span>
+            </button>
+            <button class="nav-item" data-section="categories" type="button">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h7"/></svg></span>
+              <span>Категории</span>
+            </button>
+            <button class="nav-item" data-section="content" type="button">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+              <span>Контент сайта</span>
+            </button>
+          </nav>
+        </div>
+      </div>
 
       <div class="sidebar-foot">
-        <a class="site-link" href="/" target="_blank" rel="noopener">Открыть меню ↗</a>
-        <button class="logout-btn" id="logoutBtn">Выйти</button>
+        <a class="site-link" href="/" target="_blank" rel="noopener">
+          <span>Открыть меню</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        <div class="sidebar-account">
+          <div class="account-badge">
+            <span class="status-dot online" aria-hidden="true"></span>
+            <span class="account-role">Администратор</span>
+          </div>
+          <button class="logout-btn" id="logoutBtn" type="button" title="Выйти из аккаунта">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Выйти</span>
+          </button>
+        </div>
       </div>
     </aside>
 
     <div class="admin-main">
       <header class="topbar">
         <div class="topbar-left">
-          <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Открыть меню">☰</button>
-          <div>
-            <h1 id="pageTitle">Обзор</h1>
+          <button class="icon-btn menu-toggle" id="menuToggle" type="button" aria-label="Открыть навигацию">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="topbar-titles">
+            <nav class="breadcrumb" aria-label="Навигационная цепочка">
+              <span class="breadcrumb-item">Панель управления</span>
+              <span class="breadcrumb-separator" aria-hidden="true">/</span>
+              <span class="breadcrumb-current" id="breadcrumbSection">Обзор</span>
+            </nav>
+            <h1 id="pageTitle" class="topbar-heading">Обзор</h1>
             <div class="topbar-sub" id="pageSub">Главные показатели меню</div>
           </div>
         </div>
         <div class="topbar-actions">
-          <div class="save-indicator" id="saveIndicator">Все изменения сохранены</div>
-          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Переключить тему" title="Переключить тему">
-  <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.3A8.5 8.5 0 0 1 8.7 4a8.5 8.5 0 1 0 11.3 11.3Z"/></svg>
-  <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-  <span class="theme-label">Тёмная</span>
-</button>
-          <button class="secondary-btn compact" id="refreshBtn">Обновить</button>
+          <div class="save-indicator" id="saveIndicator" role="status" aria-live="polite">Все изменения сохранены</div>
+          <div class="theme-select-wrap">
+            <label class="theme-select-label" for="topbarThemeSelect">
+              <svg class="icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+              <span class="sr-only">Тема оформления</span>
+            </label>
+            <select id="topbarThemeSelect" data-theme-select class="theme-select" aria-label="Тема оформления">
+              <option value="system">Системная</option>
+              <option value="light">Светлая</option>
+              <option value="dark">Тёмная</option>
+            </select>
+          </div>
+          <button class="secondary-btn compact" id="refreshBtn" type="button" title="Обновить данные с сервера">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Обновить</span>
+          </button>
         </div>
       </header>
 
-      <main class="content">
-        <section class="page-section active" id="section-dashboard">
+      <div id="loadStatus" class="load-status" role="status" aria-live="polite" hidden>
+        <div class="load-status-inner">
+          <svg class="load-status-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span class="load-status-msg" id="loadStatusMsg">Ошибка загрузки данных</span>
+          <button type="button" class="secondary-btn compact" id="retryLoadBtn">Повторить</button>
+        </div>
+      </div>
+
+      <main class="content" id="mainContent" tabindex="-1">
+        <section class="page-section active" id="section-dashboard" aria-labelledby="dashboardHeading">
+          <h2 id="dashboardHeading" class="sr-only">Обзор и ключевые показатели</h2>
+
           <div class="toolbar-row">
-            <div class="period-switch" data-period-host>
-              <button data-days="1">Сегодня</button>
-              <button data-days="7" class="active">7 дней</button>
-              <button data-days="30">30 дней</button>
+            <div class="period-switch" data-period-host role="group" aria-label="Период аналитики">
+              <button data-days="1" type="button">Сегодня</button>
+              <button data-days="7" class="active" type="button">7 дней</button>
+              <button data-days="30" type="button">30 дней</button>
             </div>
           </div>
 
@@ -121,13 +195,19 @@
           <div class="dashboard-grid two">
             <article class="panel">
               <div class="panel-head">
-                <div><h2>Активность</h2><p>Посещения и действия по дням</p></div>
+                <div>
+                  <h2>Активность</h2>
+                  <p>Уникальные посетители по дням</p>
+                </div>
               </div>
               <div class="line-chart" id="activityChart"></div>
             </article>
             <article class="panel">
               <div class="panel-head">
-                <div><h2>Воронка</h2><p>От открытия меню до WhatsApp</p></div>
+                <div>
+                  <h2>Воронка</h2>
+                  <p>От открытия меню до WhatsApp</p>
+                </div>
               </div>
               <div class="funnel" id="dashboardFunnel"></div>
             </article>
@@ -136,153 +216,420 @@
           <div class="dashboard-grid two">
             <article class="panel">
               <div class="panel-head">
-                <div><h2>Популярные блюда</h2><p>По реальным действиям пользователей</p></div>
-                <button class="text-btn" data-go="analytics">Все данные</button>
+                <div>
+                  <h2>Популярные блюда</h2>
+                  <p>По реальным действиям посетителей</p>
+                </div>
+                <button class="text-btn" data-go="analytics" type="button">Все данные</button>
               </div>
               <div class="rank-list" id="dashboardTopDishes"></div>
             </article>
             <article class="panel">
               <div class="panel-head">
-                <div><h2>Состояние меню</h2><p>Что сейчас опубликовано</p></div>
+                <div>
+                  <h2>Состояние меню</h2>
+                  <p>Что сейчас опубликовано</p>
+                </div>
               </div>
               <div class="health-grid" id="menuHealth"></div>
             </article>
           </div>
         </section>
 
-        <section class="page-section" id="section-analytics">
+        <section class="page-section" id="section-analytics" aria-labelledby="analyticsHeading">
+          <h2 id="analyticsHeading" class="sr-only">Аналитика посетителей</h2>
+
           <div class="toolbar-row analytics-toolbar">
-            <div class="tab-switch" id="analyticsTabs">
-              <button class="active" data-analytics-tab="overview">Общее</button>
-              <button data-analytics-tab="dishes">Блюда</button>
-              <button data-analytics-tab="cart">Корзина</button>
-              <button data-analytics-tab="search">Поиск</button>
-              <button data-analytics-tab="audience">Аудитория</button>
+            <div class="tab-switch" id="analyticsTabs" role="tablist" aria-label="Вкладки аналитики">
+              <button class="active" data-analytics-tab="overview" role="tab" type="button">Общее</button>
+              <button data-analytics-tab="dishes" role="tab" type="button">Блюда</button>
+              <button data-analytics-tab="cart" role="tab" type="button">Корзина</button>
+              <button data-analytics-tab="search" role="tab" type="button">Поиск</button>
+              <button data-analytics-tab="audience" role="tab" type="button">Аудитория</button>
             </div>
-            <div class="period-switch" data-period-host>
-              <button data-days="1">Сегодня</button>
-              <button data-days="7" class="active">7 дней</button>
-              <button data-days="30">30 дней</button>
+            <div class="period-switch" data-period-host role="group" aria-label="Период аналитики">
+              <button data-days="1" type="button">Сегодня</button>
+              <button data-days="7" class="active" type="button">7 дней</button>
+              <button data-days="30" type="button">30 дней</button>
             </div>
           </div>
 
           <div class="analytics-pane active" data-pane="overview">
             <div class="kpi-grid" id="analyticsKpis"></div>
             <div class="dashboard-grid two">
-              <article class="panel"><div class="panel-head"><div><h2>Динамика</h2><p>По выбранному периоду</p></div></div><div class="line-chart" id="analyticsChart"></div></article>
-              <article class="panel"><div class="panel-head"><div><h2>Воронка</h2><p>Ключевые шаги пользователя</p></div></div><div class="funnel" id="analyticsFunnel"></div></article>
+              <article class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>Динамика</h2>
+                    <p>Уникальные посетители за выбранный период</p>
+                  </div>
+                </div>
+                <div class="line-chart" id="analyticsChart"></div>
+              </article>
+              <article class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>Воронка</h2>
+                    <p>Ключевые шаги пользователя</p>
+                  </div>
+                </div>
+                <div class="funnel" id="analyticsFunnel"></div>
+              </article>
             </div>
           </div>
 
           <div class="analytics-pane" data-pane="dishes">
             <article class="panel">
-              <div class="panel-head"><div><h2>Рейтинг блюд</h2><p>Просмотры, избранное, корзина и переходы в WhatsApp</p></div></div>
-              <div class="table-wrap"><table class="data-table"><thead><tr><th>Блюдо</th><th>Просмотры</th><th>Избранное</th><th>Корзина</th><th>WhatsApp</th><th>Конв. в корзину</th></tr></thead><tbody id="dishAnalyticsBody"></tbody></table></div>
+              <div class="panel-head analytics-panel-head">
+                <div>
+                  <h2>Рейтинг блюд</h2>
+                  <p>Просмотры, добавления в корзину и переходы в WhatsApp</p>
+                </div>
+                <div class="analytics-tools">
+                  <label class="search-control compact">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <span class="sr-only">Найти блюдо</span>
+                    <input id="analyticsSearch" type="search" placeholder="Найти блюдо" aria-label="Найти блюдо">
+                  </label>
+                  <label class="filter-field compact">
+                    <span class="filter-label">Сортировка:</span>
+                    <select id="analyticsSort" aria-label="Сортировка статистики блюд">
+                      <option value="score">По общему интересу</option>
+                      <option value="views">По просмотрам</option>
+                      <option value="cart_adds">По корзине</option>
+                      <option value="whatsapp_clicks">По переходам в WhatsApp</option>
+                      <option value="conversion">По конверсии</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Блюдо</th>
+                      <th scope="col">Просмотры</th>
+                      <th scope="col">Избранное</th>
+                      <th scope="col">Корзина</th>
+                      <th scope="col">WhatsApp</th>
+                      <th scope="col">Конв. в корзину</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dishAnalyticsBody"></tbody>
+                </table>
+              </div>
+              <div class="table-footer">
+                <div id="analyticsPagination" class="pagination" role="navigation" aria-label="Пагинация аналитики"></div>
+              </div>
             </article>
           </div>
 
           <div class="analytics-pane" data-pane="cart">
             <div class="kpi-grid" id="cartKpis"></div>
-            <article class="panel"><div class="panel-head"><div><h2>Путь корзины</h2><p>Это поведение на сайте, а не подтверждённые заказы</p></div></div><div class="funnel" id="cartFunnel"></div></article>
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <h2>Путь корзины</h2>
+                  <p>Поведение пользователей на сайте (не подтверждённые заказы)</p>
+                </div>
+              </div>
+              <div class="funnel" id="cartFunnel"></div>
+            </article>
           </div>
 
           <div class="analytics-pane" data-pane="search">
             <div class="dashboard-grid two">
-              <article class="panel"><div class="panel-head"><div><h2>Что ищут</h2><p>Самые частые поисковые запросы</p></div></div><div class="rank-list" id="searchRanking"></div></article>
-              <article class="panel"><div class="panel-head"><div><h2>Категории</h2><p>Интерес по категориям</p></div></div><div class="rank-list" id="categoryRanking"></div></article>
+              <article class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>Что ищут</h2>
+                    <p>Самые частые поисковые запросы</p>
+                  </div>
+                </div>
+                <div class="rank-list" id="searchRanking"></div>
+              </article>
+              <article class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>Категории</h2>
+                    <p>Интерес по категориям меню</p>
+                  </div>
+                </div>
+                <div class="rank-list" id="categoryRanking"></div>
+              </article>
             </div>
           </div>
 
           <div class="analytics-pane" data-pane="audience">
             <div class="dashboard-grid two">
-              <article class="panel"><div class="panel-head"><div><h2>Устройства</h2><p>По открытиям меню</p></div></div><div class="stat-bars" id="deviceStats"></div></article>
-              <article class="panel"><div class="panel-head"><div><h2>Браузеры</h2><p>Среда, в которой открывают меню</p></div></div><div class="stat-bars" id="browserStats"></div></article>
+              <article class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>Устройства</h2>
+                    <p>По открытиям меню</p>
+                  </div>
+                </div>
+                <div class="stat-bars" id="deviceStats"></div>
+              </article>
+              <article class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>Браузеры</h2>
+                    <p>Среда, в которой открывают меню</p>
+                  </div>
+                </div>
+                <div class="stat-bars" id="browserStats"></div>
+              </article>
             </div>
           </div>
         </section>
 
-        <section class="page-section" id="section-dishes">
-          <div class="section-actions">
-            <div class="filter-row">
-              <label class="search-control"><span>⌕</span><input id="dishSearch" type="search" placeholder="Найти блюдо"></label>
-              <select id="dishCategoryFilter"><option value="">Все категории</option></select>
-              <select id="dishStatusFilter"><option value="">Все</option><option value="visible">Опубликованные</option><option value="hidden">Скрытые</option></select>
+        <section class="page-section" id="section-dishes" aria-labelledby="dishesHeading">
+          <div class="section-header">
+            <div>
+              <h2 id="dishesHeading" class="section-title">Каталог блюд</h2>
+              <p class="section-desc">Управление позициями меню, ценами, наличием и расписанием показа.</p>
             </div>
-            <button class="primary-btn compact" id="newDishBtn">+ Добавить блюдо</button>
+            <button class="primary-btn compact" id="newDishBtn" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Добавить блюдо</span>
+            </button>
+          </div>
+
+          <div class="table-toolbar">
+            <div class="filter-row">
+              <label class="search-control">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span class="sr-only">Поиск по блюдам</span>
+                <input id="dishSearch" type="search" placeholder="Найти блюдо..." aria-label="Поиск по блюдам">
+              </label>
+
+              <label class="filter-field">
+                <span class="filter-label">Категория:</span>
+                <select id="dishCategoryFilter" aria-label="Фильтр по категории">
+                  <option value="">Все категории</option>
+                </select>
+              </label>
+
+              <label class="filter-field">
+                <span class="filter-label">Статус:</span>
+                <select id="dishStatusFilter" aria-label="Фильтр по статусу публикации">
+                  <option value="">Все</option>
+                  <option value="visible">Опубликованные</option>
+                  <option value="hidden">Скрытые</option>
+                </select>
+              </label>
+
+              <label class="filter-field">
+                <span class="filter-label">Сортировка:</span>
+                <select id="dishSort" aria-label="Сортировка списка блюд">
+                  <option value="manual">По порядку в меню</option>
+                  <option value="name">По названию (А–Я)</option>
+                  <option value="price_asc">Сначала дешевле</option>
+                  <option value="price_desc">Сначала дороже</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="table-meta-row">
+              <div class="result-count-wrap">
+                <span id="dishResultCount" class="result-count">Загрузка...</span>
+              </div>
+              <div class="page-size-wrap">
+                <label for="dishPageSize" class="page-size-label">Показывать:</label>
+                <select id="dishPageSize" class="page-size-select" aria-label="Количество строк на странице">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="all">Все</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div class="bulk-bar" id="bulkBar" hidden>
-            <strong><span id="bulkCount">0</span> выбрано</strong>
-            <button class="secondary-btn compact" id="bulkPriceBtn">Изменить цены</button>
-            <button class="text-btn" id="bulkClearBtn">Снять выбор</button>
+            <div class="bulk-info">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <strong><span id="bulkCount">0</span> выбрано</strong>
+            </div>
+            <div class="bulk-actions">
+              <button class="secondary-btn compact" id="bulkPriceBtn" type="button">Изменить цены</button>
+              <button class="text-btn" id="bulkClearBtn" type="button">Снять выбор</button>
+            </div>
           </div>
 
-          <article class="panel no-pad">
+          <article class="panel no-pad table-panel">
             <div class="table-wrap">
               <table class="data-table dish-table">
-                <thead><tr><th class="check-col"><input type="checkbox" id="selectAllDishes"></th><th>Блюдо</th><th>Категория</th><th>Цена</th><th>Показ</th><th></th></tr></thead>
+                <thead>
+                  <tr>
+                    <th class="check-col">
+                      <input type="checkbox" id="selectAllDishes" aria-label="Выбрать все найденные блюда">
+                    </th>
+                    <th scope="col">Блюдо</th>
+                    <th scope="col">Категория</th>
+                    <th scope="col">Цена</th>
+                    <th scope="col">Показ</th>
+                    <th scope="col" class="actions-col"><span class="sr-only">Действия</span></th>
+                  </tr>
+                </thead>
                 <tbody id="dishesBody"></tbody>
               </table>
+            </div>
+            <div class="table-footer">
+              <div id="dishPagination" class="pagination" role="navigation" aria-label="Пагинация каталога блюд"></div>
             </div>
           </article>
         </section>
 
-        <section class="page-section" id="section-categories">
-          <div class="section-actions">
-            <div><h2 class="section-title">Категории меню</h2><p class="section-desc">Меняйте порядок перетаскиванием. Скрытая категория исчезает вместе со всеми блюдами.</p></div>
-            <button class="primary-btn compact" id="newCategoryBtn">+ Категория</button>
+        <section class="page-section" id="section-categories" aria-labelledby="categoriesHeading">
+          <div class="section-header">
+            <div>
+              <h2 id="categoriesHeading" class="section-title">Категории меню</h2>
+              <p class="section-desc">Меняйте порядок перетаскиванием. При скрытии категории блюда в ней не отображаются в меню.</p>
+            </div>
+            <button class="primary-btn compact" id="newCategoryBtn" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Категория</span>
+            </button>
           </div>
           <div class="sortable-list" id="categoriesList"></div>
         </section>
 
-        <section class="page-section" id="section-content">
+        <section class="page-section" id="section-content" aria-labelledby="contentHeading">
+          <div class="section-header">
+            <div>
+              <h2 id="contentHeading" class="section-title">Контент сайта</h2>
+              <p class="section-desc">Настройки отображения, контактная информация, график работы и параметры доставки.</p>
+            </div>
+          </div>
+
           <form id="settingsForm">
             <div class="settings-grid">
               <article class="panel form-panel">
-                <div class="panel-head"><div><h2>Основная информация</h2><p>Название и тексты на главной странице</p></div></div>
+                <div class="panel-head">
+                  <div>
+                    <h2>Основная информация</h2>
+                    <p>Название и тексты на главной странице меню</p>
+                  </div>
+                </div>
                 <div class="form-grid">
-                  <label><span>Название заведения</span><input name="restaurant_name"></label>
-                  <label><span>Подзаголовок</span><input name="subtitle"></label>
-                  <label><span>Город</span><input name="city"></label>
-                  <label class="full"><span>Текст доставки</span><textarea name="delivery_text" rows="3"></textarea></label>
-                  <label><span>Открытие</span><input name="schedule_open" type="time"></label>
-                  <label><span>Закрытие</span><input name="schedule_close" type="time"></label>
-                  <label><span>Бесплатная доставка от, ₸</span><input name="free_delivery_from" type="number" min="0"></label>
-                  <label><span>Текст кнопки связи</span><input name="contact_button_text"></label>
+                  <label class="form-field">
+                    <span class="label-text">Название заведения</span>
+                    <input name="restaurant_name" placeholder="Sushi Crazy">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Подзаголовок</span>
+                    <input name="subtitle" placeholder="Доставка свежих роллов и суши">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Город</span>
+                    <input name="city" placeholder="Алматы">
+                  </label>
+                  <label class="form-field full">
+                    <span class="label-text">Текст условий доставки</span>
+                    <textarea name="delivery_text" rows="3" placeholder="Бесплатная доставка от 5 000 ₸. Среднее время — 45 минут."></textarea>
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Время открытия</span>
+                    <input name="schedule_open" type="time">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Время закрытия</span>
+                    <input name="schedule_close" type="time">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Бесплатная доставка от, ₸</span>
+                    <input name="free_delivery_from" type="number" min="0" placeholder="5000">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Текст кнопки связи</span>
+                    <input name="contact_button_text" placeholder="Написать в WhatsApp">
+                  </label>
                 </div>
               </article>
 
               <article class="panel form-panel">
-                <div class="panel-head"><div><h2>Контакты</h2><p>Меняются сразу на публичном меню</p></div></div>
+                <div class="panel-head">
+                  <div>
+                    <h2>Контакты</h2>
+                    <p>Сразу обновляются в публичном меню</p>
+                  </div>
+                </div>
                 <div class="form-grid">
-                  <label><span>WhatsApp</span><input name="whatsapp_number" placeholder="+7..."></label>
-                  <label><span>Телефон</span><input name="phone_number" placeholder="+7..."></label>
-                  <label><span>Instagram</span><input name="instagram_handle"></label>
-                  <label><span>Ссылка Instagram</span><input name="instagram_url" type="url"></label>
-                  <label class="full"><span>Заголовок сообщения WhatsApp</span><input name="whatsapp_order_title"></label>
+                  <label class="form-field">
+                    <span class="label-text">WhatsApp (номер для заказов)</span>
+                    <input name="whatsapp_number" placeholder="+77001234567">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Телефон</span>
+                    <input name="phone_number" placeholder="+77001234567">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Instagram (аккаунт)</span>
+                    <input name="instagram_handle" placeholder="sushicrazy">
+                  </label>
+                  <label class="form-field">
+                    <span class="label-text">Ссылка на Instagram</span>
+                    <input name="instagram_url" type="url" placeholder="https://instagram.com/sushicrazy">
+                  </label>
+                  <label class="form-field full">
+                    <span class="label-text">Заголовок сообщения WhatsApp</span>
+                    <input name="whatsapp_order_title" placeholder="Здравствуйте! Хочу оформить заказ:">
+                  </label>
                 </div>
               </article>
 
               <article class="panel form-panel">
-                <div class="panel-head"><div><h2>Адрес и карты</h2><p>Данные блока с Яндекс Картами</p></div></div>
+                <div class="panel-head">
+                  <div>
+                    <h2>Адрес и карты</h2>
+                    <p>Параметры блока адреса и Яндекс Карт</p>
+                  </div>
+                </div>
                 <div class="form-grid">
-                  <label class="full"><span>Адрес</span><input name="address_text"></label>
-                  <label class="full"><span>Ссылка на Яндекс Карты</span><input name="map_url" type="url"></label>
-                  <label class="full"><span>Ссылка для виджета карты</span><input name="map_embed_url" type="url"></label>
+                  <label class="form-field full">
+                    <span class="label-text">Адрес заведения</span>
+                    <input name="address_text" placeholder="ул. Абая, 150">
+                  </label>
+                  <label class="form-field full">
+                    <span class="label-text">Ссылка на Яндекс Карты</span>
+                    <input name="map_url" type="url" placeholder="https://yandex.kz/maps/...">
+                  </label>
+                  <label class="form-field full">
+                    <span class="label-text">Ссылка для виджета карты</span>
+                    <input name="map_embed_url" type="url" placeholder="https://yandex.ru/map-widget/v1/...">
+                  </label>
                 </div>
               </article>
 
               <article class="panel form-panel">
-                <div class="panel-head"><div><h2>Изображения и популярное</h2><p>Можно использовать пути сайта или публичные URL</p></div></div>
+                <div class="panel-head">
+                  <div>
+                    <h2>Изображения и популярное</h2>
+                    <p>Пути на сайте или внешние публичные URL</p>
+                  </div>
+                </div>
                 <div class="form-grid">
-                  <label class="full"><span>Логотип</span><input name="logo_url" placeholder="/api/branding?type=logo"></label>
-                  <label class="full"><span>Баннер</span><input name="banner_url" placeholder="/api/branding?type=banner"></label>
-                  <label class="full"><span>Популярное по умолчанию</span><textarea name="popular_fallback_names" rows="5" placeholder="Одно блюдо на строку"></textarea></label>
+                  <label class="form-field full">
+                    <span class="label-text">Логотип (URL или путь)</span>
+                    <input name="logo_url" placeholder="/api/branding?type=logo">
+                  </label>
+                  <label class="form-field full">
+                    <span class="label-text">Баннер (URL или путь)</span>
+                    <input name="banner_url" placeholder="/api/branding?type=banner">
+                  </label>
+                  <label class="form-field full">
+                    <span class="label-text">Популярные блюда по умолчанию</span>
+                    <span class="field-hint">Одно название блюда на строку (используется при отсутствии накопленной аналитики)</span>
+                    <textarea name="popular_fallback_names" rows="4" placeholder="Филадельфия классик&#10;Калифорния с крабом&#10;Сет Люкс"></textarea>
+                  </label>
                 </div>
               </article>
             </div>
+
             <div class="sticky-save">
-              <span>Изменения применятся к публичному меню после сохранения.</span>
+              <span class="sticky-save-note">Все изменения применятся к публичному меню сразу после сохранения.</span>
               <button class="primary-btn" type="submit">Сохранить контент</button>
             </div>
           </form>
@@ -291,36 +638,99 @@
     </div>
   </div>
 
-  <div class="modal-backdrop" id="dishModal" hidden>
-    <div class="modal large" role="dialog" aria-modal="true" aria-labelledby="dishModalTitle">
+  <dialog class="modal-backdrop sheet-backdrop" id="dishModal" aria-labelledby="dishModalTitle">
+    <div class="modal large right-sheet" role="document">
       <div class="modal-head">
-        <div><h2 id="dishModalTitle">Блюдо</h2><p id="dishModalSub">Настройки карточки</p></div>
-        <button class="icon-btn" data-close-modal="dishModal">×</button>
+        <div>
+          <h2 id="dishModalTitle">Блюдо</h2>
+          <p id="dishModalSub">Настройки параметров карточки</p>
+        </div>
+        <button class="icon-btn modal-close" type="button" data-close-modal="dishModal" aria-label="Закрыть окно">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <form id="dishForm">
         <input type="hidden" name="id">
         <div class="editor-layout">
           <div class="editor-fields">
             <div class="form-grid">
-              <label class="full"><span>Название</span><input name="name" required></label>
-              <label><span>Категория</span><select name="category_id" required></select></label>
-              <label><span>Цена, ₸</span><input name="price" type="number" min="0" step="1" required></label>
-              <label><span>Старая цена, ₸</span><input name="old_price" type="number" min="0" step="1"></label>
-              <label><span>Вес / объём</span><input name="weight"></label>
-              <label class="full"><span>Описание / состав</span><textarea name="description" rows="6"></textarea></label>
-              <label class="full"><span>Фото в каталоге</span><div class="media-field"><input name="photo_url" placeholder="/assets/... или https://..."><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden><button class="secondary-btn compact" type="button" data-upload-target="photo_url" data-file-input="photoFile">Загрузить</button></div></label>
-              <label class="full"><span>Широкое фото карточки</span><div class="media-field"><input name="detail_image_url" placeholder="/assets/... или https://..."><input id="detailPhotoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden><button class="secondary-btn compact" type="button" data-upload-target="detail_image_url" data-file-input="detailPhotoFile">Загрузить</button></div></label>
-              <label><span>Скрыть с</span><input name="hidden_from" type="datetime-local"></label>
-              <label><span>Вернуть после</span><input name="hidden_until" type="datetime-local"></label>
+              <label class="form-field full">
+                <span class="label-text">Название блюда</span>
+                <input name="name" required placeholder="Например: Филадельфия с лососем">
+              </label>
+              <label class="form-field">
+                <span class="label-text">Категория</span>
+                <select name="category_id" required>
+                  <option value="" disabled selected>Выберите категорию</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span class="label-text">Цена, ₸</span>
+                <input name="price" type="number" min="0" step="1" required placeholder="2500">
+              </label>
+              <label class="form-field">
+                <span class="label-text">Старая цена, ₸</span>
+                <span class="field-hint">Для скидочного бейджа</span>
+                <input name="old_price" type="number" min="0" step="1" placeholder="3000">
+              </label>
+              <label class="form-field">
+                <span class="label-text">Вес / объём</span>
+                <span class="field-hint">Например: 280 г (8 шт)</span>
+                <input name="weight" placeholder="280 г">
+              </label>
+              <label class="form-field full">
+                <span class="label-text">Описание / состав</span>
+                <textarea name="description" rows="5" placeholder="Состав: лосось слабосолёный, сливочный сыр Cremette, огурец, рис, нори..."></textarea>
+              </label>
+              <label class="form-field full">
+                <span class="label-text">Фото в каталоге</span>
+                <div class="media-field">
+                  <input name="photo_url" placeholder="/assets/... или https://...">
+                  <input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+                  <button class="secondary-btn compact" type="button" data-upload-target="photo_url" data-file-input="photoFile">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>Загрузить</span>
+                  </button>
+                </div>
+              </label>
+              <label class="form-field full">
+                <span class="label-text">Широкое фото карточки</span>
+                <div class="media-field">
+                  <input name="detail_image_url" placeholder="/assets/... или https://...">
+                  <input id="detailPhotoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+                  <button class="secondary-btn compact" type="button" data-upload-target="detail_image_url" data-file-input="detailPhotoFile">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>Загрузить</span>
+                  </button>
+                </div>
+              </label>
+              <label class="form-field">
+                <span class="label-text">Скрыть с даты</span>
+                <input name="hidden_from" type="datetime-local">
+              </label>
+              <label class="form-field">
+                <span class="label-text">Вернуть после</span>
+                <input name="hidden_until" type="datetime-local">
+              </label>
             </div>
+
             <div class="toggle-row">
-              <label class="switch-line"><input name="is_available" type="checkbox"><span class="switch"></span><span>Показывать блюдо</span></label>
+              <label class="switch-line">
+                <input name="is_available" type="checkbox">
+                <span class="switch" aria-hidden="true"></span>
+                <span class="switch-text">Показывать блюдо в меню</span>
+              </label>
             </div>
 
             <div class="scheduled-box" id="scheduledPriceBox">
-              <div><strong>Отложенная цена</strong><span id="scheduledPriceStatus">Не запланирована</span></div>
+              <div class="scheduled-box-head">
+                <strong>Отложенная цена</strong>
+                <span id="scheduledPriceStatus" class="status-badge">Не запланирована</span>
+              </div>
               <div class="inline-fields">
-                <input id="schedulePriceValue" type="number" min="0" placeholder="Новая цена">
+                <label class="sr-only" for="schedulePriceValue">Новая цена</label>
+                <input id="schedulePriceValue" type="number" min="0" placeholder="Новая цена, ₸">
+                <label class="sr-only" for="schedulePriceDate">Дата и время изменения цены</label>
                 <input id="schedulePriceDate" type="datetime-local">
                 <button class="secondary-btn compact" id="schedulePriceBtn" type="button">Запланировать</button>
               </div>
@@ -328,53 +738,112 @@
             </div>
 
             <details class="history-box" id="priceHistoryBox">
-              <summary>История цены</summary>
-              <div id="priceHistoryList"></div>
+              <summary><span>История цены</span></summary>
+              <div id="priceHistoryList" class="price-history-list"></div>
             </details>
           </div>
 
-          <aside class="preview-panel">
+          <aside class="preview-panel" aria-label="Предпросмотр карточки блюда">
             <div class="preview-label">Предпросмотр</div>
             <div class="dish-preview" id="dishPreview"></div>
           </aside>
         </div>
+
         <div class="modal-actions">
           <button class="secondary-btn" type="button" data-close-modal="dishModal">Отмена</button>
           <button class="primary-btn" type="submit">Сохранить блюдо</button>
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
-  <div class="modal-backdrop" id="categoryModal" hidden>
-    <div class="modal small" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
-      <div class="modal-head"><div><h2 id="categoryModalTitle">Категория</h2><p>Название и отображение</p></div><button class="icon-btn" data-close-modal="categoryModal">×</button></div>
+  <dialog class="modal-backdrop" id="categoryModal" aria-labelledby="categoryModalTitle">
+    <div class="modal small" role="document">
+      <div class="modal-head">
+        <div>
+          <h2 id="categoryModalTitle">Категория</h2>
+          <p>Название и параметры отображения</p>
+        </div>
+        <button class="icon-btn modal-close" type="button" data-close-modal="categoryModal" aria-label="Закрыть окно">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <form id="categoryForm">
         <input type="hidden" name="id">
         <div class="form-grid single">
-          <label><span>Название</span><input name="name" required></label>
-          <label><span>Slug</span><input name="slug" placeholder="pizza"></label>
-          <label class="switch-line"><input name="is_visible" type="checkbox"><span class="switch"></span><span>Показывать категорию</span></label>
+          <label class="form-field">
+            <span class="label-text">Название</span>
+            <input name="name" required placeholder="Например: Сеты и комбо">
+          </label>
+          <label class="form-field">
+            <span class="label-text">Slug (латиница)</span>
+            <span class="field-hint">Используется в URL фильтрации меню</span>
+            <input name="slug" placeholder="sets">
+          </label>
+          <label class="switch-line">
+            <input name="is_visible" type="checkbox">
+            <span class="switch" aria-hidden="true"></span>
+            <span class="switch-text">Показывать категорию в меню</span>
+          </label>
         </div>
-        <div class="modal-actions"><button class="secondary-btn" type="button" data-close-modal="categoryModal">Отмена</button><button class="primary-btn" type="submit">Сохранить</button></div>
+        <div class="modal-actions">
+          <button class="secondary-btn" type="button" data-close-modal="categoryModal">Отмена</button>
+          <button class="primary-btn" type="submit">Сохранить категорию</button>
+        </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
-  <div class="modal-backdrop" id="bulkPriceModal" hidden>
-    <div class="modal small" role="dialog" aria-modal="true" aria-labelledby="bulkPriceTitle">
-      <div class="modal-head"><div><h2 id="bulkPriceTitle">Изменить цены</h2><p>Для выбранных блюд</p></div><button class="icon-btn" data-close-modal="bulkPriceModal">×</button></div>
+  <dialog class="modal-backdrop" id="bulkPriceModal" aria-labelledby="bulkPriceTitle">
+    <div class="modal small" role="document">
+      <div class="modal-head">
+        <div>
+          <h2 id="bulkPriceTitle">Массовое изменение цен</h2>
+          <p>Для выбранных позиций меню</p>
+        </div>
+        <button class="icon-btn modal-close" type="button" data-close-modal="bulkPriceModal" aria-label="Закрыть окно">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <form id="bulkPriceForm">
         <div class="form-grid single">
-          <label><span>Способ</span><select name="mode"><option value="add">Прибавить / вычесть сумму</option><option value="percent">Изменить на процент</option><option value="set">Установить одну цену</option></select></label>
-          <label><span>Значение</span><input name="value" type="number" step="1" required placeholder="Например: 200 или -5"></label>
+          <label class="form-field">
+            <span class="label-text">Способ изменения</span>
+            <select name="mode">
+              <option value="add">Прибавить / вычесть сумму (₸)</option>
+              <option value="percent">Изменить на процент (%)</option>
+              <option value="set">Установить фиксированную цену (₸)</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span class="label-text">Значение</span>
+            <input name="value" type="number" step="1" required placeholder="Например: 200 или -10">
+          </label>
         </div>
-        <div class="modal-actions"><button class="secondary-btn" type="button" data-close-modal="bulkPriceModal">Отмена</button><button class="primary-btn" type="submit">Применить</button></div>
+        <div class="modal-actions">
+          <button class="secondary-btn" type="button" data-close-modal="bulkPriceModal">Отмена</button>
+          <button class="primary-btn" type="submit">Применить изменения</button>
+        </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
-  <div class="toast-host" id="toastHost"></div>
-  <script src="/admin.js?v=20261001-redesign-v1"></script>
+  <dialog class="modal-backdrop confirm-backdrop" id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmDescription">
+    <div class="modal small confirm-modal" role="document">
+      <div class="modal-head">
+        <div>
+          <h2 id="confirmTitle" class="confirm-title">Подтверждение действия</h2>
+          <p id="confirmDescription" class="confirm-description">Вы уверены, что хотите выполнить это действие?</p>
+        </div>
+      </div>
+      <div class="modal-actions confirm-actions">
+        <button class="secondary-btn" type="button" id="confirmCancel">Отмена</button>
+        <button class="primary-btn danger-btn" type="button" id="confirmAccept">Подтвердить</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast-host" id="toastHost" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="/admin.js?v=20261001-redesign-v2"></script>
 </body>
 </html>
