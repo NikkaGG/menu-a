@@ -3,6 +3,27 @@
 const SB='https://osyphouhtjanfoujcbid.supabase.co';
 const KEY='sb_publishable_FJcKpYUD2sH6Ai2psVe97Q_59HenbRO';
 const TK='menu-admin-token-v1', CK='menu-admin-client-v1';
+
+const THEME_KEY='menu-admin-theme-v2';
+function currentTheme(){return document.documentElement.dataset.theme==='dark'?'dark':'light'}
+function syncThemeControls(){
+  const dark=currentTheme()==='dark';
+  $('[data-theme-toggle]').forEach(btn=>{
+    const label=btn.querySelector('.theme-label');
+    if(label)label.textContent=dark?'Светлая':'Тёмная';
+    btn.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');
+    btn.setAttribute('title',dark?'Включить светлую тему':'Включить тёмную тему');
+  });
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta)meta.setAttribute('content',dark?'#0d0f12':'#f5f6f8');
+}
+function applyTheme(theme,persist=true){
+  const next=theme==='dark'?'dark':'light';
+  document.documentElement.dataset.theme=next;
+  if(persist){try{localStorage.setItem(THEME_KEY,next)}catch{}}
+  syncThemeControls();
+}
+function toggleTheme(){applyTheme(currentTheme()==='dark'?'light':'dark')}
 const S={token:sessionStorage.getItem(TK)||'',days:7,data:null,selected:new Set(),q:'',cat:'',status:'',dragDish:null,dragCat:null};
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -87,6 +108,7 @@ async function uploadDishImage(file,targetName,button){
   }
 }
 function init(){
+  $('[data-theme-toggle]').forEach(btn=>btn.onclick=toggleTheme);syncThemeControls();
   $('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginError').hidden=true;$('#loginBtn').disabled=true;try{await login($('#loginPassword').value)}catch(x){$('#loginError').textContent=x.message;$('#loginError').hidden=false}finally{$('#loginBtn').disabled=false}};
   $('#logoutBtn').onclick=logout;$('#refreshBtn').onclick=()=>load(S.days).then(()=>toast('Данные обновлены')).catch(e=>toast(e.message,'error'));
   $('#menuToggle').onclick=()=>document.body.classList.add('sidebar-open');$('#sidebarClose').onclick=()=>document.body.classList.remove('sidebar-open');
