@@ -997,7 +997,8 @@ html[data-theme="dark"] .tab-switch {
 html[data-theme="dark"] .period-switch button.active,
 html[data-theme="dark"] .tab-switch button.active,
 html[data-theme="dark"] .period-switch button[aria-pressed="true"],
-html[data-theme="dark"] .tab-switch button[aria-pressed="true"],html[data-theme="dark"] .tab-switch button[aria-selected="true"] {
+html[data-theme="dark"] .tab-switch button[aria-pressed="true"],
+html[data-theme="dark"] .tab-switch button[aria-selected="true"] {
   background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
@@ -1996,7 +1997,8 @@ div.modal-backdrop {
     flex-direction: column;
     padding: 24px 28px;
     overflow: hidden;
-  }  #dishModal #dishForm {
+  }
+  #dishModal #dishForm {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -2995,7 +2997,8 @@ html[data-theme="dark"] .toast {
     grid-template-columns: 90px 1fr auto;
     gap: 8px;
   }
-  .funnel-label {    font-size: 12px;
+  .funnel-label {
+    font-size: 12px;
   }
   .media-field {
     grid-template-columns: 1fr;
