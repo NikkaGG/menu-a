@@ -3072,3 +3072,658 @@ html[data-theme="dark"] .toast {
     outline: 2px solid Highlight;
   }
 }
+
+/* ==========================================================================
+   17. CLARITY & DENSITY POLISH — 2026-10-01
+   Goal: clearer hierarchy, tighter spacing, calmer surfaces, predictable layout.
+   ========================================================================== */
+:root {
+  --admin-sidebar-w: 232px;
+  --admin-content-max: 1480px;
+  --admin-gap: 16px;
+  --admin-gap-sm: 10px;
+  --admin-control-h: 38px;
+}
+
+/* Workspace shell: less decorative chrome, more usable space */
+.sidebar {
+  width: var(--admin-sidebar-w);
+  padding: 14px 12px 12px;
+  border-radius: 0;
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
+  box-shadow: none;
+}
+
+.admin-main {
+  margin-left: var(--admin-sidebar-w);
+  padding: 0;
+  min-width: 0;
+}
+
+.sidebar-brand {
+  min-height: 48px;
+  padding: 2px 4px 12px;
+  margin-bottom: 8px;
+}
+
+.sidebar-brand-copy strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.sidebar-brand-copy span {
+  margin-top: 2px;
+  font-size: 11.5px;
+}
+
+.sidebar-scroll {
+  gap: 12px;
+  padding: 2px 0 8px;
+}
+
+.sidebar-group {
+  gap: 4px;
+}
+
+.nav-label {
+  margin: 0;
+  padding: 6px 10px 4px;
+  font-size: 10.5px;
+  line-height: 1.2;
+  letter-spacing: .06em;
+}
+
+.sidebar-nav {
+  gap: 3px;
+}
+
+.nav-item {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.nav-item .nav-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-foot {
+  padding-top: 10px;
+  gap: 8px;
+}
+
+.site-link,
+.logout-btn {
+  min-height: 36px;
+  border-radius: 9px;
+}
+
+.sidebar-account {
+  padding-top: 8px;
+  margin-top: 0;
+}
+
+/* Header: one clear title line, no repeated breadcrumb noise */
+.topbar {
+  top: 0;
+  min-height: 68px;
+  margin: 0;
+  padding: 10px 24px;
+  border-radius: 0;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  box-shadow: none;
+}
+
+.breadcrumb {
+  display: none;
+}
+
+.topbar-left,
+.topbar-titles {
+  min-width: 0;
+}
+
+.topbar-heading,
+.topbar h1 {
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+}
+
+.topbar-sub {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.topbar-actions {
+  gap: 8px;
+}
+
+.save-indicator {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.theme-select,
+.topbar-actions .secondary-btn {
+  min-height: var(--admin-control-h);
+  height: var(--admin-control-h);
+}
+
+.theme-select {
+  border-radius: 9px;
+}
+
+.topbar-actions .secondary-btn {
+  padding: 0 12px;
+}
+
+/* Main content rhythm */
+.content {
+  width: min(100%, var(--admin-content-max));
+  margin: 0 auto;
+  padding: 20px 24px 44px;
+}
+
+.page-section.active {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gap);
+}
+
+.page-section.active > *,
+.analytics-pane.active > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.analytics-pane.active {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gap);
+}
+
+.toolbar-row {
+  min-height: 40px;
+  margin: 0;
+  gap: 10px;
+}
+
+.section-header {
+  margin: 0;
+  min-height: 48px;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: -.015em;
+}
+
+.section-desc {
+  margin: 4px 0 0;
+  max-width: 760px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Consistent cards */
+.panel,
+.kpi-card,
+.table-toolbar,
+.table-panel,
+.settings-card {
+  box-shadow: none;
+}
+
+.panel {
+  padding: 17px;
+  border-radius: 13px;
+}
+
+.panel-head {
+  margin-bottom: 13px;
+  gap: 12px;
+}
+
+.panel-head h2 {
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.panel-head p {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.kpi-grid {
+  gap: 12px;
+}
+
+.kpi-card {
+  min-height: 94px;
+  padding: 14px 15px;
+  border-radius: 12px;
+}
+
+.kpi-label {
+  font-size: 12.5px;
+}
+
+.kpi-value {
+  margin: 8px 0 3px;
+  font-size: 27px;
+  line-height: 1.05;
+}
+
+.kpi-note {
+  font-size: 11.5px;
+}
+
+.dashboard-grid,
+.dashboard-grid.two,
+.settings-grid {
+  gap: var(--admin-gap);
+}
+
+/* Segmented controls */
+.period-switch,
+.tab-switch {
+  padding: 3px;
+  border-radius: 10px;
+}
+
+.period-switch button,
+.tab-switch button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 12.5px;
+}
+
+/* Dishes: filters are a tidy grid instead of a loose toolbar */
+.table-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 13px;
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.65fr) repeat(3, minmax(150px, 1fr));
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+}
+
+.filter-row .search-control,
+.filter-row .filter-field {
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-row .filter-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-row input,
+.filter-row select,
+.search-control.compact input,
+.analytics-tools select {
+  min-height: var(--admin-control-h);
+  height: var(--admin-control-h);
+}
+
+.table-meta-row {
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  gap: 10px;
+}
+
+.result-count-wrap,
+.page-size-wrap {
+  min-height: 32px;
+}
+
+.bulk-bar {
+  margin: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.table-wrap {
+  border-radius: 10px;
+}
+
+.data-table {
+  font-size: 12.5px;
+}
+
+.data-table th {
+  padding: 9px 11px;
+  font-size: 11.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 11px;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+
+.data-table tbody tr {
+  transition: background-color .12s ease;
+}
+
+.data-table tbody tr:hover {
+  background: var(--muted);
+}
+
+.actions-col {
+  width: 120px;
+}
+
+.table-footer {
+  margin-top: 10px;
+  gap: 8px;
+}
+
+/* Categories: each row reads as one compact unit */
+.category-list {
+  gap: 8px;
+}
+
+.category-row {
+  min-height: 54px;
+  padding: 9px 11px;
+  border-radius: 10px;
+}
+
+.category-copy strong {
+  font-size: 13.5px;
+}
+
+.category-copy span {
+  margin-top: 2px;
+  font-size: 11.5px;
+}
+
+/* Settings/content: clear 2-column form system */
+.settings-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.settings-grid .panel {
+  padding: 17px;
+}
+
+.form-grid {
+  gap: 12px;
+}
+
+.form-field {
+  gap: 5px;
+}
+
+.label-text {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.field-hint {
+  margin-top: -1px;
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+input,
+select,
+textarea {
+  border-radius: 9px;
+}
+
+input,
+select {
+  min-height: var(--admin-control-h);
+}
+
+textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.sticky-save {
+  bottom: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+}
+
+.sticky-save-note {
+  line-height: 1.35;
+}
+
+/* Editor sheet: less empty space, clearer separation */
+.modal,
+.modal.large,
+.modal.small {
+  border-radius: 16px;
+}
+
+.modal-head {
+  padding-bottom: 13px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head h2 {
+  font-size: 18px;
+}
+
+.modal-head p {
+  margin-top: 3px;
+  font-size: 12.5px;
+}
+
+#dishModal .modal {
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100vh - 24px);
+}
+
+.editor-layout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(250px, .55fr);
+  gap: 18px;
+}
+
+.preview-panel {
+  padding-left: 18px;
+}
+
+.dish-preview {
+  top: 0;
+}
+
+.scheduled-box,
+.history-box {
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.toggle-row {
+  margin-top: 12px;
+}
+
+.modal-actions {
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid var(--border);
+}
+
+/* Analytics tools stay compact and aligned */
+.analytics-toolbar,
+.analytics-panel-head {
+  gap: 10px;
+}
+
+.analytics-panel-head {
+  margin-bottom: 12px;
+}
+
+.analytics-tools {
+  gap: 7px;
+}
+
+/* Desktop polish for medium widths */
+@media (max-width: 1240px) {
+  .filter-row {
+    grid-template-columns: minmax(240px, 1.4fr) repeat(2, minmax(160px, 1fr));
+  }
+
+  .filter-row .filter-field:last-child {
+    grid-column: span 1;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1040px) {
+  .filter-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filter-row .search-control {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Mobile: preserve hierarchy and avoid cramped two-column cards */
+@media (max-width: 900px) {
+  .admin-main {
+    margin-left: 0;
+  }
+
+  .content {
+    width: 100%;
+    padding: 16px 16px 48px;
+  }
+
+  .topbar {
+    padding: 9px 16px;
+  }
+
+  .page-section.active,
+  .analytics-pane.active {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 780px) {
+  .content {
+    padding: 14px 12px 52px;
+  }
+
+  .section-header {
+    align-items: stretch;
+    gap: 9px;
+  }
+
+  .section-header > .primary-btn {
+    align-self: flex-start;
+  }
+
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-row .search-control {
+    grid-column: auto;
+  }
+
+  .filter-row .filter-field {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .table-toolbar {
+    padding: 10px;
+  }
+
+  .table-meta-row {
+    align-items: center;
+  }
+
+  #dishModal .modal {
+    max-height: 94vh;
+  }
+
+  .editor-layout {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 520px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-card {
+    min-height: 82px;
+  }
+
+  .health-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-sub {
+    display: none;
+  }
+
+  .topbar {
+    min-height: 56px;
+  }
+
+  .filter-row .filter-field {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .filter-label {
+    font-size: 11.5px;
+  }
+
+  .sticky-save-note {
+    display: none;
+  }
+
+  .sticky-save {
+    bottom: 6px;
+  }
+}
