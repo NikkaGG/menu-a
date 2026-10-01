@@ -101,8 +101,8 @@ function init(){
   $('#dishForm').onsubmit=e=>{e.preventDefault();saveDish().catch(x=>toast(x.message,'error'))};$('#dishForm').oninput=preview;
   $('#categoryForm').onsubmit=e=>{e.preventDefault();saveCat().catch(x=>toast(x.message,'error'))};$('#bulkPriceForm').onsubmit=e=>{e.preventDefault();bulkPrice().catch(x=>toast(x.message,'error'))};$('#settingsForm').onsubmit=e=>{e.preventDefault();saveSettings().catch(x=>toast(x.message,'error'))};
   $('#schedulePriceBtn').onclick=()=>schedule().catch(e=>toast(e.message,'error'));$('#cancelScheduledPriceBtn').onclick=()=>cancelSchedule().catch(e=>toast(e.message,'error'));
-  $('[data-upload-target]').forEach(btn=>{const input=$('#'+btn.dataset.fileInput);btn.onclick=()=>input.click();input.onchange=()=>{const file=input.files&&input.files[0];if(file)uploadDishImage(file,btn.dataset.uploadTarget,btn).finally(()=>{input.value=''})}});
-  $('[data-close-modal]').forEach(b=>b.onclick=()=>closeModal(b.dataset.closeModal));$$('.modal-backdrop').forEach(m=>m.onmousedown=e=>{if(e.target===m)closeModal(m.id)});
+  $$('[data-upload-target]').forEach(btn=>{const input=$('#'+btn.dataset.fileInput);btn.onclick=()=>input.click();input.onchange=()=>{const file=input.files&&input.files[0];if(file)uploadDishImage(file,btn.dataset.uploadTarget,btn).finally(()=>{input.value=''})}});
+  $$('[data-close-modal]').forEach(b=>b.onclick=()=>closeModal(b.dataset.closeModal));$$('.modal-backdrop').forEach(m=>m.onmousedown=e=>{if(e.target===m)closeModal(m.id)});
   document.onkeydown=e=>{if(e.key==='Escape'){const m=$$('.modal-backdrop').find(x=>!x.hidden);if(m)closeModal(m.id);else document.body.classList.remove('sidebar-open')}};
 }
 init();if(S.token)boot().catch(e=>forceLogout(e.message));
